@@ -286,6 +286,18 @@
 .faction-bar{ position:relative; overflow:hidden; }
 .faction-fill{ position:absolute; top:0; left:50%; height:100%; }
 .zero-line{ position:absolute; left:50%; top:-2px; bottom:-2px; width:1px; background:rgba(0,0,0,0.35); }
+
+
+/* Disabled policies (prerequisites / advisor requirements not met) */
+.policy-card.disabled{ opacity:0.42; filter:grayscale(70%); cursor:not-allowed; transform:none !important; }
+.policy-card.disabled:hover{ background:var(--cream); transform:none; }
+.policy-card .policy-locked{ margin-top:8px; font-size:10px; opacity:0.9; color:var(--red-dark); font-style:italic; }
+
+/* Advisors who resigned */
+.advisor-card.resigned{ opacity:0.45; filter:grayscale(90%); cursor:default; transform:none !important; }
+.advisor-card.resigned:hover{ transform:none; }
+.advisor-card .advisor-status{ font-size:10px; letter-spacing:.08em; text-transform:uppercase; margin-top:6px; opacity:0.85; }
+
 </style>
 </head>
 <body>
@@ -359,6 +371,18 @@
       <div class="intl-row"><span class="intl-name">Western Europe</span><div class="intl-bar"><div class="intl-fill" id="if-we" style="width:50%;background:var(--gold);"></div></div><span class="intl-val neu" id="iv-we">0</span></div>
       <div class="intl-row"><span class="intl-name">Non-Aligned</span><div class="intl-bar"><div class="intl-fill" id="if-na" style="width:50%;background:var(--gold);"></div></div><span class="intl-val neu" id="iv-na">0</span></div>
     </div>
+
+<!-- SYSTEM PRESSURES (GDD v2) -->
+<div style="margin-top:1rem;">
+  <div class="section-title" style="font-size:10px;">System Pressures</div>
+  <div class="intl-row"><span class="intl-name">Separatism</span><div class="intl-bar"><div class="intl-fill" id="sep-bar" style="width:50%;background:var(--gold);"></div></div><span class="intl-val neu" id="sep-val">0</span></div>
+  <div class="intl-row"><span class="intl-name">Combat Readiness</span><div class="intl-bar"><div class="intl-fill" id="combat-bar" style="width:50%;background:var(--gold);"></div></div><span class="intl-val neu" id="combat-val">0</span></div>
+  <div class="intl-row"><span class="intl-name">Military Loyalty</span><div class="intl-bar"><div class="intl-fill" id="mloyalty-bar" style="width:50%;background:var(--gold);"></div></div><span class="intl-val neu" id="mloyalty-val">0</span></div>
+  <div class="intl-row"><span class="intl-name">Reform Faction</span><div class="intl-bar"><div class="intl-fill" id="pf-reform-bar" style="width:50%;background:var(--gold);"></div></div><span class="intl-val neu" id="pf-reform-val">0</span></div>
+  <div class="intl-row"><span class="intl-name">Moderate Faction</span><div class="intl-bar"><div class="intl-fill" id="pf-mod-bar" style="width:50%;background:var(--gold);"></div></div><span class="intl-val neu" id="pf-mod-val">0</span></div>
+  <div class="intl-row"><span class="intl-name">Hardliner Faction</span><div class="intl-bar"><div class="intl-fill" id="pf-hard-bar" style="width:50%;background:var(--gold);"></div></div><span class="intl-val neu" id="pf-hard-val">0</span></div>
+</div>
+
 <!-- HISTORY LOG -->
     <div class="history-log" id="history-log">
       <div class="log-entry"><span class="log-turn">Turn 1 (March 1985)</span><span class="log-text">Game started. Gorbachev in power.</span></div>
@@ -421,9 +445,7 @@
       <div class="section-title panel-header">Available Policies</div>
   <div id="policy-selection" style="margin:10px 2px 10px; display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
   <span style="font-family:'IM Fell English',serif; font-size:13px; opacity:.85;">Selected this turn: <strong id="policy-selected-count">0</strong>/3</span>
-  <span style="font-family:'IM Fell English',serif; font-size:13px; opacity:.85;">Predicted cost: <strong id="policy-predicted-cost">0</strong></span>
-  <span class="budget-badge">Budget: <strong id="budget-inline">100</strong></span>
-  <button class="btn" onclick="endTurn()" style="padding:4px 10px;">End Turn</button>
+  <span style="font-family:'IM Fell English',serif; font-size:13px; opacity:.85;">Predicted cost: <strong id="policy-predicted-cost">0</strong></span><button class="btn" onclick="endTurn()" style="padding:4px 10px;">End Turn</button>
   <button class="btn" onclick="clearPolicySelection()" style="padding:4px 10px;">Clear</button>
 </div>
 
@@ -532,6 +554,9 @@ const gameState = {
 
   // History log
   history: [],
+  completedPolicies: [],
+  rngSeed: 123456789,
+  coup: { risk: 0, lastAttemptTurn: null },
 };
 
 
@@ -575,6 +600,184 @@ const OIL_BRENT_MONTHLY = {
   1990: [21.25, 19.81, 18.39, 16.61, 16.35, 15.10, 17.17, 27.17, 34.90, 36.02, 33.07, 28.27],
   1991: [23.57, 19.54, 19.08, 19.18, 19.19, 18.17, 19.40, 19.77, 20.50, 22.21, 21.11, 18.41],
 };
+
+
+// ===== Engine helpers: deterministic RNG + policy tree + coup risk =====
+function seededRandom(){
+  // simple LCG: deterministic across runs for debugging
+  gameState.rngSeed = (Math.imul(1664525, gameState.rngSeed) + 1013904223) >>> 0;
+  return gameState.rngSeed / 4294967296;
+}
+
+function isPolicyCompleted(pid){
+  return (gameState.completedPolicies || []).includes(pid);
+}
+function policyPrereqsMet(policy){
+  const reqs = policy.prerequisites || [];
+  return !reqs.some(r => !isPolicyCompleted(r));
+}
+function advisorIsActive(advisorId){
+  const a = advisors.find(x => x.id === advisorId);
+  return !!a && !a.resigned;
+}
+function policyAdvisorReqMet(policy){
+  if (!policy.advisorRequired) return true;
+  return advisorIsActive(policy.advisorRequired);
+}
+
+function policyTier(policyId, memo){
+  memo = memo || {};
+  if (memo[policyId] != null) return memo[policyId];
+  const p = policies.find(x => x.id === policyId);
+  if (!p) return memo[policyId] = 0;
+  const reqs = p.prerequisites || [];
+  if (!reqs.length) return memo[policyId] = 0;
+  const tiers = reqs.map(r => policyTier(r, memo));
+  const t = (Math.max.apply(null, tiers) + 1) || 1;
+  memo[policyId] = t;
+  return t;
+}
+
+function applyAdvisorLoyaltyFromPolicy(policy){
+  // Explicit per-advisor impacts (preferred)
+  if (policy.advisorImpact && typeof policy.advisorImpact === 'object') {
+    Object.entries(policy.advisorImpact).forEach(([aid, delta]) => {
+      if (gameState.advisorLoyalty[aid] == null) return;
+      const prev = Number(gameState.advisorLoyalty[aid] ?? 50);
+      const next = clamp(prev + Number(delta || 0), 0, 100);
+      gameState.advisorLoyalty[aid] = next;
+      addLog(`Advisor: ${aid} loyalty ${delta>0?'+':''}${delta} → ${next}`);
+    });
+  }
+
+  // Opposition list (fallback)
+  (policy.advisorOpposition || []).forEach(aid => {
+    if (gameState.advisorLoyalty[aid] == null) return;
+    gameState.advisorLoyalty[aid] = clamp(Number(gameState.advisorLoyalty[aid]) - 5, 0, 100);
+  });
+
+  // Bonus for required advisor (they feel empowered)
+  if (policy.advisorRequired && gameState.advisorLoyalty[policy.advisorRequired] != null) {
+    gameState.advisorLoyalty[policy.advisorRequired] = clamp(Number(gameState.advisorLoyalty[policy.advisorRequired]) + 2, 0, 100);
+  }
+
+  // Light faction-based drift (prevents inert system)
+  const eff = policy.effects || {};
+  advisors.forEach(a => {
+    if (a.resigned) return;
+    if (gameState.advisorLoyalty[a.id] == null) return;
+
+    let d = 0;
+    if (a.faction === 'Reformist') {
+      if (Number(eff.popularSupport || 0) > 0) d += 1;
+      if (Number(eff.foreignRelations || 0) > 0) d += 1;
+      if (Number(eff.partyUnity || 0) < 0) d += 1;
+    }
+    if (a.faction === 'Conservative') {
+      if (Number(eff.partyUnity || 0) < 0) d -= 2;
+      if (Number(eff.stability || 0) < 0) d -= 1;
+    }
+    if (a.faction === 'Military') {
+      if (Number(eff.militaryReadiness || 0) < 0) d -= 3;
+      if (Number(eff.foreignRelations || 0) > 0) d -= 1;
+    }
+    if (a.faction === 'Centrist') {
+      if (Number(eff.economy || 0) > 0) d += 1;
+      if (Number(eff.stability || 0) < 0) d -= 1;
+    }
+
+    if (d !== 0) {
+      gameState.advisorLoyalty[a.id] = clamp(Number(gameState.advisorLoyalty[a.id]) + d, 0, 100);
+    }
+  });
+}
+
+function maybeResignAdvisors(){
+  advisors.forEach(a => {
+    if (a.resigned) return;
+    const l = Number(gameState.advisorLoyalty[a.id] ?? 50);
+    if (l < 20) {
+      a.resigned = true;
+      displayTriggerEvent({
+        name: `Resignation: ${a.name}`,
+        description: `${a.name} resigns publicly, denouncing your direction of policy. The resignation shakes elite cohesion and public confidence.`,
+        choices: [
+          { text: 'Acknowledge the resignation', effects: { stability: -5, partyUnity: -3 } },
+          { text: 'Denounce as disloyal', effects: { partyUnity: +2, popularSupport: -5 } }
+        ]
+      });
+      addLog(`[RESIGNATION] ${a.name} has resigned`);
+    }
+  });
+}
+
+function computeCoupProbability(){
+  // Coup risk rises with low stability/party unity, hardliner strength, and disloyal/hostile elites.
+  const m = gameState.metrics;
+  const pf = gameState.partyFactions;
+  const ms = gameState.militarySub;
+  const loy = gameState.advisorLoyalty || {};
+
+  const stabilityRisk = clamp((50 - Number(m.stability || 0)) / 50, 0, 1);
+  const unityRisk = clamp((50 - Number(m.partyUnity || 0)) / 50, 0, 1);
+  const hardRisk = clamp((Number(pf.hardliner || 0) - 35) / 65, 0, 1);
+  const militaryRisk = clamp((55 - Number(ms.loyalty || 0)) / 55, 0, 1);
+
+  // Advisor-specific coup sensitivity (conservatives + military)
+  const lig = clamp((50 - Number(loy.ligachev ?? 55)) / 50, 0, 1);
+  const akh = clamp((50 - Number(loy.akhromeyev ?? 65)) / 50, 0, 1);
+
+  // Combine (bounded). Baseline is low early game.
+  let p = 0.02
+    + 0.20 * stabilityRisk
+    + 0.18 * unityRisk
+    + 0.15 * hardRisk
+    + 0.20 * militaryRisk
+    + 0.10 * lig
+    + 0.10 * akh;
+
+  // If popular support collapsed, conspirators may risk it.
+  if (Number(m.popularSupport || 0) < 30) p += 0.05;
+
+  // Clamp and store for UI/debug
+  p = clamp(p, 0, 0.70);
+  gameState.coup.risk = Math.round(p * 100);
+  return p;
+}
+
+function maybeTriggerCoupAttempt(){
+  if (gameState.gameOver) return false;
+  // avoid spam: at most one attempt every 6 turns
+  if (gameState.coup.lastAttemptTurn != null && (gameState.turn - gameState.coup.lastAttemptTurn) < 6) return false;
+
+  const p = computeCoupProbability();
+  const roll = seededRandom();
+  if (roll >= p) return false;
+
+  gameState.coup.lastAttemptTurn = gameState.turn;
+
+  const weakMilitary = (gameState.militarySub.loyalty || 0) <= 35;
+  const weakSupport = (gameState.metrics.popularSupport || 0) <= 30;
+
+  // Choices reflect whether you can rally the public or rely on loyal forces.
+  const choices = [];
+  if (!weakSupport && !gameState.coupResistDisabled) {
+    choices.push({ text: 'Appeal to the public — call for mass demonstrations', effects: { popularSupport: +5, stability: -5, partyUnity: -5 } });
+  }
+  if (!weakMilitary && !gameState.militaryCrackdownDisabled) {
+    choices.push({ text: 'Order loyal units to detain conspirators', effects: { stability: +5, partyUnity: -5, militaryLoyalty: -5 } });
+  }
+  choices.push({ text: 'Negotiate — offer concessions to hardliners', effects: { partyUnity: +5, popularSupport: -10 } });
+
+  displayTriggerEvent({
+    name: 'Coup Attempt',
+    description: `Hardline elements move against you. Coup risk this turn was ${gameState.coup.risk}%.`,
+    choices
+  });
+
+  addLog(`⚠ Coup attempt triggered (risk ${gameState.coup.risk}%, roll ${Math.round(roll*100)}).`);
+  return true;
+}
 function clamp(n,min,max){ return Math.min(max, Math.max(min, n)); }
 
 function formatStatKey(key){
@@ -874,7 +1077,7 @@ function integrateContent(bundle, source='(unknown source)'){
   ensureAdvisorLoyaltyDefaults();
  }
 
- addLog(`ÃÂÃÂ Imported content from ${source} (P:${pOut.length} E:${eOut.length} A:${aOut.length})`);
+ addLog(`✓ Imported content from ${source} (P:${pOut.length} E:${eOut.length} A:${aOut.length})`);
  renderPolicies();
  renderAdvisors();
  return { ok:true };
@@ -1010,7 +1213,7 @@ function resolveEventChoice(choiceIdx) {
     applyMetricChange(key, val);
   });
   // Log
-  addLog(`Event: ${event.name} Ã¢ÂÂ chose "${choice.text}"`);
+  addLog(`Event: ${event.name} — chose "${choice.text}"`);
   activeEvent = null;
   document.getElementById('event-panel').classList.remove('active');
   // Drain queued trigger events one at a time
@@ -1073,7 +1276,9 @@ computeBudgetBalanceForTurn();
     renderPolicies();
   }
 
-  render();
+  // Coup attempt roll (only when no event is active and no queued trigger events)
+ if (!activeEvent && triggerEventQueue.length === 0) { maybeTriggerCoupAttempt(); }
+ render();
 }
 
 function resetGame() {
@@ -1112,9 +1317,11 @@ function applyMetricChange(metricKey, delta) {
   }
 }
 
-/* Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂ
-   TRIGGER SYSTEM  Ã¢ÂÂ  GDD v2.0 rules
-   Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂ */
+/*
+==============================
+TRIGGER SYSTEM — GDD v2.0 rules
+==============================
+*/
 
 function fireTrigger(id, logMsg) {
   if (gameState.firedTriggers[id]) return false;
@@ -1144,12 +1351,12 @@ function checkAllTriggers() {
   }
 
   // Ã¢ÂÂÃ¢ÂÂ BUDGET BALANCE TRIGGER (GDD: trigger at -10) Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂ
-  if (es.budgetBalance <= -10 && fireTrigger('budget_neg10', 'Budget deficit critical Ã¢ÂÂ inflation surge.')) {
+  if (es.budgetBalance <= -10 && fireTrigger('budget_neg10', 'Budget deficit critical — inflation surge.')) {
     applyMetricChange('inflation', 20);
   }
 
   // Ã¢ÂÂÃ¢ÂÂ SOCIAL PARASITISM TRIGGER (GDD: trigger at 25%) Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂ
-  if (es.socialParasitism >= 25 && fireTrigger('parasitism_25', 'Social parasitism crisis Ã¢ÂÂ public unrest event triggered.')) {
+  if (es.socialParasitism >= 25 && fireTrigger('parasitism_25', 'Social parasitism crisis — public unrest event triggered.')) {
     displayTriggerEvent({
       name: 'Social Parasitism Crisis',
       description: 'Widespread absenteeism, underground markets, and work avoidance have become impossible to ignore. The state\'s authority to compel economic participation is collapsing.',
@@ -1414,7 +1621,7 @@ Let every collective and every cadre raise labour discipline, expose opportunism
 function triggerGameOver(type, message) {
   gameState.gameOver = true;
   const panel = document.getElementById('event-panel');
-  document.getElementById('event-title').textContent = type === 'revolution' ? 'Ã¢ÂÂ REVOLUTION' : type === 'coup' ? 'Ã¢ÂÂ COUP' : 'Ã¢ÂÂ GAME OVER';
+  document.getElementById('event-title').textContent = type === 'revolution' ? '★ REVOLUTION' : type === 'coup' ? '★ COUP' : '★ GAME OVER';
   document.getElementById('event-desc').textContent = message;
   document.getElementById('event-choices').innerHTML = '<button class="event-btn" onclick="resetGame()">Start Over</button>';
   panel.classList.add('active');
@@ -1458,26 +1665,40 @@ function clearPolicySelection() {
 }
 
 function applyPolicyImmediate(policyId) {
-  const policy = policies.find(p => p.id === policyId);
-  if (!policy) return;
-  if (gameState.budget < policy.cost) {
-    addLog('Ã¢ÂÂ  Not enough budget.');
-    return;
-  }
-  gameState.budget -= policy.cost;
-  gameState.turnSpend += policy.cost;
-  Object.entries(policy.effects || {}).forEach(([key, val]) => {
-    applyMetricChange(key, val);
-  });
-  // Advisor loyalty hook (only if content provides these fields)
-  if (policy.advisorOpposition && Array.isArray(policy.advisorOpposition)) {
-    policy.advisorOpposition.forEach(aid => {
-      if (gameState.advisorLoyalty && gameState.advisorLoyalty[aid] != null) {
-        gameState.advisorLoyalty[aid] = clamp(Number(gameState.advisorLoyalty[aid]) - 5, 0, 100);
-      }
-    });
-  }
-  addLog(`Policy: ${policy.name} (-${policy.cost} budget)`);
+ const policy = policies.find(p => p.id === policyId);
+ if (!policy) return;
+
+ if (!policyPrereqsMet(policy)) {
+   addLog('⚠ Prerequisites not met for: ' + policy.name);
+   return;
+ }
+ if (!policyAdvisorReqMet(policy)) {
+   addLog('⚠ Required advisor unavailable for: ' + policy.name);
+   return;
+ }
+
+ if (gameState.budget < policy.cost) {
+   addLog('⚠ Not enough budget.');
+   return;
+ }
+
+ gameState.budget -= policy.cost;
+ gameState.turnSpend += policy.cost;
+
+ Object.entries(policy.effects || {}).forEach(([key, val]) => {
+   applyMetricChange(key, val);
+ });
+
+ applyAdvisorLoyaltyFromPolicy(policy);
+
+ if (!gameState.completedPolicies) gameState.completedPolicies = [];
+ if (!gameState.completedPolicies.includes(policy.id)) gameState.completedPolicies.push(policy.id);
+
+ addLog(`Policy: ${policy.name} (-${policy.cost} budget)`);
+
+ maybeResignAdvisors();
+ // update coup risk display numbers
+ computeCoupProbability();
 }
 
 function commitPolicies() {
@@ -1661,31 +1882,64 @@ function renderIntl() {
 
 function renderPolicies() {
   const cat = uiState.policyCategory;
-  const list = (cat && cat !== 'All')
+  const base = (cat && cat !== 'All')
     ? policies.filter(p => String(p.category || '').toLowerCase() === String(cat).toLowerCase())
-    : policies;
+    : policies.slice();
+
+  const memoTier = {};
+  base.sort((a,b) => {
+    const ta = policyTier(a.id, memoTier);
+    const tb = policyTier(b.id, memoTier);
+    if (ta !== tb) return ta - tb;
+    return String(a.name||'').localeCompare(String(b.name||''));
+  });
+
   const picks = gameState.selectedPolicies || [];
-  const html = list.map(p => {
+
+  const htmlOut = base.map(p => {
     const isSel = picks.includes(p.id);
+    const blockedPrereq = !policyPrereqsMet(p);
+    const blockedAdvisor = !policyAdvisorReqMet(p);
+    const blocked = blockedPrereq || blockedAdvisor;
+
+    const tier = policyTier(p.id, memoTier);
+    const prereqText = (p.prerequisites && p.prerequisites.length)
+      ? ('Requires: ' + p.prerequisites.join(', '))
+      : '';
+
+    const lockMsg = blockedPrereq
+      ? ('Locked: prerequisites not met. ' + prereqText)
+      : blockedAdvisor
+        ? ('Locked: required advisor unavailable (' + p.advisorRequired + ').')
+        : '';
+
+    const onclick = blocked ? '' : `onclick="togglePolicySelection('${p.id}')"`;
+
     return `
-      <div class="policy-card${isSel ? ' selected' : ''}" data-cat="${p.category || ''}" onclick="togglePolicySelection('${p.id}')">
-        <div class="card-corner tl">${p.category || 'Policy'}</div>
+      <div class="policy-card${isSel ? ' selected' : ''}${blocked ? ' disabled' : ''}" data-cat="${p.category || ''}" ${onclick}>
+        <div class="card-corner tl">${(p.category || 'Policy')} • Tier ${tier}</div>
         <div class="card-corner br">Cost ${p.cost}</div>
         <div class="card-body">
           <div class="policy-name">${p.name}</div>
           <div class="policy-cost">Cost: ${p.cost} budget</div>
           <div class="policy-effect">${formatEffects(p.effects)}</div>
+          ${blocked ? `<div class="policy-locked">${lockMsg}</div>` : ''}
         </div>
       </div>`;
   }).join('');
-  document.getElementById('policy-grid').innerHTML = html;
+
+  document.getElementById('policy-grid').innerHTML = htmlOut;
+
   const cEl = document.getElementById('policy-selected-count');
   if (cEl) cEl.textContent = String(picks.length);
+
   const pcEl = document.getElementById('policy-predicted-cost');
   if (pcEl) pcEl.textContent = String(plannedSpend());
+
   const commitBtn = document.getElementById('policy-commit-btn');
   if (commitBtn) commitBtn.disabled = picks.length === 0 || (gameState.policiesCommittedTurn === gameState.turn);
 }
+
 
 function renderAdvisors() {
   const f = uiState.advisorFaction;
@@ -1693,26 +1947,29 @@ function renderAdvisors() {
     ? advisors.filter(a => String(a.faction || '').toLowerCase() === String(f).toLowerCase())
     : advisors;
 
-  const html = list.map(a => {
+  const htmlOut = list.map(a => {
     const loyalty = (gameState.advisorLoyalty[a.id] ?? a.defaultLoyalty ?? a.loyalty ?? 50);
     let cls = 'mid';
     if (loyalty >= 75) cls = 'high';
     if (loyalty <= 40) cls = 'low';
+    const resigned = !!a.resigned;
 
     return `
-      <div class="advisor-card">
+      <div class="advisor-card${resigned ? ' resigned' : ''}">
         <div class="card-corner tl">${a.faction || 'Advisor'}</div>
         <div class="card-corner br">${a.role || ''}</div>
         <div class="card-body">
           <div class="advisor-name">${a.name}</div>
           <div class="advisor-faction">${a.faction}</div>
           <div class="advisor-loyalty ${cls}">Loyalty: ${loyalty}</div>
+          ${resigned ? `<div class="advisor-status">Resigned</div>` : ''}
         </div>
       </div>`;
   }).join('');
 
-  document.getElementById('advisor-grid').innerHTML = html;
+  document.getElementById('advisor-grid').innerHTML = htmlOut;
 }
+
 
 
 
@@ -1769,10 +2026,17 @@ function render() {
 }
 
 function sanitizeLogEntry(s){
-  let out = String(s || '');
-  out = out.replace(/â /g, '[!] ').replace(/â/g, '*').replace(/â/g, '-');
-  out = out.replace(/[^\x20-\x7E]/g, '');
-  return out.replace(/\s+/g, ' ').trim();
+  let out = String(s ?? '');
+  // Repair common UTF-8 double-encoding artifacts while preserving Unicode.
+  const fixes = [
+    [/Ã¢ÂÂ/g,'—'], [/â/g,'—'],
+    [/Ã¢ÂÂ\s*/g,'⚠ '], [/âÂ\s*/g,'⚠ '], [/â\s*/g,'⚠ '],
+    [/Ã¢ÂÂ/g,'★'], [/â/g,'★'],
+    [/ÃÂÃÂ/g,'✓'],
+    [/ÃÂÃÂ\s*ÃÂÃÂ\s*/g,'⚠ '],
+  ];
+  fixes.forEach(([re, rep]) => { out = out.replace(re, rep); });
+  return out.replace(/\s+/g,' ').trim();
 }
 
 function addLog(entry) {
