@@ -256,58 +256,42 @@
 
 
 
-/* === PRAVDA PANEL (requested tweaks v3) === */
+/* === PRAVDA PANEL (layout guard v7) === */
 .event-panel.pravda{ display:none !important; }
 .event-panel.pravda.active{ display:block !important; }
 
-/* ensure overlays behind content */
-.event-panel.pravda{ position:relative; overflow:hidden; }
-.event-panel.pravda > *{ position:relative; z-index:1; }
-.event-panel.pravda::before,
-.event-panel.pravda::after{ z-index:0; }
-
-.pravda-rule{ display:none !important; }
-.pravda-mast-sub{ display:none !important; }
-
 .pravda-grid{ display:grid; grid-template-columns: 260px 1fr; gap:14px; margin-top:12px; align-items:start; }
 
-/* Photo block: caption UNDER image, no caption box, image fills like Pravda */
-.pravda-photo{ display:flex; flex-direction:column; gap:6px; }
-
-/* Closer to Pravda: slightly wider/shorter on desktop (less tall than 3/4) */
-.pravda-photo-frame{ position:relative; width:100%; aspect-ratio: 4 / 3; background:transparent; overflow:hidden; }
-
-/* Force full-bleed cover */
-.pravda-img{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; display:block; border:none !important;
-  filter: grayscale(100%) contrast(1.45) brightness(0.90); /* more Pravda-like */
-}
-
-/* add subtle print/scan texture without a border */
-.pravda-photo-frame::after{ content:''; position:absolute; inset:0; pointer-events:none; opacity:0.18;
-  background-image:
-    repeating-linear-gradient(0deg, rgba(0,0,0,0.10) 0px, rgba(0,0,0,0.10) 1px, transparent 3px, transparent 6px),
-    radial-gradient(circle at 30% 20%, rgba(0,0,0,0.10) 0 1px, transparent 2px),
-    radial-gradient(circle at 70% 65%, rgba(0,0,0,0.08) 0 1px, transparent 2px);
+/* Cap the photo size so it cannot explode on wide layouts */
+:root{ --pravda-photo-h: clamp(180px, 22vw, 240px); }
+.pravda-photo{ display:flex; flex-direction:column; gap:6px; align-items:stretch; }
+.pravda-photo-frame{ position:relative; width:100%; height: var(--pravda-photo-h); overflow:hidden; }
+.pravda-img{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; border:none !important; box-shadow:none !important; filter: grayscale(100%) contrast(1.35) brightness(0.92); }
+.pravda-photo-frame::after{ content:''; position:absolute; inset:0; pointer-events:none; opacity:0.15;
+  background-image: repeating-linear-gradient(0deg, rgba(0,0,0,0.09) 0px, rgba(0,0,0,0.09) 1px, transparent 3px, transparent 6px);
   mix-blend-mode:multiply;
 }
 
-.pravda-photo-fallback{ position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
-  font-family:'IM Fell English',serif; letter-spacing:.08em; text-transform:uppercase; font-size:12px;
-  color:rgba(0,0,0,0.70); background:rgba(255,255,255,0.10);
-}
-.pravda-photo.loaded .pravda-photo-fallback{ display:none; }
-
-/* Caption: plain text (no box). In Pravda examples it's small and tight under photo. */
-.pravda-caption{ font-family: Georgia, serif; font-size:10.5px; line-height:1.15; color:rgba(0,0,0,0.82);
-  margin-top:2px; padding:0; border:none; text-align:left;
+.pravda-caption{ font-family: Georgia, serif; font-size:10.5px; line-height:1.15; text-align:center;
+  padding:0 0 4px 0 !important; margin:2px 0 0 0 !important;
+  border:none !important; border-bottom:1px solid rgba(0,0,0,0.35) !important; background:transparent !important; box-shadow:none !important;
 }
 
-/* Mobile/small screens: photo moves ABOVE text */
+/* Choices fill remaining space up to the photo height, but never exceed it */
+.pravda-main{ display:flex; flex-direction:column; }
+.pravda-choices{ margin-top:12px; display:flex; flex-direction:column; gap:12px; }
+.pravda-choices .event-btn{ width:100%; padding:10px 12px; min-height:44px; }
+
+/* If the content above choices is short, gently expand buttons but cap their size */
+@media (min-width: 761px){
+  .pravda-main{ min-height: calc(var(--pravda-photo-h) + 28px); }
+  .pravda-choices{ flex:1 1 auto; }
+  .pravda-choices .event-btn{ flex:1 1 auto; max-height:72px; }
+}
+
 @media (max-width: 760px){
-  .pravda-grid{ grid-template-columns: 1fr; }
-  .pravda-photo{ order:0; }
-  .pravda-main{ order:1; }
-  .pravda-photo-frame{ aspect-ratio: 16 / 9; }
+  :root{ --pravda-photo-h: clamp(170px, 40vw, 240px); }
+  .pravda-grid{ grid-template-columns:1fr; }
 }
 </style>
 </head>
@@ -390,7 +374,6 @@
     
 <!-- BUTTONS -->
     <div class="btn-row">
-      <button class="btn" onclick="endTurn()">End Turn</button>
       <button class="btn" onclick="resetGame()">Reset</button>
     </div>
 
@@ -430,7 +413,7 @@
       <div class="pravda-caption" id="pravda-caption"></div>
     </div>
 
-    <div class="pravda-main">
+    <div class="pravda-main" id="pravda-main">
       <div class="pravda-headline" id="event-title"></div>
       <div class="pravda-body" id="event-desc"></div>
       <div class="pravda-choices" id="event-choices"></div>
@@ -442,10 +425,11 @@
     <div class="policy-panel">
       <div class="section-title panel-header">Available Policies</div>
   <div id="policy-selection" style="margin:10px 2px 10px; display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
-    <span style="font-family:'IM Fell English',serif; font-size:13px; opacity:.85;">Selected this turn: <strong id="policy-selected-count">0</strong>/3</span>
-    <button class="btn" onclick="commitPolicies()" style="padding:4px 10px;">Commit</button>
-    <button class="btn" onclick="clearPolicySelection()" style="padding:4px 10px;">Clear</button>
-  </div>
+  <span style="font-family:'IM Fell English',serif; font-size:13px; opacity:.85;">Selected this turn: <strong id="policy-selected-count">0</strong>/3</span>
+  <span style="font-family:'IM Fell English',serif; font-size:13px; opacity:.85;">Predicted cost: <strong id="policy-predicted-cost">0</strong></span>
+  <button class="btn" onclick="clearPolicySelection()" style="padding:4px 10px;">Clear</button>
+  <button class="btn" onclick="endTurn()" style="padding:4px 10px;">End Turn</button>
+</div>
 
       <div class="filter-row" id="policy-filters">
         <button class="filter-btn active" onclick="setPolicyFilter('All', this)">All</button>
@@ -979,6 +963,9 @@ function setupPravdaMasthead(){
   set('pravda-mast-top', '\u0415\u0416\u0415\u0414\u041d\u0415\u0412\u041d\u0410\u042f \u0420\u0410\u0411\u041e\u0427\u0410\u042f \u0413\u0410\u0417\u0415\u0422\u0410.');
   set('pravda-mast-name', '\u041f\u0420\u0410\u0412\u0414\u0410');
   set('pravda-price-label', '\u0426\u0415\u041d\u0410 2 \u043a\u043e\u043f.');
+  try { if (typeof gameState !== 'undefined') set('pravda-issue', '\u2116 ' + String(gameState.turn) + '.'); } catch(e){}
+  const cd = document.getElementById('current-date');
+  if (cd) set('pravda-date', cd.textContent);
   set('pravda-caption', '\u0410\u0440\u0445\u0438\u0432\u043d\u043e\u0435 \u0444\u043e\u0442\u043e (1973)');
 
   const img = document.getElementById('pravda-img');
@@ -987,17 +974,10 @@ function setupPravdaMasthead(){
   if (!img || !photo) return;
 
   const local = new URL('images/pravda-placeholder.jpg', document.baseURI).href;
-  const sources = [local,
-    'https://www.reaganlibrary.gov/public/archives/photographs/large/c31980-31a.jpg'
-  ];
-
-  let idx = 0;
   const succeed = () => { photo.classList.add('loaded'); if (fb) fb.style.display = 'none'; };
-  const failover = () => { idx += 1; if (idx < sources.length) img.src = sources[idx]; else { img.src = 'data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%22800%22%20height%3D%22500%22%20viewBox%3D%220%200%20800%20500%22%3E%3Crect%20width%3D%22800%22%20height%3D%22500%22%20fill%3D%22%23e8dcc0%22/%3E%3Ctext%20x%3D%22400%22%20y%3D%22250%22%20text-anchor%3D%22middle%22%20font-family%3D%22Georgia%2Cserif%22%20font-size%3D%2226%22%20fill%3D%22%232b1f10%22%20opacity%3D%220.7%22%3EARCHIVAL%20PHOTOGRAPH%3C/text%3E%3C/svg%3E'; succeed(); } };
-
   img.onload = succeed;
-  img.onerror = failover;
-  img.src = sources[0] + '?v=' + Date.now();
+  img.onerror = () => { img.src = 'data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%22800%22%20height%3D%22500%22%20viewBox%3D%220%200%20800%20500%22%3E%3Crect%20width%3D%22800%22%20height%3D%22500%22%20fill%3D%22%23e8dcc0%22/%3E%3Ctext%20x%3D%22400%22%20y%3D%22250%22%20text-anchor%3D%22middle%22%20font-family%3D%22Georgia%2Cserif%22%20font-size%3D%2226%22%20fill%3D%22%232b1f10%22%20opacity%3D%220.7%22%3EARCHIVAL%20PHOTOGRAPH%3C/text%3E%3C/svg%3E'; succeed(); };
+  img.src = local + '?v=' + Date.now();
 }
 
 function displayEvent(event) {
@@ -1064,12 +1044,13 @@ function computeBudgetBalanceForTurn(){
 }
 
 function endTurn() {
+  // Auto-commit selected policies at end of turn (revisable until now)
   if (gameState.selectedPolicies && gameState.selectedPolicies.length > 0) {
-    addLog('Ã¢ÂÂ  Commit or clear selected policies before ending the turn.');
-    return;
+    gameState.selectedPolicies.slice().forEach(id => applyPolicyImmediate(id));
+    gameState.selectedPolicies = [];
   }
 
-  computeBudgetBalanceForTurn();
+computeBudgetBalanceForTurn();
   gameState.turn++;
   advanceDate();
 
