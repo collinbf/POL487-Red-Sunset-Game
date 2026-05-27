@@ -260,7 +260,7 @@
 .event-panel.pravda{ display:none; }
 .event-panel.pravda.active{ display:block; }
 
-/* Ensure overlays sit BEHIND content */
+/* overlays behind content */
 .event-panel.pravda{ position:relative; overflow:hidden; }
 .event-panel.pravda > *{ position:relative; z-index:1; }
 .event-panel.pravda::before,
@@ -438,7 +438,7 @@
 
   <div class="pravda-grid">
     <div class="pravda-photo" id="pravda-photo">
-      <img id="pravda-img" class="pravda-img" alt="Archival photograph" referrerpolicy="no-referrer" crossorigin="anonymous" loading="eager" />
+      <img id="pravda-img" class="pravda-img" alt="Archival photograph" loading="eager" decoding="async" />
       <div class="pravda-photo-fallback" id="pravda-photo-fallback">ARCHIVAL PHOTOGRAPH</div>
       <div class="pravda-caption" id="pravda-caption"></div>
     </div>
@@ -992,23 +992,31 @@ function setupPravdaMasthead(){
   set('pravda-mast-top', '\u0415\u0416\u0415\u0414\u041d\u0415\u0412\u041d\u0410\u042f \u0420\u0410\u0411\u041e\u0427\u0410\u042f \u0413\u0410\u0417\u0415\u0422\u0410.');
   set('pravda-mast-name', '\u041f\u0420\u0410\u0412\u0414\u0410');
   set('pravda-price-label', '\u0426\u0415\u041d\u0410 2 \u043a\u043e\u043f.');
-  set('pravda-caption', '\u0410\u0440\u0445\u0438\u0432\u043d\u043e\u0435 \u0444\u043e\u0442\u043e (1985): \u043d\u043e\u0432\u044b\u0439 \u0413\u0435\u043d\u0435\u0440\u0430\u043b\u044c\u043d\u044b\u0439 \u0441\u0435\u043a\u0440\u0435\u0442\u0430\u0440\u044c \u043d\u0430 \u043c\u0435\u0436\u0434\u0443\u043d\u0430\u0440\u043e\u0434\u043d\u043e\u0439 \u0432\u0441\u0442\u0440\u0435\u0447\u0435');
+  set('pravda-caption', '\u0410\u0440\u0445\u0438\u0432\u043d\u043e\u0435 \u0444\u043e\u0442\u043e (1973): \u0430\u0440\u0445\u0438\u0432\u043d\u044b\u0439 \u043a\u0430\u0434\u0440 \u043d\u0430 \u0443\u043b\u0438\u0446\u0435');
 
   const img = document.getElementById('pravda-img');
   const photo = document.getElementById('pravda-photo');
   const fb = document.getElementById('pravda-photo-fallback');
   if (!img || !photo) return;
 
-  const sources = ['https://www.reaganlibrary.gov/public/archives/photographs/large/c31980-31a.jpg', 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a7/Mikhail_Gorbachev_1985_Geneva_Summit.jpg/889px-Mikhail_Gorbachev_1985_Geneva_Summit.jpg'];
-  let idx = 0;
+  // Local repo placeholder (GitHub Pages): images/<filename>
+  const localFile = 'Михаил_Горбачев_и_Юрий_Андропов_(1973).jpg';
+  const localSrc = 'images/' + encodeURIComponent(localFile);
 
+  // Fallback sources if local is missing
+  const sources = [localSrc,
+    'https://www.reaganlibrary.gov/public/archives/photographs/large/c31980-31a.jpg',
+    'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a7/Mikhail_Gorbachev_1985_Geneva_Summit.jpg/889px-Mikhail_Gorbachev_1985_Geneva_Summit.jpg'
+  ];
+
+  let idx = 0;
   const succeed = () => { photo.classList.add('loaded'); if (fb) fb.style.display = 'none'; };
   const failover = () => {
     idx += 1;
     if (idx < sources.length) {
       img.src = sources[idx];
     } else {
-      // Final fallback: embedded SVG so something always renders
+      // Final fallback: embedded SVG
       img.src = 'data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%22800%22%20height%3D%221100%22%20viewBox%3D%220%200%20800%201100%22%3E%0A%20%20%3Cdefs%3E%0A%20%20%20%20%3Cfilter%20id%3D%22noise%22%3E%3CfeTurbulence%20type%3D%22fractalNoise%22%20baseFrequency%3D%220.8%22%20numOctaves%3D%222%22%20stitchTiles%3D%22stitch%22/%3E%0A%20%20%20%20%20%20%3CfeColorMatrix%20type%3D%22matrix%22%20values%3D%220%200%200%200%200%20%200%200%200%200%200%20%200%200%200%200%200%20%200%200%200%20.18%200%22/%3E%0A%20%20%20%20%3C/filter%3E%0A%20%20%20%20%3Cpattern%20id%3D%22dots%22%20width%3D%2210%22%20height%3D%2210%22%20patternUnits%3D%22userSpaceOnUse%22%3E%3Ccircle%20cx%3D%222%22%20cy%3D%222%22%20r%3D%221.1%22%20fill%3D%22%23111%22%20opacity%3D%220.25%22/%3E%3C/pattern%3E%0A%20%20%20%20%3ClinearGradient%20id%3D%22paper%22%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%220%22%20y2%3D%221%22%3E%3Cstop%20offset%3D%220%22%20stop-color%3D%22%23f2ead8%22/%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%23e8dcc0%22/%3E%3C/linearGradient%3E%0A%20%20%3C/defs%3E%0A%20%20%3Crect%20width%3D%22800%22%20height%3D%221100%22%20fill%3D%22url%28%23paper%29%22/%3E%0A%20%20%3Crect%20x%3D%2226%22%20y%3D%2226%22%20width%3D%22748%22%20height%3D%221048%22%20fill%3D%22rgba%28255%2C255%2C255%2C0.35%29%22%20stroke%3D%22%23111%22%20stroke-width%3D%223%22/%3E%0A%20%20%3Cg%20transform%3D%22translate%280%2C20%29%22%3E%0A%20%20%20%20%3Cellipse%20cx%3D%22400%22%20cy%3D%22430%22%20rx%3D%22190%22%20ry%3D%22210%22%20fill%3D%22%23111%22%20opacity%3D%220.14%22/%3E%0A%20%20%20%20%3Cpath%20d%3D%22M310%2C460%20C315%2C380%20365%2C320%20420%2C315%20C485%2C310%20525%2C360%20530%2C430%20C535%2C500%20500%2C560%20445%2C575%20C392%2C590%20335%2C560%20310%2C510%20Z%22%20fill%3D%22%23111%22%20opacity%3D%220.35%22/%3E%0A%20%20%20%20%3Cpath%20d%3D%22M250%2C770%20C290%2C650%20350%2C610%20405%2C605%20C465%2C600%20540%2C640%20565%2C770%20C575%2C820%20545%2C880%20400%2C880%20C260%2C880%20235%2C820%20250%2C770%20Z%22%20fill%3D%22%23111%22%20opacity%3D%220.30%22/%3E%0A%20%20%20%20%3Crect%20x%3D%22210%22%20y%3D%22260%22%20width%3D%22380%22%20height%3D%22650%22%20fill%3D%22url%28%23dots%29%22%20opacity%3D%220.85%22/%3E%0A%20%20%3C/g%3E%0A%20%20%3Cg%20filter%3D%22url%28%23noise%29%22%3E%3Crect%20width%3D%22800%22%20height%3D%221100%22%20fill%3D%22%23000%22%20opacity%3D%220.20%22/%3E%3C/g%3E%0A%20%20%3Ctext%20x%3D%22400%22%20y%3D%221020%22%20text-anchor%3D%22middle%22%20font-family%3D%22Georgia%2Cserif%22%20font-size%3D%2226%22%20fill%3D%22%23111%22%20opacity%3D%220.75%22%3EARCHIVAL%20PHOTOGRAPH%3C/text%3E%0A%3C/svg%3E';
       succeed();
     }
