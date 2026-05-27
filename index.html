@@ -256,42 +256,40 @@
 
 
 
-/* === PRAVDA PANEL (layout guard v7) === */
+/* === PRAVDA PANEL (final v9) === */
 .event-panel.pravda{ display:none !important; }
 .event-panel.pravda.active{ display:block !important; }
 
-.pravda-grid{ display:grid; grid-template-columns: 260px 1fr; gap:14px; margin-top:12px; align-items:start; }
+/* Masthead logo sizing */
+.pravda-mast-name{ display:flex; justify-content:center; }
+.pravda-logo{ max-width:min(520px, 90%); height:auto; display:block; }
 
-/* Cap the photo size so it cannot explode on wide layouts */
-:root{ --pravda-photo-h: clamp(180px, 22vw, 240px); }
-.pravda-photo{ display:flex; flex-direction:column; gap:6px; align-items:stretch; }
-.pravda-photo-frame{ position:relative; width:100%; height: var(--pravda-photo-h); overflow:hidden; }
-.pravda-img{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; border:none !important; box-shadow:none !important; filter: grayscale(100%) contrast(1.35) brightness(0.92); }
+/* Two-column layout; stretch rows so buttons can fill */
+.pravda-grid{ display:grid; grid-template-columns: 260px 1fr; gap:14px; margin-top:12px; align-items:stretch; }
+
+:root{ --pravda-photo-h: clamp(190px, 18vw, 250px); }
+.pravda-photo{ display:flex; flex-direction:column; justify-content:flex-start; gap:6px; align-self:stretch; background:transparent !important; border:none !important; padding:0 !important; }
+.pravda-photo-frame{ position:relative; width:100%; height:var(--pravda-photo-h); overflow:hidden; background:transparent; }
+.pravda-img{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; display:block; border:none !important; box-shadow:none !important; filter: grayscale(100%) contrast(1.35) brightness(0.92); }
 .pravda-photo-frame::after{ content:''; position:absolute; inset:0; pointer-events:none; opacity:0.15;
   background-image: repeating-linear-gradient(0deg, rgba(0,0,0,0.09) 0px, rgba(0,0,0,0.09) 1px, transparent 3px, transparent 6px);
   mix-blend-mode:multiply;
 }
 
-.pravda-caption{ font-family: Georgia, serif; font-size:10.5px; line-height:1.15; text-align:center;
-  padding:0 0 4px 0 !important; margin:2px 0 0 0 !important;
-  border:none !important; border-bottom:1px solid rgba(0,0,0,0.35) !important; background:transparent !important; box-shadow:none !important;
-}
+/* Caption: NOT a box. Text + rule UNDER (via ::after) */
+.pravda-caption{ background:transparent !important; border:none !important; box-shadow:none !important; padding:0 !important; margin:2px 0 0 0 !important; text-align:center; font-family:Georgia,serif; font-size:10.5px; line-height:1.15; color:rgba(0,0,0,0.82); }
+.pravda-caption::after{ content:''; display:block; margin-top:4px; border-bottom:1px solid rgba(0,0,0,0.35); }
 
-/* Choices fill remaining space up to the photo height, but never exceed it */
-.pravda-main{ display:flex; flex-direction:column; }
-.pravda-choices{ margin-top:12px; display:flex; flex-direction:column; gap:12px; }
-.pravda-choices .event-btn{ width:100%; padding:10px 12px; min-height:44px; }
-
-/* If the content above choices is short, gently expand buttons but cap their size */
-@media (min-width: 761px){
-  .pravda-main{ min-height: calc(var(--pravda-photo-h) + 28px); }
-  .pravda-choices{ flex:1 1 auto; }
-  .pravda-choices .event-btn{ flex:1 1 auto; max-height:72px; }
-}
+/* Right side fills to match photo+caption height; buttons grow to eliminate blank under photo */
+.pravda-main{ display:flex; flex-direction:column; min-height: calc(var(--pravda-photo-h) + 28px); }
+.pravda-choices{ margin-top:12px; display:flex; flex-direction:column; gap:12px; flex:1 1 auto; }
+.pravda-choices .event-btn{ width:100%; flex:1 1 0; min-height:44px; max-height:84px; padding:10px 12px; }
 
 @media (max-width: 760px){
-  :root{ --pravda-photo-h: clamp(170px, 40vw, 240px); }
+  :root{ --pravda-photo-h: clamp(170px, 42vw, 240px); }
   .pravda-grid{ grid-template-columns:1fr; }
+  .pravda-main{ min-height:auto; }
+  .pravda-choices .event-btn{ flex:0 0 auto; max-height:none; }
 }
 </style>
 </head>
@@ -396,7 +394,9 @@
 <div class="event-panel pravda" id="event-panel">
   <div class="pravda-masthead">
     <div class="pravda-mast-top" id="pravda-mast-top"></div>
-    <div class="pravda-mast-name" id="pravda-mast-name"></div>
+    <div class="pravda-mast-name" id="pravda-mast-name">
+      <img id="pravda-logo" class="pravda-logo" alt="PRAVDA" />
+    </div>
     <div class="pravda-issue-strip">
       <span class="pravda-strip-left" id="pravda-issue"></span>
       <span class="pravda-strip-centre" id="pravda-date"></span>
@@ -959,14 +959,22 @@ function escapeHtml(str){
 
 
 function setupPravdaMasthead(){
-  const set = (id, txt) => { const el = document.getElementById(id); if (el) el.textContent = txt; };
-  set('pravda-mast-top', '\u0415\u0416\u0415\u0414\u041d\u0415\u0412\u041d\u0410\u042f \u0420\u0410\u0411\u041e\u0427\u0410\u042f \u0413\u0410\u0417\u0415\u0422\u0410.');
-  set('pravda-mast-name', '\u041f\u0420\u0410\u0412\u0414\u0410');
-  set('pravda-price-label', '\u0426\u0415\u041d\u0410 2 \u043a\u043e\u043f.');
-  try { if (typeof gameState !== 'undefined') set('pravda-issue', '\u2116 ' + String(gameState.turn) + '.'); } catch(e){}
+  const setText = (id, txt) => { const el = document.getElementById(id); if (el) el.textContent = txt; };
+  setText('pravda-mast-top', '\u0415\u0416\u0415\u0414\u041d\u0415\u0412\u041d\u0410\u042f \u0420\u0410\u0411\u041e\u0427\u0410\u042f \u0413\u0410\u0417\u0415\u0422\u0410.');
+  setText('pravda-price-label', '\u0426\u0415\u041d\u0410 2 \u043a\u043e\u043f.');
+
+  // Pravda logo image
+  const logo = document.getElementById('pravda-logo');
+  if (logo) {
+    logo.src = new URL('images/Pravda_1971.png', document.baseURI).href;
+  }
+
+  // Issue + date always present
+  try { if (typeof gameState !== 'undefined') setText('pravda-issue', '\u2116 ' + String(gameState.turn) + '.'); } catch(e){}
   const cd = document.getElementById('current-date');
-  if (cd) set('pravda-date', cd.textContent);
-  set('pravda-caption', '\u0410\u0440\u0445\u0438\u0432\u043d\u043e\u0435 \u0444\u043e\u0442\u043e (1973)');
+  if (cd) setText('pravda-date', cd.textContent);
+
+  setText('pravda-caption', '\u0410\u0440\u0445\u0438\u0432\u043d\u043e\u0435 \u0444\u043e\u0442\u043e (1973)');
 
   const img = document.getElementById('pravda-img');
   const photo = document.getElementById('pravda-photo');
@@ -1609,6 +1617,10 @@ function renderStatus() {
 function renderDate() {
   const monthNames = ['', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
   document.getElementById('current-date').textContent = `${monthNames[gameState.month]} ${gameState.year}`;
+  const pDate = document.getElementById('pravda-date');
+  if (pDate) pDate.textContent = document.getElementById('current-date')?.textContent || '';
+  const pIssue = document.getElementById('pravda-issue');
+  if (pIssue) pIssue.textContent = '\u2116 ' + String(gameState.turn) + '.';
   const _bEl = document.getElementById('budget');
   if (_bEl) _bEl.textContent = gameState.budget;
 }
