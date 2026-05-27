@@ -211,46 +211,61 @@
   .advisor-faction{ font-size:10px; margin-bottom:8px; text-align:left; }
   .advisor-loyalty{ font-size:12px; text-align:left; }
 
-/* HISTORY LOG — Teletype on paper */
+/* HISTORY LOG — Teletype ink on paper */
 .history-log {
-  background: #f7f0df;
-  border: 1.5px solid rgba(43,31,16,0.28);
+  background: #f6efdc;
+  border: 1.5px solid rgba(43,31,16,0.32);
   border-radius: 4px;
-  padding: 10px 10px 12px;
-  font-size: 12.5px;
-  line-height: 1.35;
-  max-height: 180px;
+  padding: 12px 12px 14px;
+  font-size: 12.8px;
+  line-height: 1.38;
+  max-height: 190px;
   overflow-y: auto;
   margin-top: 1rem;
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
-  color: rgba(43,31,16,0.92);
-  box-shadow: 0 12px 22px rgba(0,0,0,0.10);
+  color: rgba(36,28,16,0.94);
+  box-shadow: 0 14px 26px rgba(0,0,0,0.12);
   position: relative;
+  letter-spacing: 0.01em;
 }
-/* subtle paper fibres + faint ruled lines */
+/* paper fibres + faint ruled lines */
 .history-log::before{
   content:'';
   position:absolute;
   inset:0;
   pointer-events:none;
   background:
-    repeating-linear-gradient(180deg, rgba(0,0,0,0.00) 0px, rgba(0,0,0,0.00) 18px, rgba(139,26,26,0.06) 19px),
-    radial-gradient(circle at 20% 10%, rgba(0,0,0,0.03), rgba(0,0,0,0.00) 55%),
-    radial-gradient(circle at 80% 35%, rgba(0,0,0,0.025), rgba(0,0,0,0.00) 60%);
+    repeating-linear-gradient(180deg,
+      rgba(0,0,0,0.00) 0px,
+      rgba(0,0,0,0.00) 17px,
+      rgba(139,26,26,0.07) 18px,
+      rgba(0,0,0,0.00) 19px),
+    radial-gradient(circle at 18% 10%, rgba(0,0,0,0.028), rgba(0,0,0,0.00) 55%),
+    radial-gradient(circle at 82% 45%, rgba(0,0,0,0.022), rgba(0,0,0,0.00) 60%),
+    repeating-linear-gradient(90deg, rgba(0,0,0,0.012) 0px, rgba(0,0,0,0.00) 3px, rgba(0,0,0,0.00) 7px);
   mix-blend-mode: multiply;
-  opacity: 0.9;
+  opacity: 0.95;
+}
+/* perforated paper edges */
+.history-log{
+  background-image:
+    radial-gradient(circle at 0 10px, rgba(43,31,16,0.10) 0 2px, transparent 3px),
+    radial-gradient(circle at 100% 10px, rgba(43,31,16,0.10) 0 2px, transparent 3px);
+  background-size: 14px 22px, 14px 22px;
+  background-repeat: repeat-y, repeat-y;
+  background-position: -6px 0, calc(100% + 6px) 0;
 }
 .history-log::after{
-  content:'TELETYPE LOG';
+  content:'TELETYPE LOG • СОЮЗ';
   position:absolute;
-  top:6px;
-  right:10px;
+  top:7px;
+  right:12px;
   font-size:10px;
   letter-spacing:.18em;
-  color: rgba(43,31,16,0.45);
+  color: rgba(36,28,16,0.48);
 }
 .log-entry {
-  margin-bottom: 4px;
+  margin-bottom: 5px;
   padding: 2px 0;
   border-bottom: none;
   position: relative;
@@ -261,11 +276,104 @@
   color: rgba(92,17,17,0.88);
   margin-right: 6px;
 }
+/* old terminal ink: slightly uneven, faint bleed */
 .log-text {
-  color: rgba(43,31,16,0.90);
+  color: rgba(32,24,14,0.90);
   opacity: 1;
+  text-shadow:
+    0.2px 0 rgba(32,24,14,0.28),
+    -0.15px 0 rgba(32,24,14,0.18),
+    0 0.6px rgba(32,24,14,0.08);
 }
 
+/* SOVIET TELETYPE PRINTER (decorative UI under log) */
+.teletype-printer{
+  margin-top: 10px;
+  filter: drop-shadow(0 12px 18px rgba(0,0,0,0.22));
+}
+.printer-top{
+  background: linear-gradient(180deg, #6b6f74 0%, #43484d 100%);
+  border: 1px solid rgba(0,0,0,0.55);
+  border-bottom: none;
+  border-radius: 6px 6px 0 0;
+  padding: 7px 10px;
+  position: relative;
+}
+.printer-badge{
+  font-family: 'IM Fell English', serif;
+  font-size: 11px;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: rgba(246,239,220,0.92);
+  text-align: center;
+}
+.printer-vents{
+  margin-top: 6px;
+  height: 8px;
+  border-radius: 3px;
+  background:
+    repeating-linear-gradient(90deg, rgba(0,0,0,0.45) 0 6px, rgba(0,0,0,0.15) 6px 10px);
+  opacity: 0.65;
+}
+.printer-body{
+  background: linear-gradient(180deg, #4d5257 0%, #2f3439 100%);
+  border: 1px solid rgba(0,0,0,0.60);
+  border-top: none;
+  padding: 10px;
+  position: relative;
+}
+.printer-slot{
+  height: 14px;
+  border-radius: 3px;
+  background: linear-gradient(180deg, rgba(0,0,0,0.65), rgba(0,0,0,0.25));
+  border: 1px solid rgba(255,255,255,0.08);
+  position: relative;
+  overflow: hidden;
+}
+.printer-slot::after{
+  content:'';
+  position:absolute;
+  inset:0;
+  background:
+    repeating-linear-gradient(180deg, rgba(246,239,220,0.35) 0 3px, rgba(246,239,220,0.00) 3px 7px);
+  transform: translateY(0);
+  animation: paperFeed 2.2s linear infinite;
+  opacity: 0.45;
+}
+@keyframes paperFeed{
+  from { transform: translateY(0); }
+  to { transform: translateY(10px); }
+}
+.printer-lights{
+  position:absolute;
+  right: 10px;
+  top: 38px;
+  display:flex;
+  gap:6px;
+}
+.light{ width:7px; height:7px; border-radius:50%; border:1px solid rgba(0,0,0,0.55); box-shadow: 0 0 8px rgba(0,0,0,0.25) inset; }
+.light.red{ background:#8b1a1a; box-shadow: 0 0 8px rgba(139,26,26,0.55); }
+.light.amber{ background:#9a7a2e; box-shadow: 0 0 8px rgba(154,122,46,0.55); }
+.light.green{ background:#2d6e44; box-shadow: 0 0 8px rgba(45,110,68,0.55); }
+.printer-knobs{
+  position:absolute;
+  left: 10px;
+  top: 34px;
+  display:flex;
+  gap:8px;
+}
+.knob{
+  width:12px; height:12px; border-radius:50%;
+  background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.20), rgba(0,0,0,0.35));
+  border: 1px solid rgba(0,0,0,0.55);
+}
+.printer-base{
+  height: 6px;
+  background: linear-gradient(180deg, #2b2f33 0%, #1f2226 100%);
+  border: 1px solid rgba(0,0,0,0.65);
+  border-top: none;
+  border-radius: 0 0 6px 6px;
+}
 
 /* BUTTONS */
   .btn-row { display:flex; gap:6px; margin-top:.8rem; flex-wrap:wrap; }
@@ -335,18 +443,6 @@
 .faction-bar{ position:relative; overflow:hidden; }
 .faction-fill{ position:absolute; top:0; left:50%; height:100%; }
 .zero-line{ position:absolute; left:50%; top:-2px; bottom:-2px; width:1px; background:rgba(0,0,0,0.35); }
-
-
-/* Disabled policies (prerequisites / advisor requirements not met) */
-.policy-card.disabled{ opacity:0.42; filter:grayscale(70%); cursor:not-allowed; transform:none !important; }
-.policy-card.disabled:hover{ background:var(--cream); transform:none; }
-.policy-card .policy-locked{ margin-top:8px; font-size:10px; opacity:0.9; color:var(--red-dark); font-style:italic; }
-
-/* Advisors who resigned */
-.advisor-card.resigned{ opacity:0.45; filter:grayscale(90%); cursor:default; transform:none !important; }
-.advisor-card.resigned:hover{ transform:none; }
-.advisor-card .advisor-status{ font-size:10px; letter-spacing:.08em; text-transform:uppercase; margin-top:6px; opacity:0.85; }
-
 </style>
 </head>
 <body>
@@ -423,7 +519,29 @@
 <!-- HISTORY LOG -->
     <div class="history-log" id="history-log">
       <div class="log-entry"><span class="log-turn">Turn 1 (March 1985)</span><span class="log-text">Game started. Gorbachev in power.</span></div>
+    
+
+<!-- SOVIET TELETYPE PRINTER (decorative) -->
+<div class="teletype-printer" aria-hidden="true">
+  <div class="printer-top">
+    <div class="printer-badge">★ СОЮЗ ТЕЛЕТАЙП ★</div>
+    <div class="printer-vents"></div>
+  </div>
+  <div class="printer-body">
+    <div class="printer-slot"></div>
+    <div class="printer-lights">
+      <span class="light red"></span>
+      <span class="light amber"></span>
+      <span class="light green"></span>
     </div>
+    <div class="printer-knobs">
+      <span class="knob"></span>
+      <span class="knob"></span>
+    </div>
+  </div>
+  <div class="printer-base"></div>
+</div>
+</div>
 
     
 <!-- BUTTONS -->
@@ -591,9 +709,6 @@ const gameState = {
 
   // History log
   history: [],
-  completedPolicies: [],
-  rngSeed: 123456789,
-  coup: { risk: 0, lastAttemptTurn: null },
 };
 
 
@@ -637,179 +752,6 @@ const OIL_BRENT_MONTHLY = {
   1990: [21.25, 19.81, 18.39, 16.61, 16.35, 15.10, 17.17, 27.17, 34.90, 36.02, 33.07, 28.27],
   1991: [23.57, 19.54, 19.08, 19.18, 19.19, 18.17, 19.40, 19.77, 20.50, 22.21, 21.11, 18.41],
 };
-
-
-// ===== Engine helpers: deterministic RNG + policy tree + coup risk =====
-function seededRandom(){
-  // simple LCG: deterministic across runs for debugging
-  gameState.rngSeed = (Math.imul(1664525, gameState.rngSeed) + 1013904223) >>> 0;
-  return gameState.rngSeed / 4294967296;
-}
-
-function isPolicyCompleted(pid){
-  return (gameState.completedPolicies || []).includes(pid);
-}
-function policyPrereqsMet(policy){
-  const reqs = policy.prerequisites || [];
-  return !reqs.some(r => !isPolicyCompleted(r));
-}
-function advisorIsActive(advisorId){
-  const a = advisors.find(x => x.id === advisorId);
-  return !!a && !a.resigned;
-}
-function policyAdvisorReqMet(policy){
-  if (!policy.advisorRequired) return true;
-  return advisorIsActive(policy.advisorRequired);
-}
-
-function policyTier(policyId, memo){
-  memo = memo || {};
-  if (memo[policyId] != null) return memo[policyId];
-  const p = policies.find(x => x.id === policyId);
-  if (!p) return memo[policyId] = 0;
-  const reqs = p.prerequisites || [];
-  if (!reqs.length) return memo[policyId] = 0;
-  const tiers = reqs.map(r => policyTier(r, memo));
-  const t = (Math.max.apply(null, tiers) + 1) || 1;
-  memo[policyId] = t;
-  return t;
-}
-
-function applyAdvisorLoyaltyFromPolicy(policy){
-  // Explicit per-advisor impacts (preferred)
-  if (policy.advisorImpact && typeof policy.advisorImpact === 'object') {
-    Object.entries(policy.advisorImpact).forEach(([aid, delta]) => {
-      if (gameState.advisorLoyalty[aid] == null) return;
-      const prev = Number(gameState.advisorLoyalty[aid] ?? 50);
-      const next = clamp(prev + Number(delta || 0), 0, 100);
-      gameState.advisorLoyalty[aid] = next;
-      addLog(`Advisor: ${aid} loyalty ${delta>0?'+':''}${delta} → ${next}`);
-    });
-  }
-
-  // Opposition list (fallback)
-  (policy.advisorOpposition || []).forEach(aid => {
-    if (gameState.advisorLoyalty[aid] == null) return;
-    gameState.advisorLoyalty[aid] = clamp(Number(gameState.advisorLoyalty[aid]) - 5, 0, 100);
-  });
-
-  // Bonus for required advisor (they feel empowered)
-  if (policy.advisorRequired && gameState.advisorLoyalty[policy.advisorRequired] != null) {
-    gameState.advisorLoyalty[policy.advisorRequired] = clamp(Number(gameState.advisorLoyalty[policy.advisorRequired]) + 2, 0, 100);
-  }
-
-  // Light faction-based drift (prevents inert system)
-  const eff = policy.effects || {};
-  advisors.forEach(a => {
-    if (a.resigned) return;
-    if (gameState.advisorLoyalty[a.id] == null) return;
-
-    let d = 0;
-    if (a.faction === 'Reformist') {
-      if (Number(eff.popularSupport || 0) > 0) d += 1;
-      if (Number(eff.foreignRelations || 0) > 0) d += 1;
-      if (Number(eff.partyUnity || 0) < 0) d += 1;
-    }
-    if (a.faction === 'Conservative') {
-      if (Number(eff.partyUnity || 0) < 0) d -= 2;
-      if (Number(eff.stability || 0) < 0) d -= 1;
-    }
-    if (a.faction === 'Military') {
-      if (Number(eff.militaryReadiness || 0) < 0) d -= 3;
-      if (Number(eff.foreignRelations || 0) > 0) d -= 1;
-    }
-    if (a.faction === 'Centrist') {
-      if (Number(eff.economy || 0) > 0) d += 1;
-      if (Number(eff.stability || 0) < 0) d -= 1;
-    }
-
-    if (d !== 0) {
-      gameState.advisorLoyalty[a.id] = clamp(Number(gameState.advisorLoyalty[a.id]) + d, 0, 100);
-    }
-  });
-}
-
-function maybeResignAdvisors(){
-  advisors.forEach(a => {
-    if (a.resigned) return;
-    const l = Number(gameState.advisorLoyalty[a.id] ?? 50);
-    if (l < 20) {
-      a.resigned = true;
-      displayTriggerEvent({
-        name: `Resignation: ${a.name}`,
-        description: `${a.name} resigns publicly, denouncing your direction of policy. The resignation shakes elite cohesion and public confidence.`,
-        choices: [
-          { text: 'Acknowledge the resignation', effects: { stability: -5, partyUnity: -3 } },
-          { text: 'Denounce as disloyal', effects: { partyUnity: +2, popularSupport: -5 } }
-        ]
-      });
-      addLog(`[RESIGNATION] ${a.name} has resigned`);
-    }
-  });
-}
-
-function computeCoupProbability(){
-  // Coup risk rises with low stability/party unity, hardliner strength, and disloyal/hostile elites.
-  const m = gameState.metrics;
-  const pf = gameState.partyFactions;
-  const ms = gameState.militarySub;
-  const loy = gameState.advisorLoyalty || {};
-
-  const stabilityRisk = clamp((50 - Number(m.stability || 0)) / 50, 0, 1);
-  const unityRisk = clamp((50 - Number(m.partyUnity || 0)) / 50, 0, 1);
-  const hardRisk = clamp((Number(pf.hardliner || 0) - 35) / 65, 0, 1);
-  const militaryRisk = clamp((55 - Number(ms.loyalty || 0)) / 55, 0, 1);
-
-  // Advisor-specific coup sensitivity (conservatives + military)
-  const lig = clamp((50 - Number(loy.ligachev ?? 55)) / 50, 0, 1);
-  const akh = clamp((50 - Number(loy.akhromeyev ?? 65)) / 50, 0, 1);
-
-  let p = 0.02
-    + 0.20 * stabilityRisk
-    + 0.18 * unityRisk
-    + 0.15 * hardRisk
-    + 0.20 * militaryRisk
-    + 0.10 * lig
-    + 0.10 * akh;
-
-  if (Number(m.popularSupport || 0) < 30) p += 0.05;
-
-  p = clamp(p, 0, 0.70);
-  gameState.coup.risk = Math.round(p * 100);
-  return p;
-}
-
-function maybeTriggerCoupAttempt(){
-  if (gameState.gameOver) return false;
-  if (gameState.coup.lastAttemptTurn != null && (gameState.turn - gameState.coup.lastAttemptTurn) < 6) return false;
-
-  const p = computeCoupProbability();
-  const roll = seededRandom();
-  if (roll >= p) return false;
-
-  gameState.coup.lastAttemptTurn = gameState.turn;
-
-  const weakMilitary = (gameState.militarySub.loyalty || 0) <= 35;
-  const weakSupport = (gameState.metrics.popularSupport || 0) <= 30;
-
-  const choices = [];
-  if (!weakSupport && !gameState.coupResistDisabled) {
-    choices.push({ text: 'Appeal to the public — call for mass demonstrations', effects: { popularSupport: +5, stability: -5, partyUnity: -5 } });
-  }
-  if (!weakMilitary && !gameState.militaryCrackdownDisabled) {
-    choices.push({ text: 'Order loyal units to detain conspirators', effects: { stability: +5, partyUnity: -5, militaryLoyalty: -5 } });
-  }
-  choices.push({ text: 'Negotiate — offer concessions to hardliners', effects: { partyUnity: +5, popularSupport: -10 } });
-
-  displayTriggerEvent({
-    name: 'Coup Attempt',
-    description: `Hardline elements move against you. Coup risk this turn was ${gameState.coup.risk}%.`,
-    choices
-  });
-
-  addLog(`⚠ Coup attempt triggered (risk ${gameState.coup.risk}%, roll ${Math.round(roll*100)}).`);
-  return true;
-}
 function clamp(n,min,max){ return Math.min(max, Math.max(min, n)); }
 
 function formatStatKey(key){
@@ -1109,7 +1051,7 @@ function integrateContent(bundle, source='(unknown source)'){
   ensureAdvisorLoyaltyDefaults();
  }
 
- addLog(`✓ Imported content from ${source} (P:${pOut.length} E:${eOut.length} A:${aOut.length})`);
+ addLog(`ÃÂÃÂ Imported content from ${source} (P:${pOut.length} E:${eOut.length} A:${aOut.length})`);
  renderPolicies();
  renderAdvisors();
  return { ok:true };
@@ -1308,9 +1250,7 @@ computeBudgetBalanceForTurn();
     renderPolicies();
   }
 
-  // Coup attempt roll (only when no event is active and no queued trigger events)
- if (!activeEvent && triggerEventQueue.length === 0) { maybeTriggerCoupAttempt(); }
- render();
+  render();
 }
 
 function resetGame() {
@@ -1349,11 +1289,9 @@ function applyMetricChange(metricKey, delta) {
   }
 }
 
-/*
-==============================
-TRIGGER SYSTEM — GDD v2.0 rules
-==============================
-*/
+/* Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂ
+   TRIGGER SYSTEM  Ã¢ÂÂ  GDD v2.0 rules
+   Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂ */
 
 function fireTrigger(id, logMsg) {
   if (gameState.firedTriggers[id]) return false;
@@ -1383,12 +1321,12 @@ function checkAllTriggers() {
   }
 
   // Ã¢ÂÂÃ¢ÂÂ BUDGET BALANCE TRIGGER (GDD: trigger at -10) Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂ
-  if (es.budgetBalance <= -10 && fireTrigger('budget_neg10', 'Budget deficit critical — inflation surge.')) {
+  if (es.budgetBalance <= -10 && fireTrigger('budget_neg10', 'Budget deficit critical Ã¢ÂÂ inflation surge.')) {
     applyMetricChange('inflation', 20);
   }
 
   // Ã¢ÂÂÃ¢ÂÂ SOCIAL PARASITISM TRIGGER (GDD: trigger at 25%) Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂ
-  if (es.socialParasitism >= 25 && fireTrigger('parasitism_25', 'Social parasitism crisis — public unrest event triggered.')) {
+  if (es.socialParasitism >= 25 && fireTrigger('parasitism_25', 'Social parasitism crisis Ã¢ÂÂ public unrest event triggered.')) {
     displayTriggerEvent({
       name: 'Social Parasitism Crisis',
       description: 'Widespread absenteeism, underground markets, and work avoidance have become impossible to ignore. The state\'s authority to compel economic participation is collapsing.',
@@ -1697,39 +1635,26 @@ function clearPolicySelection() {
 }
 
 function applyPolicyImmediate(policyId) {
- const policy = policies.find(p => p.id === policyId);
- if (!policy) return;
-
- if (!policyPrereqsMet(policy)) {
-   addLog('⚠ Prerequisites not met for: ' + policy.name);
-   return;
- }
- if (!policyAdvisorReqMet(policy)) {
-   addLog('⚠ Required advisor unavailable for: ' + policy.name);
-   return;
- }
-
- if (gameState.budget < policy.cost) {
-   addLog('⚠ Not enough budget.');
-   return;
- }
-
- gameState.budget -= policy.cost;
- gameState.turnSpend += policy.cost;
-
- Object.entries(policy.effects || {}).forEach(([key, val]) => {
-   applyMetricChange(key, val);
- });
-
- applyAdvisorLoyaltyFromPolicy(policy);
-
- if (!gameState.completedPolicies) gameState.completedPolicies = [];
- if (!gameState.completedPolicies.includes(policy.id)) gameState.completedPolicies.push(policy.id);
-
- addLog(`Policy: ${policy.name} (-${policy.cost} budget)`);
-
- maybeResignAdvisors();
- computeCoupProbability();
+  const policy = policies.find(p => p.id === policyId);
+  if (!policy) return;
+  if (gameState.budget < policy.cost) {
+    addLog('Ã¢ÂÂ  Not enough budget.');
+    return;
+  }
+  gameState.budget -= policy.cost;
+  gameState.turnSpend += policy.cost;
+  Object.entries(policy.effects || {}).forEach(([key, val]) => {
+    applyMetricChange(key, val);
+  });
+  // Advisor loyalty hook (only if content provides these fields)
+  if (policy.advisorOpposition && Array.isArray(policy.advisorOpposition)) {
+    policy.advisorOpposition.forEach(aid => {
+      if (gameState.advisorLoyalty && gameState.advisorLoyalty[aid] != null) {
+        gameState.advisorLoyalty[aid] = clamp(Number(gameState.advisorLoyalty[aid]) - 5, 0, 100);
+      }
+    });
+  }
+  addLog(`Policy: ${policy.name} (-${policy.cost} budget)`);
 }
 
 function commitPolicies() {
@@ -1913,64 +1838,31 @@ function renderIntl() {
 
 function renderPolicies() {
   const cat = uiState.policyCategory;
-  const base = (cat && cat !== 'All')
+  const list = (cat && cat !== 'All')
     ? policies.filter(p => String(p.category || '').toLowerCase() === String(cat).toLowerCase())
-    : policies.slice();
-
-  const memoTier = {};
-  base.sort((a,b) => {
-    const ta = policyTier(a.id, memoTier);
-    const tb = policyTier(b.id, memoTier);
-    if (ta !== tb) return ta - tb;
-    return String(a.name||'').localeCompare(String(b.name||''));
-  });
-
+    : policies;
   const picks = gameState.selectedPolicies || [];
-
-  const htmlOut = base.map(p => {
+  const html = list.map(p => {
     const isSel = picks.includes(p.id);
-    const blockedPrereq = !policyPrereqsMet(p);
-    const blockedAdvisor = !policyAdvisorReqMet(p);
-    const blocked = blockedPrereq || blockedAdvisor;
-
-    const tier = policyTier(p.id, memoTier);
-    const prereqText = (p.prerequisites && p.prerequisites.length)
-      ? ('Requires: ' + p.prerequisites.join(', '))
-      : '';
-
-    const lockMsg = blockedPrereq
-      ? ('Locked: prerequisites not met. ' + prereqText)
-      : blockedAdvisor
-        ? ('Locked: required advisor unavailable (' + p.advisorRequired + ').')
-        : '';
-
-    const onclick = blocked ? '' : `onclick=\"togglePolicySelection('${p.id}')\"`;
-
     return `
-      <div class=\"policy-card${isSel ? ' selected' : ''}${blocked ? ' disabled' : ''}\" data-cat=\"${p.category || ''}\" ${onclick}>
-        <div class=\"card-corner tl\">${(p.category || 'Policy')} • Tier ${tier}</div>
-        <div class=\"card-corner br\">Cost ${p.cost}</div>
-        <div class=\"card-body\">
-          <div class=\"policy-name\">${p.name}</div>
-          <div class=\"policy-cost\">Cost: ${p.cost} budget</div>
-          <div class=\"policy-effect\">${formatEffects(p.effects)}</div>
-          ${blocked ? `<div class=\"policy-locked\">${lockMsg}</div>` : ''}
+      <div class="policy-card${isSel ? ' selected' : ''}" data-cat="${p.category || ''}" onclick="togglePolicySelection('${p.id}')">
+        <div class="card-corner tl">${p.category || 'Policy'}</div>
+        <div class="card-corner br">Cost ${p.cost}</div>
+        <div class="card-body">
+          <div class="policy-name">${p.name}</div>
+          <div class="policy-cost">Cost: ${p.cost} budget</div>
+          <div class="policy-effect">${formatEffects(p.effects)}</div>
         </div>
       </div>`;
   }).join('');
-
-  document.getElementById('policy-grid').innerHTML = htmlOut;
-
+  document.getElementById('policy-grid').innerHTML = html;
   const cEl = document.getElementById('policy-selected-count');
   if (cEl) cEl.textContent = String(picks.length);
-
   const pcEl = document.getElementById('policy-predicted-cost');
   if (pcEl) pcEl.textContent = String(plannedSpend());
-
   const commitBtn = document.getElementById('policy-commit-btn');
   if (commitBtn) commitBtn.disabled = picks.length === 0 || (gameState.policiesCommittedTurn === gameState.turn);
 }
-
 
 function renderAdvisors() {
   const f = uiState.advisorFaction;
@@ -1978,29 +1870,26 @@ function renderAdvisors() {
     ? advisors.filter(a => String(a.faction || '').toLowerCase() === String(f).toLowerCase())
     : advisors;
 
-  const htmlOut = list.map(a => {
+  const html = list.map(a => {
     const loyalty = (gameState.advisorLoyalty[a.id] ?? a.defaultLoyalty ?? a.loyalty ?? 50);
     let cls = 'mid';
     if (loyalty >= 75) cls = 'high';
     if (loyalty <= 40) cls = 'low';
-    const resigned = !!a.resigned;
 
     return `
-      <div class=\"advisor-card${resigned ? ' resigned' : ''}\">
-        <div class=\"card-corner tl\">${a.faction || 'Advisor'}</div>
-        <div class=\"card-corner br\">${a.role || ''}</div>
-        <div class=\"card-body\">
-          <div class=\"advisor-name\">${a.name}</div>
-          <div class=\"advisor-faction\">${a.faction}</div>
-          <div class=\"advisor-loyalty ${cls}\">Loyalty: ${loyalty}</div>
-          ${resigned ? `<div class=\"advisor-status\">Resigned</div>` : ''}
+      <div class="advisor-card">
+        <div class="card-corner tl">${a.faction || 'Advisor'}</div>
+        <div class="card-corner br">${a.role || ''}</div>
+        <div class="card-body">
+          <div class="advisor-name">${a.name}</div>
+          <div class="advisor-faction">${a.faction}</div>
+          <div class="advisor-loyalty ${cls}">Loyalty: ${loyalty}</div>
         </div>
       </div>`;
   }).join('');
 
-  document.getElementById('advisor-grid').innerHTML = htmlOut;
+  document.getElementById('advisor-grid').innerHTML = html;
 }
-
 
 
 
@@ -2051,7 +1940,8 @@ function render() {
   renderDate();
   renderFactions();
   renderIntl();
-renderPolitburoVisual();
+  renderPressures();
+  renderPolitburoVisual();
   renderAdvisors();
 }
 
