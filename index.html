@@ -256,41 +256,36 @@
 
 
 
-/* === PRAVDA PANEL (final v9) === */
+/* === PRAVDA PANEL (override v11) === */
 .event-panel.pravda{ display:none !important; }
 .event-panel.pravda.active{ display:block !important; }
-
-/* Masthead logo sizing */
 .pravda-mast-name{ display:flex; justify-content:center; }
 .pravda-logo{ max-width:min(520px, 90%); height:auto; display:block; }
-
-/* Two-column layout; stretch rows so buttons can fill */
-.pravda-grid{ display:grid; grid-template-columns: 260px 1fr; gap:14px; margin-top:12px; align-items:stretch; }
-
+.pravda-grid{ display:grid !important; grid-template-columns: 260px 1fr !important; gap:14px !important; margin-top:12px !important; align-items:stretch !important; }
 :root{ --pravda-photo-h: clamp(190px, 18vw, 250px); }
-.pravda-photo{ display:flex; flex-direction:column; justify-content:flex-start; gap:6px; align-self:stretch; background:transparent !important; border:none !important; padding:0 !important; }
-.pravda-photo-frame{ position:relative; width:100%; height:var(--pravda-photo-h); overflow:hidden; background:transparent; }
-.pravda-img{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; display:block; border:none !important; box-shadow:none !important; filter: grayscale(100%) contrast(1.35) brightness(0.92); }
+.pravda-photo{ display:flex !important; flex-direction:column !important; justify-content:flex-start !important; gap:6px !important; align-self:stretch !important; background:transparent !important; border:none !important; padding:0 !important; }
+.pravda-photo-frame{ position:relative !important; width:100% !important; height:var(--pravda-photo-h) !important; overflow:hidden !important; background:transparent !important; }
+.pravda-img{ position:absolute !important; inset:0 !important; width:100% !important; height:100% !important; object-fit:cover !important; display:block !important; border:none !important; box-shadow:none !important; filter: grayscale(100%) contrast(1.35) brightness(0.92) !important; }
 .pravda-photo-frame::after{ content:''; position:absolute; inset:0; pointer-events:none; opacity:0.15;
   background-image: repeating-linear-gradient(0deg, rgba(0,0,0,0.09) 0px, rgba(0,0,0,0.09) 1px, transparent 3px, transparent 6px);
   mix-blend-mode:multiply;
 }
-
-/* Caption: NOT a box. Text + rule UNDER (via ::after) */
-.pravda-caption{ background:transparent !important; border:none !important; box-shadow:none !important; padding:0 !important; margin:2px 0 0 0 !important; text-align:center; font-family:Georgia,serif; font-size:10.5px; line-height:1.15; color:rgba(0,0,0,0.82); }
+.pravda-caption{ background:transparent !important; border:none !important; box-shadow:none !important; padding:0 !important; margin:2px 0 0 0 !important; text-align:center !important; font-family:Georgia,serif !important; font-size:10.5px !important; line-height:1.15 !important; color:rgba(0,0,0,0.82) !important; }
 .pravda-caption::after{ content:''; display:block; margin-top:4px; border-bottom:1px solid rgba(0,0,0,0.35); }
-
-/* Right side fills to match photo+caption height; buttons grow to eliminate blank under photo */
-.pravda-main{ display:flex; flex-direction:column; min-height: calc(var(--pravda-photo-h) + 28px); }
-.pravda-choices{ margin-top:12px; display:flex; flex-direction:column; gap:12px; flex:1 1 auto; }
-.pravda-choices .event-btn{ width:100%; flex:1 1 0; min-height:44px; max-height:84px; padding:10px 12px; }
-
+.pravda-main{ display:flex !important; flex-direction:column !important; min-height: calc(var(--pravda-photo-h) + 28px) !important; }
+.pravda-choices{ margin-top:12px !important; display:flex !important; flex-direction:column !important; gap:12px !important; flex:1 1 auto !important; }
+.pravda-choices .event-btn{ width:100% !important; flex:1 1 0 !important; min-height:44px !important; max-height:84px !important; padding:10px 12px !important; }
 @media (max-width: 760px){
   :root{ --pravda-photo-h: clamp(170px, 42vw, 240px); }
-  .pravda-grid{ grid-template-columns:1fr; }
-  .pravda-main{ min-height:auto; }
-  .pravda-choices .event-btn{ flex:0 0 auto; max-height:none; }
+  .pravda-grid{ grid-template-columns:1fr !important; }
+  .pravda-main{ min-height:auto !important; }
+  .pravda-choices .event-btn{ flex:0 0 auto !important; max-height:none !important; }
 }
+
+/* === FACTION APPROVAL (centered around zero) === */
+.faction-bar{ position:relative; overflow:hidden; }
+.faction-fill{ position:absolute; top:0; left:50%; height:100%; }
+.zero-line{ position:absolute; left:50%; top:-2px; bottom:-2px; width:1px; background:rgba(0,0,0,0.35); }
 </style>
 </head>
 <body>
@@ -427,8 +422,9 @@
   <div id="policy-selection" style="margin:10px 2px 10px; display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
   <span style="font-family:'IM Fell English',serif; font-size:13px; opacity:.85;">Selected this turn: <strong id="policy-selected-count">0</strong>/3</span>
   <span style="font-family:'IM Fell English',serif; font-size:13px; opacity:.85;">Predicted cost: <strong id="policy-predicted-cost">0</strong></span>
-  <button class="btn" onclick="clearPolicySelection()" style="padding:4px 10px;">Clear</button>
+  <span class="budget-badge">Budget: <strong id="budget-inline">100</strong></span>
   <button class="btn" onclick="endTurn()" style="padding:4px 10px;">End Turn</button>
+  <button class="btn" onclick="clearPolicySelection()" style="padding:4px 10px;">Clear</button>
 </div>
 
       <div class="filter-row" id="policy-filters">
@@ -517,9 +513,9 @@ const gameState = {
 
   // Faction approval (-10 to +10)
   factionApproval: {
-    reformers:   0,
-    moderates:   0,
-    hardliners:  0,
+    reformers: 2,
+    moderates: 1,
+    hardliners: -2,
   },
 
   // International relations (0-100 scale; GDD starting values)
@@ -963,13 +959,9 @@ function setupPravdaMasthead(){
   setText('pravda-mast-top', '\u0415\u0416\u0415\u0414\u041d\u0415\u0412\u041d\u0410\u042f \u0420\u0410\u0411\u041e\u0427\u0410\u042f \u0413\u0410\u0417\u0415\u0422\u0410.');
   setText('pravda-price-label', '\u0426\u0415\u041d\u0410 2 \u043a\u043e\u043f.');
 
-  // Pravda logo image
   const logo = document.getElementById('pravda-logo');
-  if (logo) {
-    logo.src = new URL('images/Pravda_1971.png', document.baseURI).href;
-  }
+  if (logo) logo.src = new URL('images/Pravda_1971.png', document.baseURI).href;
 
-  // Issue + date always present
   try { if (typeof gameState !== 'undefined') setText('pravda-issue', '\u2116 ' + String(gameState.turn) + '.'); } catch(e){}
   const cd = document.getElementById('current-date');
   if (cd) setText('pravda-date', cd.textContent);
@@ -1406,7 +1398,9 @@ function testPravdaEvent(){
   const demo = {
     id: 'test_pravda',
     name: 'Central Committee Communique',
-    description: `The Central Committee reminds all organs to maintain discipline and clarity in reporting.\n\nGuided by the principles of Marxism-Leninism and proletarian internationalism, all party organisations are instructed to strengthen ideological vigilance, uphold democratic centralism, and ensure the unity of word and deed.\n\nLet every collective and every cadre raise labour discipline, expose opportunism and petty-bourgeois wavering, and advance socialist construction with steadfast resolve.`,
+    description: `The Central Committee reminds all organs to maintain discipline and clarity in reporting. Guided by the principles of Marxism-Leninism and proletarian internationalism, all party organisations are instructed to strengthen ideological vigilance, uphold democratic centralism, and ensure the unity of word and deed
+
+Let every collective and every cadre raise labour discipline, expose opportunism and petty-bourgeois wavering, and advance socialist construction with steadfast resolve.`,
     choices: [
       { text: 'Publish as lead story', effects: { popularSupport: +2, foreignRelations: +1 } },
       { text: 'Publish as short notice', effects: { partyUnity: +1, stability: +1 } },
@@ -1617,6 +1611,8 @@ function renderStatus() {
 function renderDate() {
   const monthNames = ['', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
   document.getElementById('current-date').textContent = `${monthNames[gameState.month]} ${gameState.year}`;
+  const bInline = document.getElementById('budget-inline');
+  if (bInline) bInline.textContent = String(gameState.budget);
   const pDate = document.getElementById('pravda-date');
   if (pDate) pDate.textContent = document.getElementById('current-date')?.textContent || '';
   const pIssue = document.getElementById('pravda-issue');
@@ -1634,12 +1630,15 @@ function renderFactions() {
 
  Object.keys(map).forEach(f => {
   const approval = gameState.factionApproval[f];
-  const w = Math.min(100, Math.max(0, 50 + approval * 4));
+  const magnitude = Math.min(50, Math.abs(approval) * 4); // cap to half-bar
+  const left = approval >= 0 ? 50 : (50 - magnitude);
   const cls = approval > 0 ? 'pos' : approval < 0 ? 'neg' : 'neu';
   const val = approval > 0 ? '+' + approval : approval < 0 ? '-' + Math.abs(approval) : '0';
 
   const id = map[f];
-  document.getElementById(`fb-${id}`).style.width = w + '%';
+  const fillEl = document.getElementById(`fb-${id}`);
+  fillEl.style.width = magnitude + '%';
+  fillEl.style.left = left + '%';
   document.getElementById(`fv-${id}`).textContent = val;
   document.getElementById(`fv-${id}`).className = 'approval-val ' + cls;
  });
