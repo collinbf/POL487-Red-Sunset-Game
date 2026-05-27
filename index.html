@@ -211,14 +211,63 @@
   .advisor-faction{ font-size:10px; margin-bottom:8px; text-align:left; }
   .advisor-loyalty{ font-size:12px; text-align:left; }
 
-/* HISTORY LOG */
-  .history-log { background:rgba(139,26,26,.04); border:.5px solid var(--rule); border-radius:2px; padding:8px; font-size:12px; max-height:150px; overflow-y:auto; margin-top:1rem; }
-  .log-entry { margin-bottom:6px; padding-bottom:5px; border-bottom:.5px solid var(--rule); }
-  .log-entry:last-child { border-bottom:none; }
-  .log-turn { font-weight:700; color:var(--red-dark); }
-  .log-text { color:var(--ink); opacity:.85; margin-top:2px; }
+/* HISTORY LOG — Teletype on paper */
+.history-log {
+  background: #f7f0df;
+  border: 1.5px solid rgba(43,31,16,0.28);
+  border-radius: 4px;
+  padding: 10px 10px 12px;
+  font-size: 12.5px;
+  line-height: 1.35;
+  max-height: 180px;
+  overflow-y: auto;
+  margin-top: 1rem;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
+  color: rgba(43,31,16,0.92);
+  box-shadow: 0 12px 22px rgba(0,0,0,0.10);
+  position: relative;
+}
+/* subtle paper fibres + faint ruled lines */
+.history-log::before{
+  content:'';
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+  background:
+    repeating-linear-gradient(180deg, rgba(0,0,0,0.00) 0px, rgba(0,0,0,0.00) 18px, rgba(139,26,26,0.06) 19px),
+    radial-gradient(circle at 20% 10%, rgba(0,0,0,0.03), rgba(0,0,0,0.00) 55%),
+    radial-gradient(circle at 80% 35%, rgba(0,0,0,0.025), rgba(0,0,0,0.00) 60%);
+  mix-blend-mode: multiply;
+  opacity: 0.9;
+}
+.history-log::after{
+  content:'TELETYPE LOG';
+  position:absolute;
+  top:6px;
+  right:10px;
+  font-size:10px;
+  letter-spacing:.18em;
+  color: rgba(43,31,16,0.45);
+}
+.log-entry {
+  margin-bottom: 4px;
+  padding: 2px 0;
+  border-bottom: none;
+  position: relative;
+}
+.log-entry:last-child { margin-bottom: 0; }
+.log-turn {
+  font-weight: 700;
+  color: rgba(92,17,17,0.88);
+  margin-right: 6px;
+}
+.log-text {
+  color: rgba(43,31,16,0.90);
+  opacity: 1;
+}
 
-  /* BUTTONS */
+
+/* BUTTONS */
   .btn-row { display:flex; gap:6px; margin-top:.8rem; flex-wrap:wrap; }
   .btn { background:transparent; border:1px solid var(--red); color:var(--red-dark); padding:5px 12px; font-family:'Cormorant Garamond',serif; font-size:11px; letter-spacing:.08em; text-transform:uppercase; cursor:pointer; border-radius:2px; transition:background .15s,color .15s; }
   .btn:hover { background:var(--red); color:var(--cream); }
@@ -371,18 +420,6 @@
       <div class="intl-row"><span class="intl-name">Western Europe</span><div class="intl-bar"><div class="intl-fill" id="if-we" style="width:50%;background:var(--gold);"></div></div><span class="intl-val neu" id="iv-we">0</span></div>
       <div class="intl-row"><span class="intl-name">Non-Aligned</span><div class="intl-bar"><div class="intl-fill" id="if-na" style="width:50%;background:var(--gold);"></div></div><span class="intl-val neu" id="iv-na">0</span></div>
     </div>
-
-<!-- SYSTEM PRESSURES (GDD v2) -->
-<div style="margin-top:1rem;">
-  <div class="section-title" style="font-size:10px;">System Pressures</div>
-  <div class="intl-row"><span class="intl-name">Separatism</span><div class="intl-bar"><div class="intl-fill" id="sep-bar" style="width:50%;background:var(--gold);"></div></div><span class="intl-val neu" id="sep-val">0</span></div>
-  <div class="intl-row"><span class="intl-name">Combat Readiness</span><div class="intl-bar"><div class="intl-fill" id="combat-bar" style="width:50%;background:var(--gold);"></div></div><span class="intl-val neu" id="combat-val">0</span></div>
-  <div class="intl-row"><span class="intl-name">Military Loyalty</span><div class="intl-bar"><div class="intl-fill" id="mloyalty-bar" style="width:50%;background:var(--gold);"></div></div><span class="intl-val neu" id="mloyalty-val">0</span></div>
-  <div class="intl-row"><span class="intl-name">Reform Faction</span><div class="intl-bar"><div class="intl-fill" id="pf-reform-bar" style="width:50%;background:var(--gold);"></div></div><span class="intl-val neu" id="pf-reform-val">0</span></div>
-  <div class="intl-row"><span class="intl-name">Moderate Faction</span><div class="intl-bar"><div class="intl-fill" id="pf-mod-bar" style="width:50%;background:var(--gold);"></div></div><span class="intl-val neu" id="pf-mod-val">0</span></div>
-  <div class="intl-row"><span class="intl-name">Hardliner Faction</span><div class="intl-bar"><div class="intl-fill" id="pf-hard-bar" style="width:50%;background:var(--gold);"></div></div><span class="intl-val neu" id="pf-hard-val">0</span></div>
-</div>
-
 <!-- HISTORY LOG -->
     <div class="history-log" id="history-log">
       <div class="log-entry"><span class="log-turn">Turn 1 (March 1985)</span><span class="log-text">Game started. Gorbachev in power.</span></div>
@@ -727,7 +764,6 @@ function computeCoupProbability(){
   const lig = clamp((50 - Number(loy.ligachev ?? 55)) / 50, 0, 1);
   const akh = clamp((50 - Number(loy.akhromeyev ?? 65)) / 50, 0, 1);
 
-  // Combine (bounded). Baseline is low early game.
   let p = 0.02
     + 0.20 * stabilityRisk
     + 0.18 * unityRisk
@@ -736,10 +772,8 @@ function computeCoupProbability(){
     + 0.10 * lig
     + 0.10 * akh;
 
-  // If popular support collapsed, conspirators may risk it.
   if (Number(m.popularSupport || 0) < 30) p += 0.05;
 
-  // Clamp and store for UI/debug
   p = clamp(p, 0, 0.70);
   gameState.coup.risk = Math.round(p * 100);
   return p;
@@ -747,7 +781,6 @@ function computeCoupProbability(){
 
 function maybeTriggerCoupAttempt(){
   if (gameState.gameOver) return false;
-  // avoid spam: at most one attempt every 6 turns
   if (gameState.coup.lastAttemptTurn != null && (gameState.turn - gameState.coup.lastAttemptTurn) < 6) return false;
 
   const p = computeCoupProbability();
@@ -759,7 +792,6 @@ function maybeTriggerCoupAttempt(){
   const weakMilitary = (gameState.militarySub.loyalty || 0) <= 35;
   const weakSupport = (gameState.metrics.popularSupport || 0) <= 30;
 
-  // Choices reflect whether you can rally the public or rely on loyal forces.
   const choices = [];
   if (!weakSupport && !gameState.coupResistDisabled) {
     choices.push({ text: 'Appeal to the public — call for mass demonstrations', effects: { popularSupport: +5, stability: -5, partyUnity: -5 } });
@@ -1697,7 +1729,6 @@ function applyPolicyImmediate(policyId) {
  addLog(`Policy: ${policy.name} (-${policy.cost} budget)`);
 
  maybeResignAdvisors();
- // update coup risk display numbers
  computeCoupProbability();
 }
 
@@ -1913,17 +1944,17 @@ function renderPolicies() {
         ? ('Locked: required advisor unavailable (' + p.advisorRequired + ').')
         : '';
 
-    const onclick = blocked ? '' : `onclick="togglePolicySelection('${p.id}')"`;
+    const onclick = blocked ? '' : `onclick=\"togglePolicySelection('${p.id}')\"`;
 
     return `
-      <div class="policy-card${isSel ? ' selected' : ''}${blocked ? ' disabled' : ''}" data-cat="${p.category || ''}" ${onclick}>
-        <div class="card-corner tl">${(p.category || 'Policy')} • Tier ${tier}</div>
-        <div class="card-corner br">Cost ${p.cost}</div>
-        <div class="card-body">
-          <div class="policy-name">${p.name}</div>
-          <div class="policy-cost">Cost: ${p.cost} budget</div>
-          <div class="policy-effect">${formatEffects(p.effects)}</div>
-          ${blocked ? `<div class="policy-locked">${lockMsg}</div>` : ''}
+      <div class=\"policy-card${isSel ? ' selected' : ''}${blocked ? ' disabled' : ''}\" data-cat=\"${p.category || ''}\" ${onclick}>
+        <div class=\"card-corner tl\">${(p.category || 'Policy')} • Tier ${tier}</div>
+        <div class=\"card-corner br\">Cost ${p.cost}</div>
+        <div class=\"card-body\">
+          <div class=\"policy-name\">${p.name}</div>
+          <div class=\"policy-cost\">Cost: ${p.cost} budget</div>
+          <div class=\"policy-effect\">${formatEffects(p.effects)}</div>
+          ${blocked ? `<div class=\"policy-locked\">${lockMsg}</div>` : ''}
         </div>
       </div>`;
   }).join('');
@@ -1955,14 +1986,14 @@ function renderAdvisors() {
     const resigned = !!a.resigned;
 
     return `
-      <div class="advisor-card${resigned ? ' resigned' : ''}">
-        <div class="card-corner tl">${a.faction || 'Advisor'}</div>
-        <div class="card-corner br">${a.role || ''}</div>
-        <div class="card-body">
-          <div class="advisor-name">${a.name}</div>
-          <div class="advisor-faction">${a.faction}</div>
-          <div class="advisor-loyalty ${cls}">Loyalty: ${loyalty}</div>
-          ${resigned ? `<div class="advisor-status">Resigned</div>` : ''}
+      <div class=\"advisor-card${resigned ? ' resigned' : ''}\">
+        <div class=\"card-corner tl\">${a.faction || 'Advisor'}</div>
+        <div class=\"card-corner br\">${a.role || ''}</div>
+        <div class=\"card-body\">
+          <div class=\"advisor-name\">${a.name}</div>
+          <div class=\"advisor-faction\">${a.faction}</div>
+          <div class=\"advisor-loyalty ${cls}\">Loyalty: ${loyalty}</div>
+          ${resigned ? `<div class=\"advisor-status\">Resigned</div>` : ''}
         </div>
       </div>`;
   }).join('');
@@ -2020,8 +2051,7 @@ function render() {
   renderDate();
   renderFactions();
   renderIntl();
-  renderPressures();
-  renderPolitburoVisual();
+renderPolitburoVisual();
   renderAdvisors();
 }
 
