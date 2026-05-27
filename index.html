@@ -17,7 +17,7 @@
   /* MASTHEAD */
   .masthead { background:var(--red-dark); border-bottom:3px solid var(--gold); padding:1rem 1.5rem .9rem; text-align:center; }
   .masthead-title { font-family:'Playfair Display',serif; font-size:clamp(2rem,6vw,3.2rem); font-weight:900; color:var(--cream); }
-  .masthead-sub { font-family:'IM Fell English',serif; font-style:italic; font-size:13px; color:#c8a44a; margin-top:5px; }
+  .masthead-sub { font-family:'IM Fell English',serif; font-style:italic; font-size:16px; color:#c8a44a; margin-top:5px; }
 
   /* MAIN LAYOUT */
   .game-layout { display:grid; grid-template-columns:300px 1fr; gap:0; max-width:1100px; margin:1rem auto; padding:0 1rem; align-items:start; }
@@ -37,17 +37,17 @@
   /* METRICS */
   .metrics { display:flex; flex-direction:column; gap:7px; margin-bottom:1rem; }
   .metric-row { display:grid; grid-template-columns:1fr 70px 28px; align-items:center; gap:6px; }
-  .metric-name { font-size:11px; font-family:'IM Fell English',serif; color:var(--ink); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .metric-name { font-size:13px; font-family:'IM Fell English',serif; color:var(--ink); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
   .metric-bar { height:6px; background:rgba(139,26,26,.1); border:.5px solid rgba(139,26,26,.2); overflow:hidden; }
   .metric-fill { height:100%; transition:width .8s cubic-bezier(.4,0,.2,1), background .4s; }
-  .metric-val { font-size:10px; font-weight:600; text-align:right; }
+  .metric-val { font-size:12px; font-weight:600; text-align:right; }
   /* ECONOMY SUB-TRACKERS */
   .submetrics { margin:6px 0 2px 14px; padding-left:8px; border-left:2px solid rgba(139,26,26,0.18); display:flex; flex-direction:column; gap:6px; }
   .submetric-row { display:grid; grid-template-columns:1fr 70px 44px; align-items:center; gap:6px; }
-  .submetric-name { font-size:10px; font-family:'IM Fell English',serif; opacity:.85; }
+  .submetric-name { font-size:11px; font-family:'IM Fell English',serif; opacity:.85; }
   .submetric-bar { height:5px; background:rgba(139,26,26,.08); border:.5px solid rgba(139,26,26,.15); overflow:hidden; position:relative; }
   .submetric-fill { height:100%; transition:width .8s cubic-bezier(.4,0,.2,1), background .4s; }
-  .submetric-val { font-size:10px; font-weight:600; text-align:right; }
+  .submetric-val { font-size:11px; font-weight:600; text-align:right; }
   .submetric-bar.split::after { content:''; position:absolute; left:50%; top:-2px; bottom:-2px; width:1px; background:rgba(139,26,26,0.35); }
   .submetric-fill.neg { position:absolute; right:50%; top:0; bottom:0; background:var(--red); }
   .submetric-fill.pos { position:absolute; left:50%; top:0; bottom:0; background:var(--green); }
@@ -56,7 +56,7 @@
   /* GOVERNMENT */
   .gov-composition { display:flex; gap:4px; flex-wrap:wrap; margin-bottom:.7rem; align-items:center; }
   .gov-label { font-family:'IM Fell English',serif; font-style:italic; font-size:10px; opacity:.7; width:100%; margin-bottom:3px; }
-  .gov-chip { display:inline-flex; align-items:center; gap:3px; padding:2px 7px; border-radius:2px; border:.5px solid; font-size:10px; font-weight:600; white-space:nowrap; }
+  .gov-chip { display:inline-flex; align-items:center; gap:3px; padding:2px 7px; border-radius:2px; border:.5px solid; font-size:12px; font-weight:600; white-space:nowrap; }
   .gov-chip.reform { background:rgba(45,110,68,.1); border-color:rgba(45,110,68,.4); color:var(--green); }
   .gov-chip.moderate { background:rgba(154,122,46,.1); border-color:rgba(154,122,46,.4); color:#8b5a0a; }
   .gov-chip.hard { background:rgba(139,26,26,.1); border-color:rgba(139,26,26,.4); color:var(--red); }
@@ -72,7 +72,7 @@
 
   /* FACTION APPROVAL */
   .faction-row { display:grid; grid-template-columns:70px 1fr 34px; align-items:center; gap:6px; margin-bottom:6px; }
-  .faction-name { font-family:'IM Fell English',serif; font-size:11px; font-style:italic; }
+  .faction-name { font-family:'IM Fell English',serif; font-size:13px; font-style:italic; }
   .faction-name.reform { color:var(--green); }
   .faction-name.moderate { color:#8b5a0a; }
   .faction-name.hard { color:var(--red); }
@@ -82,17 +82,17 @@
   .faction-fill.moderate { background:var(--gold); }
   .faction-fill.hard { background:var(--red); }
   .zero-line { position:absolute; left:50%; top:-2px; bottom:-2px; width:1.5px; background:var(--rule); }
-  .approval-val { font-family:'Playfair Display',serif; font-size:11px; font-weight:700; text-align:right; }
+  .approval-val { font-family:'Playfair Display',serif; font-size:13px; font-weight:700; text-align:right; }
   .approval-val.pos { color:var(--green); }
   .approval-val.neg { color:var(--red); }
   .approval-val.neu { color:var(--gold); }
 
   /* INTL RELATIONS */
   .intl-row { display:grid; grid-template-columns:1fr 70px 28px; align-items:center; gap:6px; margin-bottom:6px; }
-  .intl-name { font-size:11px; font-family:'IM Fell English',serif; color:var(--ink); overflow:hidden; text-overflow:ellipsis; }
+  .intl-name { font-size:13px; font-family:'IM Fell English',serif; color:var(--ink); overflow:hidden; text-overflow:ellipsis; }
   .intl-bar { height:6px; background:rgba(139,26,26,.1); border:.5px solid rgba(139,26,26,.2); overflow:hidden; }
   .intl-fill { height:100%; transition:width .8s cubic-bezier(.4,0,.2,1), background .4s; }
-  .intl-val { font-size:10px; font-weight:600; text-align:right; }
+  .intl-val { font-size:12px; font-weight:600; text-align:right; }
 
   /* EVENT PANEL */
   .event-panel { background:rgba(139,26,26,.08); border:1px solid var(--rule); border-radius:3px; padding:12px; margin-bottom:1rem; display:none; }
@@ -208,7 +208,7 @@
   .advisor-loyalty{ font-size:12px; text-align:left; }
 
 /* HISTORY LOG */
-  .history-log { background:rgba(139,26,26,.04); border:.5px solid var(--rule); border-radius:2px; padding:8px; font-size:10px; max-height:150px; overflow-y:auto; margin-top:1rem; }
+  .history-log { background:rgba(139,26,26,.04); border:.5px solid var(--rule); border-radius:2px; padding:8px; font-size:12px; max-height:150px; overflow-y:auto; margin-top:1rem; }
   .log-entry { margin-bottom:6px; padding-bottom:5px; border-bottom:.5px solid var(--rule); }
   .log-entry:last-child { border-bottom:none; }
   .log-turn { font-weight:700; color:var(--red-dark); }
@@ -295,6 +295,20 @@
     </div>
 
     
+<!-- SEPARATISM & MILITARY SUB-METRICS -->
+    <div style="margin-top:1rem;">
+      <div class="section-title" style="font-size:10px;">Internal pressures</div>
+      <div class="intl-row"><span class="intl-name">Separatism</span><div class="intl-bar"><div class="intl-fill" id="sep-bar" style="width:10%;background:var(--red);"></div></div><span class="intl-val neg" id="sep-val">10</span></div>
+      <div class="intl-row"><span class="intl-name">Combat readiness</span><div class="intl-bar"><div class="intl-fill" id="combat-bar" style="width:70%;background:var(--green);"></div></div><span class="intl-val pos" id="combat-val">70</span></div>
+      <div class="intl-row"><span class="intl-name">Military loyalty</span><div class="intl-bar"><div class="intl-fill" id="mloyalty-bar" style="width:65%;background:var(--green);"></div></div><span class="intl-val pos" id="mloyalty-val">65</span></div>
+    </div>
+    <div style="margin-top:1rem;">
+      <div class="section-title" style="font-size:10px;">Party factions</div>
+      <div class="intl-row"><span class="intl-name" style="color:var(--green);">Reform</span><div class="intl-bar"><div class="intl-fill" id="pf-reform-bar" style="width:70%;background:var(--green);"></div></div><span class="intl-val pos" id="pf-reform-val">70</span></div>
+      <div class="intl-row"><span class="intl-name" style="color:var(--gold);">Moderate</span><div class="intl-bar"><div class="intl-fill" id="pf-mod-bar" style="width:50%;background:var(--gold);"></div></div><span class="intl-val neu" id="pf-mod-val">50</span></div>
+      <div class="intl-row"><span class="intl-name" style="color:var(--red);">Hardliner</span><div class="intl-bar"><div class="intl-fill" id="pf-hard-bar" style="width:40%;background:var(--red);"></div></div><span class="intl-val neg" id="pf-hard-val">40</span></div>
+    </div>
+
 <!-- HISTORY LOG -->
     <div class="history-log" id="history-log">
       <div class="log-entry"><span class="log-turn">Turn 1 (March 1985)</span><span class="log-text">Game started. Gorbachev in power.</span></div>
@@ -336,7 +350,7 @@
     <div class="policy-panel">
       <div class="policy-title">Available Policies</div>
   <div id="policy-selection" style="margin:10px 2px 10px; display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
-    <span style="font-family:'IM Fell English',serif; font-size:11px; opacity:.85;">Selected this turn: <strong id="policy-selected-count">0</strong>/3</span>
+    <span style="font-family:'IM Fell English',serif; font-size:13px; opacity:.85;">Selected this turn: <strong id="policy-selected-count">0</strong>/3</span>
     <button class="btn" onclick="commitPolicies()" style="padding:4px 10px;">Commit</button>
     <button class="btn" onclick="clearPolicySelection()" style="padding:4px 10px;">Clear</button>
   </div>
@@ -351,7 +365,7 @@
 
     <!-- ADVISORS PANEL -->
     <div style="margin-top:1.5rem;" class="advisor-panel">
-      <div class="section-title">Active Advisors</div>
+      <div class="section-title">Active advisors</div>
       <div class="filter-row" id="advisor-filters">
         <button class="filter-btn active" onclick="setAdvisorFilter('All', this)">All</button>
         <button class="filter-btn" onclick="setAdvisorFilter('Reformist', this)">Reformist</button>
@@ -394,11 +408,27 @@ const gameState = {
   metrics: {
     economy:            35, // Industrial output, consumer goods
     stability:          65, // Internal order, absence of unrest
-    popularSupport:     50, // Public opinion of Gorbachev
+    popularSupport:     60, // Public opinion of Gorbachev (GDD: 60)
     partyUnity:         60, // CPSU cohesion
     foreignRelations:   40, // Standing with the West
     militaryReadiness:  70, // Armed forces strength & loyalty
   },
+
+  // Party Unity faction sub-scores (0-100)
+  partyFactions: {
+    reform:    70, // GDD starting: 70
+    moderate:  50, // GDD starting: 50
+    hardliner: 40, // GDD starting: 40
+  },
+
+  // Military sub-metrics (0-100)
+  militarySub: {
+    combatReadiness: 70, // GDD starting: 70
+    loyalty:         65, // GDD starting: 65
+  },
+
+  // Separatism (0-100)
+  separatism: 10, // GDD starting: 10
 
   // Advisor loyalty (0-100; <20 = resign, >80 = emboldened)
   advisorLoyalty: {
@@ -417,14 +447,17 @@ const gameState = {
     hardliners:  0,
   },
 
-  // International relations (-10 to +10)
+  // International relations (0-100 scale; GDD starting values)
   intlRelations: {
-    us:      0,
-    china:   0,
-    eastEu:  0,
-    westEu:  0,
-    nonAlign:0,
+    us:      20,  // GDD: 20
+    china:   40,  // GDD: 40
+    eastEu:  70,  // GDD: 70 (Bloc)
+    westEu:  30,  // GDD: 30
+    nonAlign:50,  // GDD: 50
   },
+
+  // Triggered thresholds already fired (prevent re-triggering)
+  firedTriggers: {},
 
   // History log
   history: [],
@@ -858,14 +891,20 @@ function resolveEventChoice(choiceIdx) {
   const event = activeEvent;
   if (!event || !event.choices || !event.choices[choiceIdx]) return;
   const choice = event.choices[choiceIdx];
-  // Apply effects
+  // Apply effects (skip special 'ir' null entries used in trigger events)
   Object.entries(choice.effects || {}).forEach(([key, val]) => {
+    if (val === null) return;
     applyMetricChange(key, val);
   });
   // Log
-  addLog(`Event: ${event.name} - chose "${choice.text}"`);
+  addLog(`Event: ${event.name} — chose "${choice.text}"`);
   activeEvent = null;
   document.getElementById('event-panel').classList.remove('active');
+  // Drain queued trigger events one at a time
+  if (triggerEventQueue.length > 0) {
+    const next = triggerEventQueue.shift();
+    setTimeout(() => displayTriggerEvent(next), 200);
+  }
   render();
   renderPolitburoVisual();
 }
@@ -901,11 +940,22 @@ function endTurn() {
   gameState.turn++;
   advanceDate();
 
-  // Check for events
+  // Also decay separatism influence on stability each turn
+  if (gameState.separatism > 10) {
+    const sep = gameState.separatism;
+    applyMetricChange('stability', -Math.floor((sep - 10) / 20));
+  }
+
+  // Run all conditional triggers first
+  checkAllTriggers();
+
+  // Check for date-based events
   const hasEvent = checkEvents();
 
-  if (!hasEvent) {
-    // If no event, show available policies
+  if (!hasEvent && triggerEventQueue.length > 0) {
+    const next = triggerEventQueue.shift();
+    displayTriggerEvent(next);
+  } else if (!hasEvent) {
     renderPolicies();
   }
 
@@ -935,12 +985,311 @@ function applyMetricChange(metricKey, delta) {
   if (metricKey === 'inflation') { gameState.economySub.inflation = clamp(Number(gameState.economySub.inflation||0)+Number(delta||0),0,100); return; }
   if (metricKey === 'socialParasitism') { gameState.economySub.socialParasitism = clamp(Number(gameState.economySub.socialParasitism||0)+Number(delta||0),0,100); return; }
   if (metricKey === 'budgetBalance') { gameState.economySub.budgetBalance = clamp(Number(gameState.economySub.budgetBalance||0)+Number(delta||0),-100,100); return; }
+  if (metricKey === 'budget') { gameState.budget = clamp(Number(gameState.budget||0)+Number(delta||0),0,9999); return; }
+  if (metricKey === 'separatism') { gameState.separatism = clamp(Number(gameState.separatism||0)+Number(delta||0),0,100); return; }
+  if (metricKey === 'combatReadiness') { gameState.militarySub.combatReadiness = clamp(Number(gameState.militarySub.combatReadiness||0)+Number(delta||0),0,100); return; }
+  if (metricKey === 'militaryLoyalty') { gameState.militarySub.loyalty = clamp(Number(gameState.militarySub.loyalty||0)+Number(delta||0),0,100); return; }
+  if (metricKey === 'reformFaction') { gameState.partyFactions.reform = clamp(Number(gameState.partyFactions.reform||0)+Number(delta||0),0,100); return; }
+  if (metricKey === 'moderateFaction') { gameState.partyFactions.moderate = clamp(Number(gameState.partyFactions.moderate||0)+Number(delta||0),0,100); return; }
+  if (metricKey === 'hardlinerFaction') { gameState.partyFactions.hardliner = clamp(Number(gameState.partyFactions.hardliner||0)+Number(delta||0),0,100); return; }
   gameState.metrics[key] = Math.min(100, Math.max(0, gameState.metrics[key] + delta));
 
   // Check for crisis
   if (gameState.metrics[key] === 0) {
     addLog(` Â  CRISIS: ${metricKey} has reached 0!`);
   }
+}
+
+/* ════════════════════════════════════════════════════════════════════
+   TRIGGER SYSTEM  —  GDD v2.0 rules
+   ════════════════════════════════════════════════════════════════════ */
+
+function fireTrigger(id, logMsg) {
+  if (gameState.firedTriggers[id]) return false;
+  gameState.firedTriggers[id] = true;
+  addLog('⚠ ' + logMsg);
+  return true;
+}
+
+function checkAllTriggers() {
+  const m  = gameState.metrics;
+  const es = gameState.economySub;
+  const ms = gameState.militarySub;
+  const pf = gameState.partyFactions;
+  const ir = gameState.intlRelations;
+  const sep = gameState.separatism || 0;
+
+  // ── INFLATION TRIGGER (GDD: trigger at 20%) ──────────────────────
+  if (es.inflation >= 20 && fireTrigger('inflation_20', 'Inflation crisis! Public pressure mounts.')) {
+    applyMetricChange('popularSupport', -20);
+    applyMetricChange('partyUnity', -8);
+    ir.eastEu = clamp(ir.eastEu - 5, 0, 100);
+    pf.reform    = clamp(pf.reform    - 8, 0, 100);
+    pf.moderate  = clamp(pf.moderate  - 4, 0, 100);
+    pf.hardliner = clamp(pf.hardliner - 2, 0, 100);
+    ms.loyalty   = clamp(ms.loyalty   - 10, 0, 100);
+    applyMetricChange('militaryReadiness', -5);
+  }
+
+  // ── BUDGET BALANCE TRIGGER (GDD: trigger at -10) ─────────────────
+  if (es.budgetBalance <= -10 && fireTrigger('budget_neg10', 'Budget deficit critical — inflation surge.')) {
+    applyMetricChange('inflation', 20);
+  }
+
+  // ── SOCIAL PARASITISM TRIGGER (GDD: trigger at 25%) ──────────────
+  if (es.socialParasitism >= 25 && fireTrigger('parasitism_25', 'Social parasitism crisis — public unrest event triggered.')) {
+    displayTriggerEvent({
+      name: 'Social Parasitism Crisis',
+      description: 'Widespread absenteeism, underground markets, and work avoidance have become impossible to ignore. The state\'s authority to compel economic participation is collapsing.',
+      choices: [
+        { text: 'Launch anti-parasitism campaign', effects: { stability: +5, popularSupport: -8, partyUnity: +3 } },
+        { text: 'Ignore the problem', effects: { economy: -5, stability: -3 } },
+        { text: 'Offer economic incentives', effects: { economy: +3, popularSupport: +5, budget: -10 } },
+      ]
+    });
+  }
+
+  // ── POPULAR SUPPORT TRIGGERS ──────────────────────────────────────
+  // Trigger 1: 45 — cannot resist coup with popular support
+  if (m.popularSupport <= 45 && fireTrigger('popsup_45', 'Popular support low — coup resistance via public appeal no longer viable.')) {
+    gameState.coupResistDisabled = true;
+  }
+  // Trigger 2: 30 — protests and demonstrations
+  if (m.popularSupport <= 30 && fireTrigger('popsup_30', 'Mass protests erupt across Soviet cities!')) {
+    ms.loyalty   = clamp(ms.loyalty   - 4, 0, 100);
+    pf.hardliner = clamp(pf.hardliner - 15, 0, 100);
+    pf.moderate  = clamp(pf.moderate  - 5, 0, 100);
+    displayTriggerEvent({
+      name: 'Mass Protests',
+      description: 'Hundreds of thousands take to the streets in Moscow, Leningrad, and across the republics. Gorbachev\'s authority is openly challenged.',
+      choices: [
+        { text: 'Address the nation — promise reforms', effects: { popularSupport: +8, partyUnity: -5 } },
+        { text: 'Deploy security forces', effects: { stability: +5, popularSupport: -15, foreignRelations: -8 } },
+        { text: 'Declare a state of emergency', effects: { stability: +8, popularSupport: -20, partyUnity: -10 } },
+      ]
+    });
+  }
+  // Trigger 3: 5 — revolution or civil war
+  if (m.popularSupport <= 5 && fireTrigger('popsup_5', 'GAME OVER: Revolution — Gorbachev swept from power.')) {
+    triggerGameOver('revolution', 'The Soviet people have lost all faith in Gorbachev\'s leadership. Mass uprisings and civil unrest sweep the country. The USSR dissolves in chaos.');
+  }
+
+  // ── PARTY UNITY — REFORM FACTION ─────────────────────────────────
+  // Trigger 1: reform <= 50 — Yeltsin breaks with Gorbachev
+  if (pf.reform <= 50 && fireTrigger('reform_50', 'Yeltsin breaks with the Kremlin — political crisis in Moscow.')) {
+    displayTriggerEvent({
+      name: 'Yeltsin\'s Break with Gorbachev',
+      description: 'Boris Yeltsin publicly denounces the pace of reform and resigns from the Politburo. His dramatic departure signals a fracturing of the reformist coalition and a growing rival power centre.',
+      choices: [
+        { text: 'Attempt reconciliation', effects: { partyUnity: +5, popularSupport: +3, stability: -3 } },
+        { text: 'Denounce Yeltsin publicly', effects: { partyUnity: -8, popularSupport: -5, stability: +2 } },
+        { text: 'Ignore the rupture', effects: { partyUnity: -5, stability: -2 } },
+      ]
+    });
+  }
+  // Trigger 2: reform <= 30 — hardliner or moderate advisor unlocked
+  if (pf.reform <= 30 && fireTrigger('reform_30', 'Reform faction collapsed — hardliner advisors gaining influence.')) {
+    addLog('Conservative advisors now pressing for greater access to power.');
+    pf.hardliner = clamp(pf.hardliner + 10, 0, 100);
+  }
+
+  // ── PARTY UNITY — MODERATE FACTION ───────────────────────────────
+  // Trigger 1: moderate <= 40 — perestroika jeopardised, inflation +5%
+  if (pf.moderate <= 40 && fireTrigger('moderate_40', 'Moderate faction wavering — perestroika support collapses.')) {
+    applyMetricChange('inflation', 5);
+    addLog('Moderate Politburo members withdraw support for restructuring.');
+  }
+  // Trigger 2: moderate <= 30 — moderates shift to hardliner
+  if (pf.moderate <= 30 && fireTrigger('moderate_30', 'Moderates defecting to hardliner camp.')) {
+    pf.hardliner = clamp(pf.hardliner + 15, 0, 100);
+    pf.moderate  = 30;
+    addLog('Several moderate Politburo members align with conservative faction.');
+  }
+
+  // ── PARTY UNITY — HARDLINER FACTION ──────────────────────────────
+  // Trigger 1: hardliner <= 30 — Nina\'s Letter event
+  if (pf.hardliner <= 30 && fireTrigger('hard_30', 'Conservative outrage — "Nina\'s Letter" published.')) {
+    displayTriggerEvent({
+      name: 'Nina\'s Letter',
+      description: 'A Leningrad schoolteacher named Nina Andreyeva publishes a letter in Sovetskaya Rossiya defending Stalinism and attacking Gorbachev\'s reforms. It is widely believed to be organised by Ligachev and becomes a conservative manifesto.',
+      choices: [
+        { text: 'Suppress the letter', effects: { partyUnity: +5, popularSupport: -5, foreignRelations: -3 } },
+        { text: 'Allow open rebuttal', effects: { popularSupport: +8, partyUnity: -8, stability: -3 } },
+        { text: 'Dismiss it as one opinion', effects: { stability: +2, partyUnity: -3 } },
+      ]
+    });
+  }
+  // Trigger 2: hardliner <= 20 — coup attempt
+  if (pf.hardliner <= 20 && fireTrigger('hard_20', 'CRITICAL: Coup conspiracy forming.')) {
+    displayTriggerEvent({
+      name: 'Coup Conspiracy',
+      description: 'KGB chief Kryuchkov, Defence Minister Yazov, and Vice-President Yanayev have formed a secret committee. They plan to remove Gorbachev and restore order. The August Coup is imminent.',
+      choices: [
+        { text: 'Confront conspirators directly', effects: { partyUnity: -10, stability: -10, popularSupport: gameState.coupResistDisabled ? -5 : +10 } },
+        { text: 'Flee to Foros and negotiate', effects: { stability: -15, popularSupport: -10, partyUnity: -5 } },
+        { text: 'Capitulate to their demands', effects: { partyUnity: +10, stability: +5, popularSupport: -20, foreignRelations: -15 } },
+      ]
+    });
+  }
+
+  // ── SEPARATISM ────────────────────────────────────────────────────
+  if (sep >= 30 && fireTrigger('sep_30', 'Separatist movements mobilising — rallies and strikes.')) {
+    applyMetricChange('stability', -5);
+  }
+  if (sep >= 50 && fireTrigger('sep_50', 'Civil unrest spreading — multiple republics in open defiance.')) {
+    applyMetricChange('stability', -10);
+    applyMetricChange('popularSupport', -8);
+    displayTriggerEvent({
+      name: 'Republic Independence Movements',
+      description: 'Lithuania, Estonia, Latvia, Georgia, and Armenia are all pressing for sovereignty or independence. The Union Treaty is under direct challenge.',
+      choices: [
+        { text: 'Offer genuine autonomy', effects: { stability: +5, partyUnity: -10, foreignRelations: +5 } },
+        { text: 'Military intervention', effects: { stability: +8, popularSupport: -15, foreignRelations: -15, militaryReadiness: -5 } },
+        { text: 'Negotiate a new Union Treaty', effects: { stability: -3, partyUnity: -5, popularSupport: +5 } },
+      ]
+    });
+  }
+  if (sep >= 70 && fireTrigger('sep_70', 'Political crisis — Union dissolving.')) {
+    applyMetricChange('stability', -15);
+    applyMetricChange('partyUnity', -10);
+    addLog('Multiple republics have formally declared sovereignty.');
+  }
+
+  // ── FOREIGN RELATIONS — US/CANADA ────────────────────────────────
+  if (ir.us <= 10 && fireTrigger('us_10', 'US relations near collapse — defence spending pressure.')) {
+    es.budgetBalance = clamp(es.budgetBalance - 1, -100, 100);
+    applyMetricChange('militaryReadiness', +1);
+  }
+  if (ir.us <= 0 && fireTrigger('us_0', 'CRISIS: US relations severed — World War III risk!')) {
+    displayTriggerEvent({
+      name: 'Superpower Crisis',
+      description: 'Soviet-American relations have completely broken down. Both sides are on high alert. The world is closer to nuclear war than at any time since the Cuban Missile Crisis.',
+      choices: [
+        { text: 'Emergency diplomatic back-channel', effects: { foreignRelations: +15, partyUnity: -8, militaryReadiness: -5 } },
+        { text: 'Military posture — show strength', effects: { foreignRelations: -10, militaryReadiness: +10, economy: -10 } },
+        { text: 'Propose emergency summit', effects: { foreignRelations: +10, popularSupport: +5, partyUnity: -5 } },
+      ]
+    });
+  }
+  if (ir.us >= 70 && fireTrigger('us_70', 'Strong US ties: reduced troop requirements and loan access.')) {
+    es.budgetBalance = clamp(es.budgetBalance + 2, -100, 100);
+    applyMetricChange('militaryReadiness', -2);
+    addLog('Western financial institutions offering credit. Military spending pressure eases.');
+  }
+
+  // ── FOREIGN RELATIONS — CHINA ─────────────────────────────────────
+  if (ir.china <= 20 && fireTrigger('china_20', 'China tensions rising — border reinforcement required.')) {
+    displayTriggerEvent({
+      name: 'Sino-Soviet Border Tensions',
+      description: 'Chinese troop buildups along the Sino-Soviet border are forcing a Soviet military response. Diplomatic channels are strained.',
+      choices: [
+        { text: 'Deploy additional troops', effects: { militaryReadiness: +3, economy: -5, foreignRelations: -3 } },
+        { text: 'Request diplomatic talks', effects: { foreignRelations: +5, militaryReadiness: -2 } },
+        { text: 'Ignore the buildup', effects: { stability: -3, militaryReadiness: -3 } },
+      ]
+    });
+  }
+
+  // ── FOREIGN RELATIONS — EASTERN BLOC ─────────────────────────────
+  if (ir.eastEu <= 40 && fireTrigger('bloc_40', 'Bloc instability — emergency meeting with satellite leaders.')) {
+    displayTriggerEvent({
+      name: 'Warsaw Pact Summit',
+      description: 'Leaders of Poland, East Germany, Hungary, Czechoslovakia, Romania, and Bulgaria demand clarity on whether the Brezhnev Doctrine still applies. Solidarity is spreading. Budapest is restless.',
+      choices: [
+        { text: 'Reaffirm Soviet commitment to intervene', effects: { ir: null, partyUnity: +5, foreignRelations: -8, popularSupport: -5 } },
+        { text: 'Announce the Sinatra Doctrine — each country decides for itself', effects: { partyUnity: -10, foreignRelations: +10, popularSupport: +5 } },
+        { text: 'Offer economic aid to stabilise', effects: { economy: -8, ir: null, stability: +3 } },
+      ]
+    });
+  }
+  if (ir.eastEu <= 20 && fireTrigger('bloc_20', 'Bloc crisis — coups and revolutions in satellite states.')) {
+    applyMetricChange('stability', -5);
+    gameState.separatism = clamp(gameState.separatism + 10, 0, 100);
+    displayTriggerEvent({
+      name: 'Revolutions of 1989',
+      description: 'Poland\'s Solidarity movement sweeps elections. Hungary opens its border with Austria. Mass protests in East Germany. Romania is on the brink. The Soviet empire in Eastern Europe is collapsing.',
+      choices: [
+        { text: 'Accept the revolutions — non-intervention', effects: { partyUnity: -10, foreignRelations: +15, popularSupport: +5 } },
+        { text: 'Selective military intervention', effects: { foreignRelations: -20, militaryReadiness: -8, popularSupport: -10 } },
+        { text: 'Emergency consultation with Politburo', effects: { partyUnity: -3, stability: -3 } },
+      ]
+    });
+  }
+  if (ir.eastEu <= 10 && fireTrigger('bloc_10', 'Bloc dissolution — Warsaw Pact effectively dead.')) {
+    displayTriggerEvent({
+      name: 'End of the Warsaw Pact',
+      description: 'The satellite states are openly seeking NATO membership. The Warsaw Pact exists only on paper. Soviet strategic depth in Europe is gone.',
+      choices: [
+        { text: 'Formally dissolve the Pact — negotiate NATO assurances', effects: { foreignRelations: +10, partyUnity: -10, militaryReadiness: -5 } },
+        { text: 'Demand the Pact continue — issue warnings', effects: { foreignRelations: -10, partyUnity: +5 } },
+      ]
+    });
+  }
+
+  // ── FOREIGN RELATIONS — WESTERN EUROPE ───────────────────────────
+  if (ir.westEu >= 80 && fireTrigger('west_80', 'Strong Western ties: election dividend — troop reduction and loans.')) {
+    applyMetricChange('militaryReadiness', -2);
+    es.budgetBalance = clamp(es.budgetBalance + 3, -100, 100);
+    addLog('Western Europe offering preferential loans and reduced military pressure.');
+  }
+
+  // ── FOREIGN RELATIONS — NON-ALIGNED ──────────────────────────────
+  if (ir.nonAlign >= 70 && fireTrigger('na_70', 'Non-Aligned ties strong — additional oil sales.')) {
+    es.budgetBalance = clamp(es.budgetBalance + 1, -100, 100);
+  }
+  if (ir.nonAlign >= 90 && fireTrigger('na_90', 'Non-Aligned Movement support peaks — budget boost.')) {
+    es.budgetBalance = clamp(es.budgetBalance + 2, -100, 100);
+    addLog('Non-Aligned Movement countries offering trade and diplomatic support.');
+  }
+
+  // ── MILITARY — COMBAT READINESS ───────────────────────────────────
+  if (ms.combatReadiness <= 50 && fireTrigger('combat_50', 'Military readiness declining — loyalty and separatism effects.')) {
+    ms.loyalty = clamp(ms.loyalty - 10, 0, 100);
+    pf.hardliner = clamp(pf.hardliner - 5, 0, 100);
+    gameState.separatism = clamp(gameState.separatism + 5, 0, 100);
+    addLog('Declining readiness is demoralising the officer corps and emboldening separatists.');
+  }
+  if (ms.combatReadiness <= 25 && fireTrigger('combat_25', 'Military near collapse — crackdown option removed.')) {
+    // doubled effect
+    ms.loyalty = clamp(ms.loyalty - 20, 0, 100);
+    pf.hardliner = clamp(pf.hardliner - 10, 0, 100);
+    gameState.separatism = clamp(gameState.separatism + 10, 0, 100);
+    gameState.militaryCrackdownDisabled = true;
+    addLog('Military too weak to suppress protests. Crackdown option deactivated.');
+  }
+
+  // ── MILITARY — LOYALTY ────────────────────────────────────────────
+  if (ms.loyalty <= 45 && fireTrigger('mloyalty_45', 'Military loyalty wavering.')) {
+    addLog('Officers are questioning orders. Reliability in a crisis is uncertain.');
+  }
+  if (ms.loyalty <= 30 && fireTrigger('mloyalty_30', 'Military loyalty critical — coup conspirators gain army support.')) {
+    addLog('If a coup occurs now, significant portions of the military will side with the conspirators.');
+    gameState.militaryCoupSupport = true;
+  }
+
+  // sync militaryReadiness to average of sub-metrics
+  gameState.metrics.militaryReadiness = Math.round((ms.combatReadiness + ms.loyalty) / 2);
+}
+
+/* Queue for trigger events that fire mid-turn (shown after any active event) */
+let triggerEventQueue = [];
+
+function displayTriggerEvent(event) {
+  if (activeEvent) {
+    triggerEventQueue.push(event);
+  } else {
+    displayEvent({ ...event, id: 'trigger_' + Date.now(), trigger: {} });
+  }
+}
+
+function triggerGameOver(type, message) {
+  gameState.gameOver = true;
+  const panel = document.getElementById('event-panel');
+  document.getElementById('event-title').textContent = type === 'revolution' ? '★ REVOLUTION' : type === 'coup' ? '★ COUP' : '★ GAME OVER';
+  document.getElementById('event-desc').textContent = message;
+  document.getElementById('event-choices').innerHTML = '<button class="event-btn" onclick="resetGame()">Start Over</button>';
+  panel.classList.add('active');
+  addLog('GAME OVER: ' + message);
 }
 
 function plannedSpend() {
@@ -1129,16 +1478,16 @@ function renderFactions() {
 }
 
 function renderIntl() {
+  // intlRelations now 0-100 scale
   const keys = ['us', 'cn', 'ee', 'we', 'na'];
+  const stateKeys = { us:'us', cn:'china', ee:'eastEu', we:'westEu', na:'nonAlign' };
   keys.forEach(k => {
-    const val = gameState.intlRelations[k === 'us' ? 'us' : k === 'cn' ? 'china' : k === 'ee' ? 'eastEu' : k === 'we' ? 'westEu' : 'nonAlign'];
-    const w = Math.min(100, Math.max(0, 50 + val * 4));
+    const val = clamp(Number(gameState.intlRelations[stateKeys[k]] ?? 0), 0, 100);
+    const cls = val >= 60 ? 'pos' : val >= 30 ? 'neu' : 'neg';
     const colors = { pos: '#2d6e44', neu: '#9a7a2e', neg: '#8b1a1a' };
-    const cls = val > 0 ? 'pos' : val < 0 ? 'neg' : 'neu';
-    const valText = val > 0 ? '+'+val : val < 0 ? '-'+Math.abs(val) : '0';
-    document.getElementById(`if-${k}`).style.width = w + '%';
+    document.getElementById(`if-${k}`).style.width = val + '%';
     document.getElementById(`if-${k}`).style.background = colors[cls];
-    document.getElementById(`iv-${k}`).textContent = valText;
+    document.getElementById(`iv-${k}`).textContent = val;
     document.getElementById(`iv-${k}`).className = 'intl-val ' + cls;
   });
 }
@@ -1209,12 +1558,41 @@ function renderPolitburoVisual(){
   el.innerHTML = out;
 }
 
+function renderPressures() {
+  const sep  = clamp(gameState.separatism || 0, 0, 100);
+  const cr   = clamp(gameState.militarySub.combatReadiness || 0, 0, 100);
+  const ml   = clamp(gameState.militarySub.loyalty || 0, 0, 100);
+  const pf   = gameState.partyFactions;
+
+  const setBar = (barId, valId, val, invert) => {
+    const el = document.getElementById(barId);
+    const vl = document.getElementById(valId);
+    if (!el || !vl) return;
+    el.style.width = val + '%';
+    const cls = invert
+      ? (val >= 60 ? 'neg' : val >= 30 ? 'neu' : 'pos')
+      : (val >= 60 ? 'pos' : val >= 30 ? 'neu' : 'neg');
+    const colors = { pos: '#2d6e44', neu: '#9a7a2e', neg: '#8b1a1a' };
+    el.style.background = colors[cls];
+    vl.textContent = val;
+    vl.className = 'intl-val ' + cls;
+  };
+
+  setBar('sep-bar',      'sep-val',      sep,        true);   // high sep = bad
+  setBar('combat-bar',   'combat-val',   cr,         false);
+  setBar('mloyalty-bar', 'mloyalty-val', ml,         false);
+  setBar('pf-reform-bar','pf-reform-val', clamp(pf.reform||0,0,100),   false);
+  setBar('pf-mod-bar',   'pf-mod-val',   clamp(pf.moderate||0,0,100),  false);
+  setBar('pf-hard-bar',  'pf-hard-val',  clamp(pf.hardliner||0,0,100), false);
+}
+
 function render() {
   renderMetrics();
   renderStatus();
   renderDate();
   renderFactions();
   renderIntl();
+  renderPressures();
   renderPolitburoVisual();
   renderAdvisors();
 }
