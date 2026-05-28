@@ -216,9 +216,9 @@
   .sidebar{ overflow-x:hidden; }
 
   .tty-assembly{
-    --paperH: 180px;
-    --paperW: 220px;
-    --printerW: 290px;
+    --paperH: 200px;
+    --paperW: calc(100% - 16px);
+    --printerW: 100%;
     --slotH: 14px;
 
     width: min(var(--printerW), 100%);
@@ -231,7 +231,7 @@
 
   /* PAPER (scroll window) — sits above the printer, bottom edge feeds into the slot */
   .history-log.tty-paper{
-    width: min(var(--paperW), 100%);
+    width: var(--paperW);
     height: var(--paperH);
     max-height: var(--paperH);
     overflow-y: auto;
@@ -247,8 +247,9 @@
     border-bottom: none;
     border-radius: 6px 6px 0 0;
     padding: 12px 12px 18px;
-    font-size: 13px;
-    line-height: 1.42;
+    font-family: 'Courier New', Courier, 'Lucida Console', monospace;
+    font-size: 11.5px;
+    line-height: 1.5;
     box-shadow: 0 -4px 12px rgba(0,0,0,0.08), 2px 0 6px rgba(0,0,0,0.06), -2px 0 6px rgba(0,0,0,0.06);
   }
   .history-log.tty-paper::before{
@@ -284,10 +285,15 @@
     color: rgba(36,28,16,0.45);
   }
 
-  .log-entry{ margin-bottom:6px; padding:2px 0; border-bottom:none; transform: translateX(var(--jitter, 0px)); }
+  .log-entry{ margin-bottom:4px; padding:2px 0; border-bottom:none; transform: translateX(var(--jitter, 0px)); font-family: 'Courier New', Courier, 'Lucida Console', monospace; font-size: 11px; }
   .log-entry:last-child{ margin-bottom:0; }
-  .log-turn{ font-weight:800; color:var(--red-dark); margin-right:6px; }
+  .log-turn{ font-weight:800; color:var(--red-dark); margin-right:4px; font-family: 'Courier New', Courier, monospace; }
   .log-text{ opacity: var(--ink, .92); color: rgba(28,22,13,0.92); text-shadow: 0.25px 0 rgba(28,22,13,0.30), -0.18px 0 rgba(28,22,13,0.18), 0 0.8px rgba(28,22,13,0.08); }
+  /* TASS dateline styling */
+  .log-tass{ font-weight:700; color:rgba(28,22,13,0.80); letter-spacing:0.04em; margin-bottom:3px; display:block; border-bottom: 1px solid rgba(43,31,16,0.18); padding-bottom:2px; }
+  /* Teletype printing animation */
+  @keyframes ttyReveal { from { opacity:0; transform: translateY(5px); } to { opacity:1; transform: translateY(0); } }
+  .log-entry.tty-printing { animation: ttyReveal 0.28s ease-out forwards; }
 
   /* TELETYPE BODY — true head-on front view */
   .tty-printer{ width: 100%; margin-top: 0; position: relative; z-index: 1; }
@@ -329,10 +335,10 @@
       radial-gradient(circle at calc(100% - 12px) 50%, rgba(0,0,0,0.35) 0 4px, rgba(255,255,255,0.12) 4px 5px, transparent 5px);
     pointer-events:none;
   }
-  /* Paper exit slot — horizontal opening on the top face */
+  /* Paper exit slot — horizontal opening on the top face, same width as the paper */
   .tty-slot{
     position:absolute;
-    left: 20%; right: 20%;
+    left: 8px; right: 8px;
     top: 50%; transform: translateY(-50%);
     height: var(--slotH);
     background: linear-gradient(180deg, rgba(0,0,0,0.82), rgba(0,0,0,0.40));
@@ -586,8 +592,6 @@
 <div class="tty-assembly">
   <!-- PAPER / LOG (scroll area) — emerges upward from the paper slot -->
   <div class="history-log tty-paper" id="history-log">
-    <div class="log-entry"><span class="log-turn">Turn 1 (March 1985)</span><span class="log-text">Game started. Gorbachev in power.</span>
-    </div>
   </div>
 
   <!-- TELETYPE BODY — head-on front view -->
@@ -1269,6 +1273,14 @@ function setupPravdaMasthead(){
   img.src = local + '?v=' + Date.now();
 }
 
+function playPaperCrackle() {
+  try {
+    const sfx = new Audio('sounds/papercrackle1.wav');
+    sfx.volume = 0.7;
+    sfx.play().catch(() => {});
+  } catch(e) {}
+}
+
 function displayEvent(event) {
   activeEvent = event;
   setupPravdaMasthead();
@@ -1287,6 +1299,7 @@ function displayEvent(event) {
   `).join('');
   document.getElementById('event-choices').innerHTML = choicesHtml;
   panel.classList.add('active');
+  playPaperCrackle();
 }
 
 function resolveEventChoice(choiceIdx) {
@@ -1363,6 +1376,9 @@ computeBudgetBalanceForTurn();
   }
 
   render();
+
+  // Print TASS dateline for new turn
+  addTassDateline();
 }
 
 function resetGame() {
@@ -2069,21 +2085,94 @@ function sanitizeLogEntry(s){
   return out.replace(/\s+/g,' ').trim();
 }
 
-function addLog(entry) {
-  entry = sanitizeLogEntry(entry);
-  gameState.history.push(entry);
+// ── TELETYPE SOUND ──────────────────────────────────────────────────────────
+let ttyAudio = null;
+
+function startTtySound() {
+  try {
+    if (!ttyAudio) {
+      ttyAudio = new Audio('sounds/teletype_sound.mp3');
+      ttyAudio.volume = 0.55;
+      ttyAudio.loop = true;
+    }
+    if (ttyAudio.paused) ttyAudio.play().catch(() => {});
+  } catch(e) {}
+}
+
+function stopTtySound() {
+  try {
+    if (ttyAudio && !ttyAudio.paused) {
+      ttyAudio.pause();
+      ttyAudio.currentTime = 0;
+    }
+  } catch(e) {}
+}
+
+// Queue for animated log entries — one line printed every LINE_DELAY ms
+const TTY_LINE_DELAY = 520; // ms between lines appearing
+let ttyPrintQueue = [];
+let ttyPrinting = false;
+
+function formatTassDate(month, year) {
+  const monthsRU = ['ЯНВАРЯ','ФЕВРАЛЯ','МАРТА','АПРЕЛЯ','МАЯ','ИЮНЯ',
+                    'ИЮЛЯ','АВГУСТА','СЕНТЯБРЯ','ОКТЯБРЯ','НОЯБРЯ','ДЕКАБРЯ'];
+  return `${year} ${monthsRU[(month||1)-1]}`;
+}
+
+function getTassDateline() {
+  const issueNum = 100 + (gameState.turn || 1) * 3;
+  return `ТАСС № ${issueNum}  МОСКВА  ${formatTassDate(gameState.month, gameState.year)} --`;
+}
+
+function flushTtyQueue() {
+  if (ttyPrinting || ttyPrintQueue.length === 0) {
+    if (!ttyPrinting && ttyPrintQueue.length === 0) stopTtySound();
+    return;
+  }
+  ttyPrinting = true;
+  startTtySound();
+
+  const { entry, isDateline } = ttyPrintQueue.shift();
   const log = document.getElementById('history-log');
   const div = document.createElement('div');
-  div.className = 'log-entry';
+  div.className = 'log-entry tty-printing';
 
-  const jitter = (Math.random() - 0.5) * 1.0;
+  const jitter = (Math.random() - 0.5) * 0.8;
   const ink = 0.78 + Math.random() * 0.22;
   div.style.setProperty('--jitter', jitter.toFixed(2) + 'px');
   div.style.setProperty('--ink', ink.toFixed(2));
 
-  div.innerHTML = `<span class="log-turn">Turn ${gameState.turn}</span> <span class="log-text">${entry}</span>`;
+  if (isDateline) {
+    div.innerHTML = `<span class="log-tass">${entry}</span>`;
+  } else {
+    div.innerHTML = `<span class="log-turn">T${gameState.turn}</span><span class="log-text">${entry}</span>`;
+  }
+
   log.appendChild(div);
   log.scrollTop = log.scrollHeight;
+
+  setTimeout(() => {
+    div.classList.remove('tty-printing');
+    ttyPrinting = false;
+    if (ttyPrintQueue.length === 0) {
+      stopTtySound();
+    } else {
+      flushTtyQueue();
+    }
+  }, TTY_LINE_DELAY);
+}
+
+function addLog(entry) {
+  entry = sanitizeLogEntry(entry);
+  gameState.history.push(entry);
+  ttyPrintQueue.push({ entry, isDateline: false });
+  flushTtyQueue();
+}
+
+function addTassDateline() {
+  const line = getTassDateline();
+  ttyPrintQueue.push({ entry: line, isDateline: true });
+  flushTtyQueue();
 }
 
 
@@ -2098,6 +2187,10 @@ if (gameState.economySub && gameState.economySub.oilBaseline == null) {
 
 render();
 renderPolicies();
+
+// Print opening TASS dateline then opening log message
+addTassDateline();
+setTimeout(() => addLog('Gorbachev assumes office. The era of reform begins.'), 200);
 
 // Imports (Dev) file picker
 const _importInput = document.getElementById('import-file');
