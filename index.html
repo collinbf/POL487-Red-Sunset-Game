@@ -537,7 +537,91 @@
 .faction-fill{ position:absolute; top:0; left:50%; height:100%; }
 .zero-line{ position:absolute; left:50%; top:-2px; bottom:-2px; width:1px; background:rgba(0,0,0,0.35); }
 
-/* ── MAIN TABS ────────────────────────────────────────────────── */
+/* ── INTRO MODAL ─────────────────────────────────────────────── */
+.intro-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9000;
+  background: #0a0a0a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow-y: auto;
+  padding: 2rem 1rem;
+}
+.intro-overlay.dismissed {
+  animation: introFadeOut 0.7s ease-in forwards;
+  pointer-events: none;
+}
+@keyframes introFadeOut {
+  from { opacity: 1; }
+  to   { opacity: 0; }
+}
+
+/* Cinema projection beam — cone of light from top */
+.intro-cinema {
+  position: relative;
+  width: min(780px, 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.intro-beam {
+  position: absolute;
+  top: -120px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 40px;
+  height: 160px;
+  background: linear-gradient(180deg,
+    rgba(255,245,200,0.55) 0%,
+    rgba(255,245,200,0.18) 60%,
+    rgba(255,245,200,0.00) 100%);
+  clip-path: polygon(30% 0%, 70% 0%, 100% 100%, 0% 100%);
+  filter: blur(6px);
+  pointer-events: none;
+  animation: beamFlicker 0.18s steps(1) infinite;
+}
+@keyframes beamFlicker {
+  0%, 70%  { opacity: 1; }
+  71%       { opacity: 0.82; }
+  72%       { opacity: 1; }
+  90%       { opacity: 0.91; }
+  100%      { opacity: 1; }
+}
+
+.intro-screen {
+  width: 100%;
+  box-shadow:
+    0 0 60px rgba(255,245,200,0.12),
+    0 0 120px rgba(255,245,200,0.06),
+    0 30px 80px rgba(0,0,0,0.8);
+}
+
+/* Begin button row inside newsreel */
+.intro-begin-row {
+  margin-top: 1.6rem;
+  text-align: center;
+}
+.intro-begin-btn {
+  background: var(--red-dark);
+  color: var(--cream);
+  border: 2px solid rgba(200,164,74,0.6);
+  padding: 10px 32px;
+  font-family: 'Playfair Display', serif;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  cursor: pointer;
+  border-radius: 2px;
+  box-shadow: 3px 3px 0 rgba(92,17,17,0.55), 0 0 18px rgba(139,26,26,0.35);
+  transition: background .15s, box-shadow .15s;
+}
+.intro-begin-btn:hover {
+  background: var(--red);
+  box-shadow: 4px 4px 0 rgba(92,17,17,0.65), 0 0 24px rgba(139,26,26,0.5);
+}
 .main-tabs {
   display: flex;
   gap: 0;
@@ -759,6 +843,58 @@
 </style>
 </head>
 <body>
+
+<!-- OPENING NEWSREEL MODAL -->
+<div id="intro-modal" class="intro-overlay">
+  <div class="intro-cinema">
+    <!-- Projection beam from above -->
+    <div class="intro-beam"></div>
+
+    <!-- The projected screen itself -->
+    <div class="intro-screen">
+      <div class="newsreel-projector-top">
+        <div class="newsreel-sprocket-row">
+          <span class="sprocket"></span><span class="sprocket"></span><span class="sprocket"></span>
+          <span class="sprocket"></span><span class="sprocket"></span><span class="sprocket"></span>
+          <span class="sprocket"></span><span class="sprocket"></span><span class="sprocket"></span>
+          <span class="sprocket"></span><span class="sprocket"></span><span class="sprocket"></span>
+        </div>
+      </div>
+      <div class="newsreel-frame">
+        <div class="newsreel-flicker"></div>
+        <div class="newsreel-scratches"></div>
+        <div class="newsreel-vignette"></div>
+        <div class="newsreel-content">
+          <div class="newsreel-logo">★ СОЮЗКИНОЖУРНАЛ ★</div>
+          <div class="newsreel-title">СОВЕТСКИЙ СОЮЗ — 1985</div>
+          <div class="newsreel-subtitle">Briefing for Party Cadres</div>
+          <div class="newsreel-divider"></div>
+          <div class="newsreel-body">
+            <p>March 1985. Mikhail Sergeyevich Gorbachev assumes the office of General Secretary of the Communist Party of the Soviet Union. He is 54 years old — the youngest member of the Politburo to take power since Stalin.</p>
+            <p>The USSR he inherits is not the USSR of 1945, nor of 1961. It is a superpower in stasis. Eleven time zones. Three hundred million citizens. The world's largest nuclear arsenal. And an economy that has not grown in a decade.</p>
+            <p>Oil prices are falling. The war in Afghanistan grinds on. Corruption runs from the factory floor to the Politburo. A generation of elderly General Secretaries — Brezhnev, Andropov, Chernenko — died in office within three years of one another. The party apparatus is exhausted. The people are cynical.</p>
+            <p>Gorbachev believes the system can be saved. He will speak of <em>glasnost</em> — openness. Of <em>perestroika</em> — restructuring. Of <em>uskoreniye</em> — acceleration. He believes these are repairs, not replacements.</p>
+            <p>He is wrong about what they will become. But he does not know that yet.</p>
+            <p>Neither do you.</p>
+          </div>
+          <div class="newsreel-stamp">СОВЕРШЕННО СЕКРЕТНО</div>
+          <div style="clear:both;"></div>
+          <div class="intro-begin-row">
+            <button class="intro-begin-btn" onclick="dismissIntro()">Begin — Март 1985</button>
+          </div>
+        </div>
+      </div>
+      <div class="newsreel-projector-bottom">
+        <div class="newsreel-sprocket-row">
+          <span class="sprocket"></span><span class="sprocket"></span><span class="sprocket"></span>
+          <span class="sprocket"></span><span class="sprocket"></span><span class="sprocket"></span>
+          <span class="sprocket"></span><span class="sprocket"></span><span class="sprocket"></span>
+          <span class="sprocket"></span><span class="sprocket"></span><span class="sprocket"></span>
+        </div>
+      </div>
+    </div><!-- /intro-screen -->
+  </div>
+</div><!-- /intro-modal -->
 
 <!-- MASTHEAD -->
 <div class="masthead">
@@ -994,51 +1130,12 @@
     <!-- LIBRARY TAB -->
     <div id="tab-library" class="main-tab-panel" style="display:none;">
 
-      <!-- NEWSREEL BRIEFING -->
-      <div class="newsreel-screen">
-        <div class="newsreel-projector-top">
-          <div class="newsreel-sprocket-row">
-            <span class="sprocket"></span><span class="sprocket"></span><span class="sprocket"></span>
-            <span class="sprocket"></span><span class="sprocket"></span><span class="sprocket"></span>
-            <span class="sprocket"></span><span class="sprocket"></span>
-          </div>
-        </div>
-        <div class="newsreel-frame">
-          <div class="newsreel-flicker"></div>
-          <div class="newsreel-scratches"></div>
-          <div class="newsreel-vignette"></div>
-          <div class="newsreel-content">
-            <div class="newsreel-logo">★ СОЮЗКИНОЖУРНАЛ ★</div>
-            <div class="newsreel-title">СОВЕТСКИЙ СОЮЗ — 1985</div>
-            <div class="newsreel-subtitle">Briefing for Party Cadres</div>
-            <div class="newsreel-divider"></div>
-            <div class="newsreel-body">
-              <p>March 1985. Mikhail Sergeyevich Gorbachev assumes the office of General Secretary of the Communist Party of the Soviet Union. He is 54 years old — the youngest member of the Politburo to take power since Stalin.</p>
-              <p>The USSR he inherits is not the USSR of 1945, nor of 1961. It is a superpower in stasis. Eleven time zones. Three hundred million citizens. The world's largest nuclear arsenal. And an economy that has not grown in a decade.</p>
-              <p>Oil prices are falling. The war in Afghanistan grinds on. Corruption runs from the factory floor to the Politburo. A generation of elderly General Secretaries — Brezhnev, Andropov, Chernenko — died in office within three years of one another. The party apparatus is exhausted. The people are cynical.</p>
-              <p>Gorbachev believes the system can be saved. He will speak of <em>glasnost</em> — openness. Of <em>perestroika</em> — restructuring. Of <em>uskoreniye</em> — acceleration. He believes these are repairs, not replacements.</p>
-              <p>He is wrong about what they will become. But he does not know that yet.</p>
-              <p>Neither do you.</p>
-            </div>
-            <div class="newsreel-stamp">СОВЕРШЕННО СЕКРЕТНО</div>
-          </div>
-        </div>
-        <div class="newsreel-projector-bottom">
-          <div class="newsreel-sprocket-row">
-            <span class="sprocket"></span><span class="sprocket"></span><span class="sprocket"></span>
-            <span class="sprocket"></span><span class="sprocket"></span><span class="sprocket"></span>
-            <span class="sprocket"></span><span class="sprocket"></span>
-          </div>
-        </div>
-      </div>
-
       <!-- ENCYCLOPEDIA -->
       <div class="library-panel">
-        <div class="section-title panel-header" style="margin-top:1.5rem;">Encyclopedia</div>
+        <div class="section-title panel-header">Encyclopedia</div>
         <p style="font-family:'IM Fell English',serif; font-size:13px; font-style:italic; opacity:.75; margin-bottom:1rem;">Key terms, figures, and concepts. Content to be added by Team 6.</p>
 
         <div class="ency-grid" id="ency-grid">
-          <!-- Placeholder entries -->
           <div class="ency-card ency-empty"><span class="ency-term">Glasnost</span><span class="ency-stub">Entry pending</span></div>
           <div class="ency-card ency-empty"><span class="ency-term">Perestroika</span><span class="ency-stub">Entry pending</span></div>
           <div class="ency-card ency-empty"><span class="ency-term">Uskoreniye</span><span class="ency-stub">Entry pending</span></div>
@@ -2506,6 +2603,43 @@ renderPolicies();
 // Print opening TASS dateline then opening log message
 addTassDateline();
 setTimeout(() => addLog('Gorbachev assumes office. The era of reform begins.'), 200);
+
+// ── SLIDE PROJECTOR SOUND ────────────────────────────────────────────────────
+const projectorAudio = new Audio('sounds/slideprojector_sounds.wav');
+projectorAudio.volume = 0.7;
+
+// Loop only between 0:03 and 0:11
+const PROJ_LOOP_START = 3.0;
+const PROJ_LOOP_END   = 11.0;
+
+projectorAudio.addEventListener('timeupdate', () => {
+  if (projectorAudio.currentTime >= PROJ_LOOP_END) {
+    projectorAudio.currentTime = PROJ_LOOP_START;
+  }
+});
+
+// Start playing as soon as the user has interacted (autoplay policy)
+// We attempt immediately; browsers allow it on first user gesture too.
+projectorAudio.play().catch(() => {
+  // Autoplay blocked — start on first click/keydown anywhere
+  const startOnGesture = () => {
+    projectorAudio.play().catch(() => {});
+    document.removeEventListener('click', startOnGesture);
+    document.removeEventListener('keydown', startOnGesture);
+  };
+  document.addEventListener('click', startOnGesture);
+  document.addEventListener('keydown', startOnGesture);
+});
+
+function dismissIntro() {
+  // Stop projector sound
+  projectorAudio.pause();
+  projectorAudio.currentTime = 0;
+
+  const overlay = document.getElementById('intro-modal');
+  overlay.classList.add('dismissed');
+  setTimeout(() => overlay.style.display = 'none', 700);
+}
 
 function switchMainTab(tab, btn) {
   document.querySelectorAll('.main-tab-panel').forEach(p => p.style.display = 'none');
