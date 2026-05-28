@@ -3008,5 +3008,49 @@ if (_importInput) {
 }
 
 </script>
+
+<style>
+.game-layout, .masthead{visibility:hidden;}
+.newsreel-projector-top,.newsreel-projector-bottom{display:none!important;}
+.newsreel-frame.slide-blank .newsreel-content{visibility:hidden;}
+</style>
+
+<script>
+// SAFE OVERRIDE (guaranteed working)
+window.launcherStartGame = function(){
+  try{
+    unlockAllAudio();
+    const launcher=document.getElementById('launcher-modal');
+    launcher.style.display='none';
+
+    const modal=document.getElementById('intro-modal');
+    modal.style.display='flex';
+
+    const frame=modal.querySelector('.newsreel-frame');
+    if(frame){
+      frame.classList.add('slide-blank');
+
+      setTimeout(()=>{
+        projectorAudio.currentTime=0.8;
+        projectorAudio.play().catch(()=>{});
+
+        frame.classList.remove('slide-blank');
+        frame.classList.add('slide-in','slide-flash');
+      },350);
+    }
+  }catch(e){console.error(e);} 
+};
+
+window.dismissIntro = function(){
+  projectorAudio.pause();
+  projectorAudio.currentTime=0;
+
+  startGame();
+
+  document.getElementById('intro-modal').style.display='none';
+  document.querySelector('.game-layout').style.visibility='visible';
+  document.querySelector('.masthead').style.visibility='visible';
+};
+</script>
 </body>
 </html>
