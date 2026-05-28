@@ -776,9 +776,6 @@
   font-size: 14.5px;
   line-height: 1.72;
   color: rgba(20,10,5,0.90);
-  column-count: 2;
-  column-gap: 2rem;
-  column-rule: 1px solid rgba(30,20,10,0.20);
   hyphens: auto;
 }
 .newsreel-body p { margin: 0 0 .9rem; }
@@ -2651,7 +2648,7 @@ projectorAudio.volume = 0.7;
 
 // Loop only between 0:03 and 0:11
 const PROJ_LOOP_START = 3.0;
-const PROJ_LOOP_END   = 11.0;
+const PROJ_LOOP_END   = 10.0;
 
 projectorAudio.addEventListener('timeupdate', () => {
   if (projectorAudio.currentTime >= PROJ_LOOP_END) {
@@ -2659,16 +2656,25 @@ projectorAudio.addEventListener('timeupdate', () => {
   }
 });
 
-// Try to start immediately; if blocked, start on first gesture on the intro overlay.
-try {
-  projectorAudio.play().catch(() => {
-    const overlay = document.getElementById('intro-modal') || document;
-    const onFirstGesture = () => { unlockAllAudio(); projectorAudio.play().catch(()=>{}); };
-    overlay.addEventListener('pointerdown', onFirstGesture, { once: true });
-    overlay.addEventListener('touchstart', onFirstGesture, { once: true });
-    document.addEventListener('keydown', onFirstGesture, { once: true });
-  });
-} catch(e) {}
+// Try to start immediately; if blocked, start on first gesture anywhere on the page.
+(function() {
+  function tryPlay() {
+    projectorAudio.play().catch(() => {});
+  }
+  const attempt = projectorAudio.play();
+  if (attempt !== undefined) {
+    attempt.catch(() => {
+      // Autoplay blocked — wait for first user interaction anywhere
+      const events = ['pointerdown', 'touchstart', 'keydown', 'mousedown'];
+      function onGesture() {
+        unlockAllAudio();
+        projectorAudio.play().catch(() => {});
+        events.forEach(ev => document.removeEventListener(ev, onGesture));
+      }
+      events.forEach(ev => document.addEventListener(ev, onGesture, { once: false }));
+    });
+  }
+})();
 
 function dismissIntro() {
   // Ensure audio is unlocked in the context of this user gesture
