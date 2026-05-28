@@ -56,6 +56,7 @@
   .submetric-fill.neg { position:absolute; right:50%; top:0; bottom:0; background:var(--red); }
   .submetric-fill.pos { position:absolute; left:50%; top:0; bottom:0; background:var(--green); }
 
+#test-event-btn {  opacity: 0.75;}#test-event-btn:hover {  opacity: 1;}
 
   /* GOVERNMENT */
   .gov-composition { display:flex; gap:4px; flex-wrap:wrap; margin-bottom:.7rem; align-items:center; }
@@ -1459,13 +1460,7 @@
   <div class="main">
 
     <!-- MAIN TABS -->
-    <div class="main-tabs">
-      <button class="main-tab active" onclick="switchMainTab('game', this)">Game</button>
-      <button class="main-tab" onclick="switchMainTab('tree', this)">Reform Tree</button>
-      <button class="main-tab" onclick="switchMainTab('library', this)">Library</button>
-      <button class="main-tab" onclick="switchMainTab('dev', this)">Dev</button>
-    </div>
-
+    <div class="main-tabs">  <button class="main-tab active" onclick="switchMainTab('game', this)">Game</button>  <button class="main-tab" onclick="switchMainTab('tree', this)">Reform Tree</button>  <button class="main-tab" onclick="switchMainTab('library', this)">Library</button>  <!-- DEV TEST BUTTON (not a tab) -->  <button class="main-tab" id="test-event-btn" onclick="testPravdaEvent(); flashTestButton()" type="button">    DEV: Test Event  </button>  <button class="main-tab" onclick="switchMainTab('dev', this)">Dev</button></div>
     <!-- GAME TAB -->
     <div id="tab-game" class="main-tab-panel">
 
@@ -1709,6 +1704,8 @@ function setAdvisorFilter(faction, btnEl) {
 }
 
 
+
+
 // Global oil price (Brent) historical data (USD/bbl)
 const OIL_BRENT_ANNUAL_PROXY = { 1985: 27.3, 1986: 14.8 };
 const OIL_BRENT_MONTHLY = {
@@ -1744,6 +1741,10 @@ function getBrentPriceUSD(year, month){
   if (OIL_BRENT_ANNUAL_PROXY[year] != null) return Number(OIL_BRENT_ANNUAL_PROXY[year]);
   return 0;
 }
+
+function flashTestButton() {  const btn = document.getElementById('test-event-btn');  if (!btn) return;  btn.classList.add('active');  setTimeout(() => btn.classList.remove('active'), 200);}
+
+
 // 2. THE CONTENT  -  Policies, Events, Advisors (placeholder data from other teams)
 
 let policies = [
