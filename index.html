@@ -116,6 +116,7 @@
   .policy-name { font-family:'Playfair Display',serif; font-weight:700; font-size:12px; margin-bottom:3px; color:var(--red-dark); }
   .policy-cost { font-size:9px; color:var(--gold); margin-bottom:2px; }
   .policy-effect { font-size:10px; line-height:1.4; color:var(--ink); opacity:.75; }
+  .policy-empty { grid-column:1/-1; padding:18px; font-family:'IM Fell English',serif; font-style:italic; color:rgba(43,31,16,.7); }
 
   
   
@@ -185,6 +186,21 @@
   /* PLAYING-CARD LOOK for policy/advisor choices */
   .policy-card, .advisor-card { position:relative; border:4px solid rgba(92,17,17,0.90); border-radius:4px; background:linear-gradient(180deg, rgba(255,255,255,0.10) 0%, rgba(242,234,216,0.80) 45%, rgba(232,220,192,0.92) 100%); box-shadow:8px 8px 0 rgba(92,17,17,0.55), 0 18px 28px rgba(0,0,0,0.18); overflow:hidden; padding:16px 14px 14px; cursor:pointer; transition:transform .15s, box-shadow .15s; aspect-ratio:3/4; min-height:210px; text-align:left; }
   .policy-card:hover, .advisor-card:hover { transform: translateY(-3px); box-shadow:10px 10px 0 rgba(92,17,17,0.58), 0 22px 34px rgba(0,0,0,0.22);}
+  .policy-card.locked, .policy-card.locked:hover {
+    cursor: not-allowed;
+    opacity: .58;
+    filter: grayscale(.35);
+    transform: none;
+    box-shadow: 8px 8px 0 rgba(92,17,17,0.28), 0 18px 28px rgba(0,0,0,0.12);
+  }
+  .policy-lock {
+    margin-top: 8px;
+    border-top: 1px solid rgba(92,17,17,0.25);
+    padding-top: 6px;
+    font-size: 10px;
+    line-height: 1.35;
+    color: var(--red-dark);
+  }
 
 /* Persistent selected policy highlight (stays visible even on hover) */
 .policy-card.selected{
@@ -210,6 +226,12 @@
   .advisor-name{ font-size:14px; margin:22px 0 8px; text-align:left; }
   .advisor-faction{ font-size:10px; margin-bottom:8px; text-align:left; }
   .advisor-loyalty{ font-size:12px; text-align:left; }
+
+@media (max-width: 520px) {
+  .policy-grid, .advisor-grid { grid-template-columns:repeat(auto-fill,minmax(128px,1fr)); gap:12px; }
+  .policy-card, .advisor-card { aspect-ratio:auto; min-height:178px; padding:14px 12px 12px; }
+  .policy-name { font-size:14px; }
+}
 
 /* HISTORY LOG */
   /* prevent horizontal scroll */
@@ -1440,6 +1462,9 @@ const gameState = {
   turnSpend: 0,
  selectedPolicies: [],
   policiesCommittedTurn: null, // up to 3 policies chosen this turn
+  enactedPolicies: [],
+  advisorStatus: {},
+  gameOver: false,
 
   lastTurnSpend: 0,
   economySub: {
@@ -1583,6 +1608,8 @@ let policies = [
     description: 'Push modernization and growth through technical innovation.',
     effects: { economy: +8, partyUnity: -2 },
     duration: 'permanent',
+    advisorRequired: 'ryzhkov',
+    advisorOpposition: ['ligachev'],
   },
   {
     id: 'glasnost',
@@ -1592,6 +1619,8 @@ let policies = [
     description: 'Allow public debate and media criticism.',
     effects: { popularSupport: +10, stability: -5, partyUnity: -3 },
     duration: 'permanent',
+    advisorRequired: 'yakovlev',
+    advisorOpposition: ['ligachev'],
   },
   {
     id: 'perestroika',
@@ -1601,6 +1630,9 @@ let policies = [
     description: 'Radical economic and political restructuring.',
     effects: { economy: +5, stability: -8, partyUnity: -5, popularSupport: +5 },
     duration: 'permanent',
+    prerequisites: ['uskoreniye'],
+    advisorRequired: 'yakovlev',
+    advisorOpposition: ['ligachev', 'akhromeyev'],
   },
   {
     id: 'inf-treaty',
@@ -1610,6 +1642,8 @@ let policies = [
     description: 'Reduce intermediate-range nuclear weapons with the US.',
     effects: { foreignRelations: +12, militaryReadiness: -5, partyUnity: -2 },
     duration: 'permanent',
+    advisorRequired: 'shevardnadze',
+    advisorOpposition: ['akhromeyev'],
   },
   {
     id: 'afghanistan-pullout',
@@ -1619,6 +1653,8 @@ let policies = [
     description: 'Start withdrawing Soviet troops from Afghanistan.',
     effects: { stability: -3, militaryReadiness: -2, foreignRelations: +10 },
     duration: 'permanent',
+    advisorRequired: 'shevardnadze',
+    advisorOpposition: ['akhromeyev'],
   },
 ];
 
@@ -1667,6 +1703,21 @@ let advisors = [
   { id: 'akhromeyev', name: 'Sergey Akhromeyev', role: 'Chief of Staff', faction: 'Military', loyalty: 65 },
 ];
 
+let libraryEntries = [
+  'Glasnost',
+  'Perestroika',
+  'Uskoreniye',
+  'Politburo',
+  'KGB',
+  'CPSU',
+  'Nomenklatura',
+  'Brezhnev Doctrine',
+  'Sinatra Doctrine',
+  'Warsaw Pact',
+  'Chernobyl',
+  'INF Treaty',
+].map(term => ({ term, summary: 'Entry pending', pending: true }));
+
 
 
 const CONTENT_SCHEMA = {
@@ -1702,9 +1753,10 @@ function validateBundle(bundle){
   warnings.push(`Unknown schemaVersion "${v}". Attempting best-effort parse.`);
  }
 
- if (bundle.policies && !Array.isArray(bundle.policies)) errors.push('policies must be an array.');
- if (bundle.events && !Array.isArray(bundle.events)) errors.push('events must be an array.');
- if (bundle.advisors && !Array.isArray(bundle.advisors)) errors.push('advisors must be an array.');
+if (bundle.policies && !Array.isArray(bundle.policies)) errors.push('policies must be an array.');
+if (bundle.events && !Array.isArray(bundle.events)) errors.push('events must be an array.');
+if (bundle.advisors && !Array.isArray(bundle.advisors)) errors.push('advisors must be an array.');
+ if (bundle.library && !Array.isArray(bundle.library)) errors.push('library must be an array.');
 
  return { ok: errors.length === 0, errors, warnings, schemaVersion: v };
 }
@@ -1757,6 +1809,21 @@ function normaliseEvent(e){
    trigger: (month && year) ? { month, year } : (trigger || null),
    description: String(e.description || ''),
    choices: safeChoices,
+ },
+};
+}
+
+function normaliseLibraryEntry(entry){
+ const term = String(entry.term || entry.name || '').trim();
+ if (!term) return { ok:false, error:'Library entry missing term/name.' };
+
+ return {
+  ok:true,
+  value: {
+   term,
+   summary: String(entry.summary || entry.description || 'Entry pending'),
+   category: entry.category ? String(entry.category) : '',
+   pending: entry.pending != null ? Boolean(entry.pending) : !entry.summary && !entry.description,
   },
  };
 }
@@ -1793,6 +1860,13 @@ function mergeById(existingArray, incomingArray){
  return Array.from(map.values());
 }
 
+function mergeLibraryEntries(existingArray, incomingArray){
+ const keyFor = entry => String(entry.term || '').toLowerCase();
+ const map = new Map(existingArray.map(x => [keyFor(x), x]));
+ incomingArray.forEach(x => map.set(keyFor(x), x));
+ return Array.from(map.values());
+}
+
 function ensureAdvisorLoyaltyDefaults(){
  advisors.forEach(a => {
   if (gameState.advisorLoyalty[a.id] == null) {
@@ -1819,10 +1893,12 @@ function integrateContent(bundle, source='(unknown source)'){
  const pIn = Array.isArray(bundle.policies) ? bundle.policies : [];
  const eIn = Array.isArray(bundle.events) ? bundle.events : [];
  const aIn = Array.isArray(bundle.advisors) ? bundle.advisors : [];
+ const lIn = Array.isArray(bundle.library) ? bundle.library : [];
 
  const pOut = [];
  const eOut = [];
  const aOut = [];
+ const lOut = [];
 
  pIn.forEach(p => {
   const r = normalisePolicy(p);
@@ -1842,16 +1918,24 @@ function integrateContent(bundle, source='(unknown source)'){
   else console.warn(`[Red Sunset] Skipping advisor from ${source}: ${r.error}`, a);
  });
 
+ lIn.forEach(entry => {
+  const r = normaliseLibraryEntry(entry);
+  if (r.ok) lOut.push(r.value);
+  else console.warn(`[Red Sunset] Skipping library entry from ${source}: ${r.error}`, entry);
+ });
+
  if (pOut.length) policies = mergeById(policies, pOut);
  if (eOut.length) events = mergeById(events, eOut);
  if (aOut.length) {
   advisors = mergeById(advisors, aOut);
   ensureAdvisorLoyaltyDefaults();
  }
+ if (lOut.length) libraryEntries = mergeLibraryEntries(libraryEntries, lOut);
 
- addLog(`" Imported content from ${source} (P:${pOut.length} E:${eOut.length} A:${aOut.length})`);
+ addLog(`Imported content from ${source} (P:${pOut.length} E:${eOut.length} A:${aOut.length} L:${lOut.length})`);
  renderPolicies();
  renderAdvisors();
+ renderLibrary();
  return { ok:true };
 }
 
@@ -1898,6 +1982,7 @@ window.RedSunset = {
  integrateContent,
  importFromUrl,
  importFromScriptTag,
+ renderLibrary,
 };
 
 
@@ -1914,10 +1999,13 @@ function advanceDate() {
 function checkEvents() {
   // Find all triggered events
   const triggered = events.filter(e => {
+    if (!e.trigger || !e.trigger.month || !e.trigger.year) return false;
+    if (gameState.firedTriggers['event_' + e.id]) return false;
     return e.trigger.month === gameState.month && e.trigger.year === gameState.year;
   });
 
   if (triggered.length > 0) {
+    gameState.firedTriggers['event_' + triggered[0].id] = true;
     displayEvent(triggered[0]);
     return true;
   }
@@ -1926,6 +2014,50 @@ function checkEvents() {
 
 function escapeHtml(str){
   return String(str || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[c]));
+}
+
+function advisorName(advisorId){
+  const a = advisors.find(x => x.id === advisorId);
+  return a ? a.name : advisorId;
+}
+
+function policyName(policyId){
+  const p = policies.find(x => x.id === policyId);
+  return p ? p.name : policyId;
+}
+
+function enactedPolicySet(){
+  return new Set(gameState.enactedPolicies || []);
+}
+
+function getPolicyAvailability(policy){
+  const enacted = enactedPolicySet();
+  const missingPrereqs = (policy.prerequisites || []).filter(id => !enacted.has(id));
+  const requiredAdvisor = policy.advisorRequired || null;
+  const advisorLoyalty = requiredAdvisor ? Number(gameState.advisorLoyalty[requiredAdvisor] ?? 0) : 100;
+  const advisorLocked = Boolean(requiredAdvisor && advisorLoyalty < 20);
+  const alreadyEnacted = enacted.has(policy.id);
+  const reasons = [];
+
+  if (alreadyEnacted) reasons.push('Already enacted');
+  if (missingPrereqs.length) reasons.push('Requires ' + missingPrereqs.map(policyName).join(', '));
+  if (advisorLocked) reasons.push('Requires ' + advisorName(requiredAdvisor) + ' to remain loyal');
+
+  return {
+    available: reasons.length === 0,
+    reasons,
+    alreadyEnacted,
+    missingPrereqs,
+    advisorLocked,
+  };
+}
+
+function availablePoliciesForCurrentFilters(){
+  const cat = uiState.policyCategory;
+  return policies.filter(p => {
+    if (cat && cat !== 'All' && String(p.category || '').toLowerCase() !== String(cat).toLowerCase()) return false;
+    return getPolicyAvailability(p).available;
+  });
 }
 
 
@@ -1997,6 +2129,11 @@ function resolveEventChoice(choiceIdx) {
   addLog(`Event: ${event.name} — chose "${choice.text}"`);
   activeEvent = null;
   document.getElementById('event-panel').classList.remove('active');
+  if (checkEndConditions()) {
+    render();
+    renderPolicies();
+    return;
+  }
   // Drain queued trigger events one at a time
   if (triggerEventQueue.length > 0) {
     const next = triggerEventQueue.shift();
@@ -2027,14 +2164,86 @@ function computeBudgetBalanceForTurn(){
   gameState.turnSpend = 0;
 }
 
+function updateAdvisorLoyaltyForTurn(){
+  const m = gameState.metrics;
+  const pf = gameState.partyFactions;
+  const pressure = Math.round(((50 - Number(m.stability || 0)) + (50 - Number(m.partyUnity || 0))) / 28);
+  const factionTilt = {
+    Reformist: Math.round((Number(pf.reform || 0) - 50) / 18),
+    Conservative: Math.round((Number(pf.hardliner || 0) - 50) / 18),
+    Centrist: Math.round((Number(pf.moderate || 0) - 50) / 20),
+    Military: Math.round((Number(gameState.militarySub.loyalty || 0) - 50) / 18),
+  };
+
+  advisors.forEach(a => {
+    const before = Number(gameState.advisorLoyalty[a.id] ?? a.defaultLoyalty ?? a.loyalty ?? 50);
+    const factionDelta = factionTilt[a.faction] ?? 0;
+    const reformHeat = a.faction === 'Reformist' && m.partyUnity < 45 ? -1 : 0;
+    const stabilityHeat = a.faction === 'Conservative' && m.stability < 45 ? -1 : 0;
+    const next = clamp(before + factionDelta - Math.max(0, pressure) + reformHeat + stabilityHeat, 0, 100);
+    gameState.advisorLoyalty[a.id] = next;
+
+    const status = gameState.advisorStatus[a.id] || {};
+    if (next < 20 && !status.resigned) {
+      status.resigned = true;
+      addLog(`${a.name} resigns from the inner circle. Policies requiring this advisor are now unavailable.`);
+    }
+    if (next >= 80 && !status.emboldened) {
+      status.emboldened = true;
+      addLog(`${a.name} is emboldened and presses harder for their faction's agenda.`);
+    }
+    if (next < 80) status.emboldened = false;
+    gameState.advisorStatus[a.id] = status;
+  });
+}
+
+function checkEndConditions(){
+  if (gameState.gameOver) return true;
+  const m = gameState.metrics;
+
+  if (m.stability <= 0) {
+    triggerGameOver('civil-war', 'State authority has collapsed. Strikes, republic militias, and emergency committees compete for power as the Union slides into civil war.');
+    return true;
+  }
+  if (m.partyUnity <= 0 || gameState.militarySub.loyalty <= 0) {
+    triggerGameOver('coup', 'The Party and security organs no longer obey the General Secretary. A hard-line committee seizes power, ends the reform programme, and places Gorbachev under guard.');
+    return true;
+  }
+  if (m.popularSupport <= 0) {
+    triggerGameOver('revolution', 'Public legitimacy has vanished. Demonstrations become a revolutionary wave, and the Soviet centre can no longer command the streets.');
+    return true;
+  }
+  if (m.economy <= 0 || gameState.separatism >= 100) {
+    triggerGameOver('dissolution', 'The planned economy can no longer hold the republics together. Union institutions empty out, sovereignty declarations cascade, and the USSR dissolves.');
+    return true;
+  }
+  if (m.foreignRelations <= 0) {
+    triggerGameOver('dissolution', 'Diplomatic isolation and economic pressure leave Moscow without room to manoeuvre. Reform collapses into a disorderly dissolution of the Union.');
+    return true;
+  }
+  if (gameState.year > 1991 || (gameState.year === 1991 && gameState.month > 12)) {
+    const avg = Object.values(m).reduce((a,b) => a + Number(b || 0), 0) / 6;
+    if (avg >= 55 && m.stability >= 45 && m.partyUnity >= 35 && gameState.separatism < 70) {
+      triggerGameOver('success', 'Against the odds, reform survives the Soviet crisis. The Union emerges battered but intact, with enough legitimacy to continue restructuring into 1992.');
+    } else {
+      triggerGameOver('dissolution', 'Reform runs out of time. By the end of 1991, the republics and rival institutions have drained the Union of effective power.');
+    }
+    return true;
+  }
+  return false;
+}
+
 function endTurn() {
+  if (gameState.gameOver || activeEvent) return;
   // Auto-commit selected policies at end of turn (revisable until now)
   if (gameState.selectedPolicies && gameState.selectedPolicies.length > 0) {
     gameState.selectedPolicies.slice().forEach(id => applyPolicyImmediate(id));
     gameState.selectedPolicies = [];
   }
 
-computeBudgetBalanceForTurn();
+  if (checkEndConditions()) return;
+
+  computeBudgetBalanceForTurn();
   gameState.turn++;
   advanceDate();
 
@@ -2046,6 +2255,14 @@ computeBudgetBalanceForTurn();
 
   // Run all conditional triggers first
   checkAllTriggers();
+  updateAdvisorLoyaltyForTurn();
+
+  if (checkEndConditions()) {
+    render();
+    renderPolicies();
+    addTassDateline();
+    return;
+  }
 
   // Check for date-based events
   const hasEvent = checkEvents();
@@ -2400,11 +2617,20 @@ Let every collective and every cadre raise labour discipline, expose opportunism
 
 function triggerGameOver(type, message) {
   gameState.gameOver = true;
+  activeEvent = null;
   const panel = document.getElementById('event-panel');
-  document.getElementById('event-title').textContent = type === 'revolution' ? '★ REVOLUTION' : type === 'coup' ? '★ COUP' : '★ GAME OVER';
-  document.getElementById('event-desc').textContent = message;
+  const titles = {
+    revolution: 'REVOLUTION',
+    coup: 'COUP',
+    'civil-war': 'CIVIL WAR',
+    dissolution: 'DISSOLUTION',
+    success: 'SUCCESSFUL REFORM',
+  };
+  document.getElementById('event-title').textContent = '★ ' + (titles[type] || 'GAME OVER');
+  document.getElementById('event-desc').innerHTML = '<p>' + escapeHtml(message) + '</p>';
   document.getElementById('event-choices').innerHTML = '<button class="event-btn" onclick="resetGame()">Start Over</button>';
   panel.classList.add('active');
+  renderPolicies();
   addLog('GAME OVER: ' + message);
 }
 
@@ -2416,6 +2642,11 @@ function plannedSpend() {
 }
 
 function togglePolicySelection(policyId) {
+  if (gameState.gameOver) return;
+  if (gameState.policiesCommittedTurn === gameState.turn) {
+    addLog('Policies already committed this turn.');
+    return;
+  }
   const max = 3;
   if (!gameState.selectedPolicies) gameState.selectedPolicies = [];
   const idx = gameState.selectedPolicies.indexOf(policyId);
@@ -2430,6 +2661,12 @@ function togglePolicySelection(policyId) {
   }
   const policy = policies.find(p => p.id === policyId);
   if (!policy) return;
+  const availability = getPolicyAvailability(policy);
+  if (!availability.available) {
+    addLog('⚠ Policy unavailable: ' + availability.reasons.join('; '));
+    renderPolicies();
+    return;
+  }
   const spend = plannedSpend();
   if (gameState.budget < spend + policy.cost) {
     addLog('⚠ Not enough budget for that policy selection.');
@@ -2447,6 +2684,11 @@ function clearPolicySelection() {
 function applyPolicyImmediate(policyId) {
   const policy = policies.find(p => p.id === policyId);
   if (!policy) return;
+  const availability = getPolicyAvailability(policy);
+  if (!availability.available) {
+    addLog('⚠ Policy unavailable: ' + availability.reasons.join('; '));
+    return;
+  }
   if (gameState.budget < policy.cost) {
     addLog('⚠ Not enough budget.');
     return;
@@ -2464,6 +2706,8 @@ function applyPolicyImmediate(policyId) {
       }
     });
   }
+  if (!gameState.enactedPolicies) gameState.enactedPolicies = [];
+  if (!gameState.enactedPolicies.includes(policy.id)) gameState.enactedPolicies.push(policy.id);
   addLog(`Policy: ${policy.name} (-${policy.cost} budget)`);
 }
 
@@ -2480,6 +2724,7 @@ function commitPolicies() {
   picks.slice().forEach(id => applyPolicyImmediate(id));
   gameState.selectedPolicies = [];
   gameState.policiesCommittedTurn = gameState.turn;
+  checkEndConditions();
   render();
   renderPolicies();
 }
@@ -2648,23 +2893,31 @@ function renderIntl() {
 
 function renderPolicies() {
   const cat = uiState.policyCategory;
-  const list = (cat && cat !== 'All')
+  const baseList = (cat && cat !== 'All')
     ? policies.filter(p => String(p.category || '').toLowerCase() === String(cat).toLowerCase())
     : policies;
+  const list = baseList.filter(p => {
+    const a = getPolicyAvailability(p);
+    return !a.alreadyEnacted && a.missingPrereqs.length === 0;
+  });
   const picks = gameState.selectedPolicies || [];
   const html = list.map(p => {
     const isSel = picks.includes(p.id);
+    const availability = getPolicyAvailability(p);
+    const lockHtml = availability.available ? '' : `<div class="policy-lock">${availability.reasons.map(escapeHtml).join('<br>')}</div>`;
+    const click = availability.available ? `onclick="togglePolicySelection('${p.id}')"` : `onclick="togglePolicySelection('${p.id}')"`;
     return `
-      <div class="policy-card${isSel ? ' selected' : ''}" data-cat="${p.category || ''}" onclick="togglePolicySelection('${p.id}')">
+      <div class="policy-card${isSel ? ' selected' : ''}${availability.available ? '' : ' locked'}" data-cat="${p.category || ''}" ${click}>
         <div class="card-corner tl">${p.category || 'Policy'}</div>
         <div class="card-corner br">Cost ${p.cost}</div>
         <div class="card-body">
           <div class="policy-name">${p.name}</div>
           <div class="policy-cost">Cost: ${p.cost} budget</div>
           <div class="policy-effect">${formatEffects(p.effects)}</div>
+          ${lockHtml}
         </div>
       </div>`;
-  }).join('');
+  }).join('') || '<div class="policy-empty">No available policies in this category.</div>';
   document.getElementById('policy-grid').innerHTML = html;
   const cEl = document.getElementById('policy-selected-count');
   if (cEl) cEl.textContent = String(picks.length);
@@ -2699,6 +2952,22 @@ function renderAdvisors() {
   }).join('');
 
   document.getElementById('advisor-grid').innerHTML = html;
+}
+
+function renderLibrary() {
+  const grid = document.getElementById('ency-grid');
+  if (!grid) return;
+  const html = (libraryEntries || []).map(entry => {
+    const pending = entry.pending || !entry.summary || entry.summary === 'Entry pending';
+    const cat = entry.category ? `<span class="ency-stub">${escapeHtml(entry.category)}</span>` : '';
+    return `
+      <div class="ency-card${pending ? ' ency-empty' : ''}">
+        <span class="ency-term">${escapeHtml(entry.term)}</span>
+        ${cat}
+        <span class="ency-stub">${escapeHtml(entry.summary || 'Entry pending')}</span>
+      </div>`;
+  }).join('');
+  grid.innerHTML = html;
 }
 
 
@@ -2753,6 +3022,7 @@ function render() {
   renderPressures();
   renderPolitburoVisual();
   renderAdvisors();
+  renderLibrary();
 }
 
 function sanitizeLogEntry(s){
@@ -2770,8 +3040,14 @@ function sanitizeLogEntry(s){
 // ── AUDIO HELPERS (GitHub Pages + autoplay policies) ───────────────
 function makeAudio(relPath){
   // Build an absolute URL that works for GitHub Pages project subpaths too.
-  try { return new Audio(new URL(relPath, document.baseURI).href); }
-  catch(e){ return new Audio(relPath); }
+  let audio;
+  try { audio = new Audio(new URL(relPath, document.baseURI).href); }
+  catch(e){ audio = new Audio(relPath); }
+  audio.preload = 'none';
+  audio.addEventListener('error', () => {
+    audio.dataset.missing = 'true';
+  });
+  return audio;
 }
 
 // Unlock audio on first user gesture (required by most browsers).
@@ -2988,6 +3264,8 @@ function dismissIntro() {
   startGame();
   const overlay = document.getElementById('intro-modal');
   overlay.classList.add('dismissed');
+  document.querySelector('.game-layout').style.visibility = 'visible';
+  document.querySelector('.masthead').style.visibility = 'visible';
   setTimeout(() => overlay.style.display = 'none', 700);
 }
 
@@ -3013,51 +3291,6 @@ if (_importInput) {
 .game-layout, .masthead { visibility:hidden; }
 .newsreel-projector-top, .newsreel-projector-bottom { display:none !important; }
 .newsreel-flicker, .newsreel-scratches { display:none !important; }
-
-.newsreel-frame.slide-blank .newsreel-content { visibility:hidden; }
-
-@keyframes slideIn {
-  0%% {opacity:0; transform:translateY(200px) scale(0.65); filter:brightness(0);} 
-  2%% {opacity:1; transform:translateY(-25px) scale(1.2); filter:brightness(6);} 
-  5%% {transform:translateY(10px) scale(0.92);} 
-  9%% {transform:translateY(-3px) scale(1.03);} 
-  14%% {transform:translateY(0) scale(1);} 
-}
 </style>
-
-<script>
-window.launcherStartGame = function(){
- unlockAllAudio();
- const launcher=document.getElementById('launcher-modal');
- launcher.style.display='none';
-
- const modal=document.getElementById('intro-modal');
- modal.style.display='flex';
-
- const frame=modal.querySelector('.newsreel-frame');
- if(frame){
-   frame.classList.add('slide-blank');
-
-   // start audio immediately
-   projectorAudio.currentTime = 0;
-   projectorAudio.play().catch(()=>{});
-
-   // wait for click at 1.626s
-   setTimeout(()=>{
-     frame.classList.remove('slide-blank');
-     frame.classList.add('slide-in','slide-flash');
-   },1626);
- }
-};
-
-window.dismissIntro = function(){
-  projectorAudio.pause();
-  projectorAudio.currentTime = 0;
-  startGame();
-  document.getElementById('intro-modal').style.display='none';
-  document.querySelector('.game-layout').style.visibility='visible';
-  document.querySelector('.masthead').style.visibility='visible';
-};
-</script>
 </body>
 </html>
