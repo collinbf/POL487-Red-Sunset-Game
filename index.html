@@ -21,7 +21,7 @@
 
   /* MAIN LAYOUT */
   .game-layout { display:grid; grid-template-columns:300px 1fr; gap:0; max-width:1100px; margin:1rem auto; padding:0 1rem; align-items:start; }
-  .sidebar { padding-right:1.5rem; border-right:1.5px solid var(--rule); position:sticky; top:1rem; max-height:calc(100vh-2rem); overflow-y:auto; }
+  .sidebar { padding-right:1.5rem; border-right:1.5px solid var(--rule); position:sticky; top:1rem; max-height:calc(100vh-2rem); overflow-y:auto; overflow-x:hidden; }
   .main { padding-left:1.5rem; min-width:0; }
 
   /* SECTION TITLE */
@@ -212,25 +212,24 @@
   .advisor-loyalty{ font-size:12px; text-align:left; }
 
 /* HISTORY LOG */
-  /* Teletype assembly: printer stays in normal flow; paper is absolutely positioned INSIDE the assembly,
-     but the assembly reserves space so nothing above (e.g. International Relations) gets covered. */
+  /* prevent horizontal scroll */
+  .sidebar{ overflow-x:hidden; }
+
   .tty-assembly{
     --paperH: 180px;
-    --paperW: 240px;           /* paper is thinner than the teletype */
-    --printerW: 280px;         /* teletype body width */
-    --shellPadTop: 14px;
-    --slotTop: 66px;
-    --slotH: 16px;
-    --paperInset: 7px;         /* how far paper tucks into slot */
+    --paperW: 220px;
+    --printerW: 290px;
+    --slotH: 14px;
 
     width: min(var(--printerW), 100%);
-    margin: 1rem auto 0;
+    margin-top: 1rem;
     position: relative;
-    /* reserve vertical space above printer so the paper is NOT overlapping panels above */
-    padding-top: calc(var(--paperH) - (var(--shellPadTop) + var(--slotTop) + var(--slotH)) + var(--paperInset));
+    overflow: visible;
+    /* Paper sits above the machine, so add top padding = paperH minus overlap into slot */
+    padding-top: calc(var(--paperH) - 18px);
   }
 
-  /* Paper / log window */
+  /* PAPER (scroll window) — sits above the printer, bottom edge feeds into the slot */
   .history-log.tty-paper{
     width: min(var(--paperW), 100%);
     height: var(--paperH);
@@ -241,18 +240,17 @@
     top: 0;
     left: 50%;
     transform: translateX(-50%);
-    z-index: 5;
+    z-index: 50;
 
-    background:#f6efdc; /* OPAQUE so printer never appears inside the scroll area */
+    background: #f6efdc;
     border: 1.5px solid rgba(43,31,16,0.34);
-    border-bottom: none; /* looks like it continues into the slot */
-    border-radius: 10px 10px 0 0;
+    border-bottom: none;
+    border-radius: 6px 6px 0 0;
     padding: 12px 12px 18px;
     font-size: 13px;
     line-height: 1.42;
-    box-shadow: 0 16px 28px rgba(0,0,0,0.14);
+    box-shadow: 0 -4px 12px rgba(0,0,0,0.08), 2px 0 6px rgba(0,0,0,0.06), -2px 0 6px rgba(0,0,0,0.06);
   }
-  /* ruled lines + fibres */
   .history-log.tty-paper::before{
     content:'';
     position:absolute;
@@ -268,8 +266,7 @@
     mix-blend-mode: multiply;
     opacity: 0.92;
   }
-  /* tractor-feed edge illusion */
-  .history-log.tty-paper{
+  .history-log.tty-paper{ 
     background-image:
       radial-gradient(circle at 0 10px, rgba(43,31,16,0.10) 0 2px, transparent 3px),
       radial-gradient(circle at 100% 10px, rgba(43,31,16,0.10) 0 2px, transparent 3px);
@@ -286,85 +283,163 @@
     letter-spacing:.18em;
     color: rgba(36,28,16,0.45);
   }
-  /* a little shadow at paper bottom so it feels inserted */
-  .history-log.tty-paper{ box-shadow: 0 16px 28px rgba(0,0,0,0.14), inset 0 -10px 14px rgba(0,0,0,0.06); }
 
   .log-entry{ margin-bottom:6px; padding:2px 0; border-bottom:none; transform: translateX(var(--jitter, 0px)); }
   .log-entry:last-child{ margin-bottom:0; }
   .log-turn{ font-weight:800; color:var(--red-dark); margin-right:6px; }
   .log-text{ opacity: var(--ink, .92); color: rgba(28,22,13,0.92); text-shadow: 0.25px 0 rgba(28,22,13,0.30), -0.18px 0 rgba(28,22,13,0.18), 0 0.8px rgba(28,22,13,0.08); }
 
-  /* Printer: centered, slightly wider than the paper */
-  .tty-printer{ width: 100%; margin-top: 0; }
+  /* TELETYPE BODY — true head-on front view */
+  .tty-printer{ width: 100%; margin-top: 0; position: relative; z-index: 1; }
   .tty-shell{
-    padding-top: var(--shellPadTop);
-    background: linear-gradient(180deg, #6b767a 0%, #556164 55%, #404a4d 100%);
-    border: 1px solid rgba(0,0,0,0.58);
-    border-radius: 26px 26px 12px 12px;
-    padding: 14px 14px 12px;
-    filter: drop-shadow(0 18px 22px rgba(0,0,0,0.22));
+    background: linear-gradient(180deg, #7a8387 0%, #626c70 40%, #4e585c 100%);
+    border: 1.5px solid rgba(0,0,0,0.65);
+    border-radius: 10px 10px 8px 8px;
+    padding: 0;
+    filter: drop-shadow(0 14px 20px rgba(0,0,0,0.35));
     position: relative;
+    overflow: hidden;
   }
-  /* more like the photo: top roller + handle */
-  .tty-top{ position:relative; height:118px; border-radius:22px; background: linear-gradient(180deg, rgba(0,0,0,0.18), rgba(0,0,0,0.05)); border:1px solid rgba(0,0,0,0.28); overflow:hidden; }
+
+  /* Top lid — flat rectangular face, lid lifted at back */
+  .tty-top{
+    position: relative;
+    height: 52px;
+    background: linear-gradient(180deg, #8c9699 0%, #6e787c 60%, #5a6468 100%);
+    border-bottom: 2px solid rgba(0,0,0,0.45);
+    overflow: hidden;
+  }
+  /* Subtle vent lines on top face */
   .tty-top::before{
     content:'';
     position:absolute;
-    left: 18px; right: 18px;
-    top: 10px;
-    height: 26px;
-    border-radius: 18px;
-    background: linear-gradient(180deg, rgba(255,255,255,0.10), rgba(0,0,0,0.20));
-    opacity: 0.55;
+    inset:0;
+    background: repeating-linear-gradient(90deg,
+      transparent 0px, transparent 10px,
+      rgba(0,0,0,0.06) 10px, rgba(0,0,0,0.06) 11px);
+    pointer-events:none;
   }
+  /* Two small corner screws */
   .tty-top::after{
     content:'';
     position:absolute;
-    left: 28px; right: 44px;
-    top: 44px;
-    height: 6px;
-    border-radius: 6px;
-    background: rgba(0,0,0,0.28);
-    box-shadow: 0 1px 0 rgba(255,255,255,0.10) inset;
-    opacity: 0.85;
+    inset:0;
+    background:
+      radial-gradient(circle at 12px 50%, rgba(0,0,0,0.35) 0 4px, rgba(255,255,255,0.12) 4px 5px, transparent 5px),
+      radial-gradient(circle at calc(100% - 12px) 50%, rgba(0,0,0,0.35) 0 4px, rgba(255,255,255,0.12) 4px 5px, transparent 5px);
+    pointer-events:none;
+  }
+  /* Paper exit slot — horizontal opening on the top face */
+  .tty-slot{
+    position:absolute;
+    left: 20%; right: 20%;
+    top: 50%; transform: translateY(-50%);
+    height: var(--slotH);
+    background: linear-gradient(180deg, rgba(0,0,0,0.82), rgba(0,0,0,0.40));
+    border: 1px solid rgba(0,0,0,0.70);
+    border-radius: 2px;
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.55), 0 1px 0 rgba(255,255,255,0.10);
+    z-index: 10;
+  }
+  .tty-slot::after{
+    content:'';
+    position:absolute;
+    inset:0;
+    background: repeating-linear-gradient(180deg,
+      rgba(246,239,220,0.22) 0 2px, rgba(246,239,220,0.00) 2px 7px);
+    animation: paperFeed 2.2s linear infinite;
+    opacity:0.6;
+  }
+  @keyframes paperFeed{ from{ transform: translateY(0);} to{ transform: translateY(10px);} }
+
+  /* Front body — main flat panel between lid and keyboard */
+  .tty-front-panel{
+    position: relative;
+    background: linear-gradient(180deg, #596063 0%, #4a5356 100%);
+    border-bottom: 1px solid rgba(0,0,0,0.30);
+    padding: 8px 14px 6px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-height: 38px;
   }
 
-  .tty-hood{ position:absolute; inset:12px 16px 46px; border-radius:18px; background: rgba(0,0,0,0.06); border:1px solid rgba(0,0,0,0.14); }
-  .tty-face{ position:absolute; inset:20px 24px 60px; border-radius:16px; background: rgba(255,255,255,0.02); border:1px solid rgba(0,0,0,0.10); }
+  /* Indicator lights — two small LEDs on the front panel */
+  .tty-btn{ width:10px; height:10px; border-radius:50%; border:1px solid rgba(0,0,0,0.60); box-shadow:0 0 6px rgba(0,0,0,0.30) inset; flex-shrink:0; }
+  .tty-btn.red{ background: radial-gradient(circle at 35% 35%, #cc3333, #8b1a1a); box-shadow:0 0 8px rgba(139,26,26,0.60), inset 0 1px 0 rgba(255,255,255,0.20); }
+  .tty-btn.amber{ background: radial-gradient(circle at 35% 35%, #c9982e, #9a7a2e); box-shadow:0 0 8px rgba(154,122,46,0.60), inset 0 1px 0 rgba(255,255,255,0.20); }
 
-  /* slot sits exactly under paper bottom */
-  .tty-slot{ position:absolute; left:16px; right:16px; top: var(--slotTop); height: var(--slotH); border-radius:4px; background: linear-gradient(180deg, rgba(0,0,0,0.78), rgba(0,0,0,0.28)); border:1px solid rgba(255,255,255,0.10); z-index: 10; }
-  .tty-slot::before{ content:''; position:absolute; left:-1px; right:-1px; top:-3px; height:6px; background: rgba(0,0,0,0.22); border-radius:4px; }
-  .tty-slot::after{ content:''; position:absolute; inset:0; background: repeating-linear-gradient(180deg, rgba(246,239,220,0.20) 0 3px, rgba(246,239,220,0.00) 3px 8px); animation: paperFeed 2.2s linear infinite; opacity:0.55; }
-  @keyframes paperFeed{ from{ transform: translateY(0);} to{ transform: translateY(12px);} }
+  .tty-badge-row{
+    flex:1;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin: 0 10px;
+    padding: 5px 8px;
+    background: rgba(0,0,0,0.22);
+    border: 1px solid rgba(0,0,0,0.35);
+    border-radius: 6px;
+  }
+  .tty-badge{ font-family:'IM Fell English',serif; font-size:10px; letter-spacing:.16em; text-transform:uppercase; color: rgba(246,239,220,0.88); }
+  .tty-meta{ font-family: ui-monospace, 'Courier New', monospace; font-size:9px; letter-spacing:.08em; color: rgba(246,239,220,0.65); }
 
-  .tty-btn{ position:absolute; top:52px; width:16px; height:16px; border-radius:50%; border:1px solid rgba(0,0,0,0.55); box-shadow:0 0 10px rgba(0,0,0,0.25) inset; z-index: 11; }
-  .tty-btn.red{ left:12px; background:#8b1a1a; box-shadow:0 0 10px rgba(139,26,26,0.45); }
-  .tty-btn.amber{ right:12px; background:#9a7a2e; box-shadow:0 0 10px rgba(154,122,46,0.45); }
+  /* TASS/ТАСС metal plate */
+  .tass-plate{ margin: 0 14px 8px; position:relative; padding:8px 10px; background: linear-gradient(180deg, #282b2f, #1a1d20); border: 1px solid rgba(255,255,255,0.10); border-radius: 6px; box-shadow: inset 0 1px 0 rgba(255,255,255,0.08), inset 0 -1px 0 rgba(0,0,0,0.45), 0 2px 4px rgba(0,0,0,0.30); }
+  .tass-plate .rivet{ position:absolute; width:5px; height:5px; border-radius:50%; background: rgba(0,0,0,0.55); box-shadow: inset 0 1px 1px rgba(255,255,255,0.15); }
+  .tass-plate .rivet.tl{ top:5px; left:5px; }
+  .tass-plate .rivet.tr{ top:5px; right:5px; }
+  .tass-plate .rivet.bl{ bottom:5px; left:5px; }
+  .tass-plate .rivet.br{ bottom:5px; right:5px; }
+  .tass-svg{ width:100%; height:40px; }
+  .plate-outline{ fill: transparent; stroke: rgba(255,255,255,0.08); stroke-width:1; }
+  .tass-fill{ fill: rgba(235,235,235,0.95); filter: drop-shadow(0 1px 0 rgba(0,0,0,0.55)); }
 
-  .tty-badge-row{ display:flex; justify-content:space-between; align-items:center; margin-top:10px; padding:6px 8px; background: rgba(0,0,0,0.18); border:1px solid rgba(0,0,0,0.30); border-radius:10px; }
-  .tty-badge{ font-family:'IM Fell English',serif; font-size:11px; letter-spacing:.16em; text-transform:uppercase; color: rgba(246,239,220,0.90); }
-  .tty-meta{ font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace; font-size:10px; letter-spacing:.10em; color: rgba(246,239,220,0.72); }
+  /* Keybed — front-facing keyboard, like in the photo */
+  .tty-keybed{
+    margin: 0 8px 10px;
+    background: linear-gradient(180deg, rgba(22,26,28,0.97), rgba(12,14,16,0.98));
+    border: 1px solid rgba(0,0,0,0.70);
+    border-radius: 8px;
+    padding: 10px 10px 8px;
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.40), 0 3px 6px rgba(0,0,0,0.30);
+  }
+  .keybed-row{ display:flex; justify-content:center; gap:6px; margin-bottom:7px; }
+  .keybed-row.space{ margin-bottom:0; }
+  /* Keys look like cylindrical tops viewed head-on */
+  .k{
+    width:13px; height:13px; border-radius:3px;
+    background: linear-gradient(180deg, rgba(90,100,106,0.90), rgba(55,62,66,0.92));
+    border: 1px solid rgba(0,0,0,0.60);
+    box-shadow: 0 2px 0 rgba(0,0,0,0.50), inset 0 1px 0 rgba(255,255,255,0.12);
+  }
+  .k.red{
+    background: linear-gradient(180deg, rgba(170,40,40,0.90), rgba(100,20,20,0.92));
+    box-shadow: 0 2px 0 rgba(0,0,0,0.50), inset 0 1px 0 rgba(255,255,255,0.15);
+  }
+  .k.green{
+    background: linear-gradient(180deg, rgba(50,120,70,0.90), rgba(30,80,45,0.92));
+    box-shadow: 0 2px 0 rgba(0,0,0,0.50), inset 0 1px 0 rgba(255,255,255,0.15);
+  }
+  .spacebar{
+    width:120px; height:10px; border-radius:4px;
+    background: linear-gradient(180deg, rgba(80,90,96,0.90), rgba(48,56,60,0.92));
+    border: 1px solid rgba(0,0,0,0.60);
+    box-shadow: 0 2px 0 rgba(0,0,0,0.50), inset 0 1px 0 rgba(255,255,255,0.10);
+  }
+  /* Tiny label strip between keybed rows */
+  .keybed-label{
+    display:flex; justify-content:center;
+    font-family: ui-monospace, 'Courier New', monospace;
+    font-size:7px; letter-spacing:.10em;
+    color: rgba(180,180,180,0.40);
+    margin-bottom:5px;
+    user-select:none;
+  }
 
-  .tty-console{ margin-top:10px; display:grid; grid-template-columns: 1fr 1.4fr 1fr; gap:8px; }
-  .tty-plate{ background: rgba(0,0,0,0.24); border:1px solid rgba(0,0,0,0.55); border-radius:10px; padding:8px; color: rgba(246,239,220,0.80); }
-  .tty-plate-title{ font-family:'Playfair Display',serif; font-weight:800; letter-spacing:.14em; font-size:9px; margin-bottom:6px; opacity:0.9; }
-  .tty-plate-lines{ font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace; font-size:9px; letter-spacing:.06em; opacity:0.85; line-height:1.35; }
+  .tty-base{ height:10px; background: linear-gradient(180deg, rgba(38,44,46,0.90), rgba(22,26,28,0.98)); border-radius:0 0 8px 8px; border-top: 1px solid rgba(0,0,0,0.40); }
 
-  .tty-keys{ background: linear-gradient(180deg, #2a2f33, #1e2226); border:1px solid rgba(0,0,0,0.65); border-radius:12px; padding:8px; }
-  .tty-keyrow{ display:flex; justify-content:center; gap:6px; margin-bottom:7px; }
-  .tty-keyrow:last-child{ margin-bottom:0; }
-  .k{ width:14px; height:14px; border-radius:50%; background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.16), rgba(0,0,0,0.40)); border:1px solid rgba(0,0,0,0.55); }
-  .k.red{ background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.16), rgba(139,26,26,0.70)); }
-  .k.green{ background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.16), rgba(45,110,68,0.70)); }
-  .spacebar{ width:120px; height:14px; border-radius:10px; background: linear-gradient(180deg, rgba(255,255,255,0.10), rgba(0,0,0,0.35)); border:1px solid rgba(0,0,0,0.55); }
-
-  .tty-base{ height:7px; margin-top:10px; border-radius:0 0 10px 10px; background: linear-gradient(180deg, rgba(0,0,0,0.28), rgba(0,0,0,0.55)); border:1px solid rgba(0,0,0,0.55); }
-
-  
-  /* HARD GUARD: paper is fully opaque and sits above the printer */
-  .history-log.tty-paper{ background-color:#f6efdc !important; opacity: 1 !important; z-index: 50 !important; }
-  .tty-printer{ z-index: 1 !important; }
+  /* HARD GUARD */
+  .history-log.tty-paper{ background-color:#f6efdc !important; opacity:1 !important; }
 
   /* BUTTONS */
   .btn-row { display:flex; gap:6px; margin-top:.8rem; flex-wrap:wrap; }
@@ -509,56 +584,76 @@
     </div>
 <!-- HISTORY LOG -->
 <div class="tty-assembly">
-  <!-- PAPER / LOG (scroll area) — this is the paper coming OUT of the teletype -->
+  <!-- PAPER / LOG (scroll area) — emerges upward from the paper slot -->
   <div class="history-log tty-paper" id="history-log">
-    <div class="log-entry"><span class="log-turn">Turn 1 (March 1985)</span><span class="log-text">Game started. Gorbachev in power.</span></div></div>
+    <div class="log-entry"><span class="log-turn">Turn 1 (March 1985)</span><span class="log-text">Game started. Gorbachev in power.</span>
+    </div>
+  </div>
 
-  <!-- TELETYPE BODY (outside the scroll area) -->
+  <!-- TELETYPE BODY — head-on front view -->
   <div class="tty-printer" aria-hidden="true">
     <div class="tty-shell">
+
+      <!-- TOP LID: flat face with paper-exit slot centred -->
       <div class="tty-top">
-        <div class="tty-hood"></div>
-        <div class="tty-face"></div>
         <div class="tty-slot"></div>
+      </div>
+
+      <!-- FRONT PANEL: status lights + badge -->
+      <div class="tty-front-panel">
         <span class="tty-btn red"></span>
+        <div class="tty-badge-row">
+          <span class="tty-badge">★ СОЮЗ</span>
+          <span class="tty-meta">60 WPM • ТА</span>
+        </div>
         <span class="tty-btn amber"></span>
       </div>
 
-      <div class="tty-badge-row">
-        <span class="tty-badge">★ СОЮЗ</span>
-        <span class="tty-meta">60 WPM • 45</span>
+      <!-- ТАСС NAMEPLATE -->
+      <div class="tass-plate" aria-hidden="true">
+        <span class="rivet tl"></span><span class="rivet tr"></span>
+        <span class="rivet bl"></span><span class="rivet br"></span>
+        <svg class="tass-svg" viewBox="0 0 240 60" aria-label="ТАСС" role="img">
+          <rect class="plate-outline" x="0.5" y="0.5" width="239" height="59" rx="6" ry="6"/>
+          <!-- Т -->
+          <path class="tass-fill" d="M20 12H72V22H51V48H41V22H20Z"/>
+          <!-- А -->
+          <path class="tass-fill" fill-rule="evenodd" d="M82 48V12H122V48H112V38H92V48H82Z M94 28H110V22H94V28Z"/>
+          <!-- С -->
+          <path class="tass-fill" fill-rule="evenodd" d="M132 12H172V22H142V38H172V48H132Z"/>
+          <!-- С -->
+          <path class="tass-fill" fill-rule="evenodd" d="M180 12H220V22H190V38H220V48H180Z"/>
+        </svg>
       </div>
 
-      <div class="tty-console">
-        <div class="tty-plate">
-          <div class="tty-plate-title">ИНСТРУКЦИЯ</div>
-          <div class="tty-plate-lines">СЛУЖЕБНЫЙ КАНАЛ<br>ЗАПИСЬ<br>КОД<br>СБРОС</div>
+      <!-- KEYBOARD — 4 rows of square keys facing you, matching the photo -->
+      <div class="tty-keybed">
+        <div class="keybed-label">— ФУНКЦИИ —</div>
+        <div class="keybed-row">
+          <span class="k red"></span><span class="k red"></span><span class="k red"></span><span class="k red"></span>
+          <span class="k"></span><span class="k"></span><span class="k"></span><span class="k"></span>
+          <span class="k"></span><span class="k"></span>
         </div>
-
-        <div class="tty-keys">
-          <div class="tty-keyrow">
-            <span class="k red"></span><span class="k red"></span><span class="k red"></span><span class="k red"></span>
-            <span class="k"></span><span class="k"></span><span class="k"></span><span class="k"></span>
-          </div>
-          <div class="tty-keyrow">
-            <span class="k green"></span><span class="k green"></span><span class="k"></span><span class="k"></span>
-            <span class="k"></span><span class="k"></span><span class="k"></span><span class="k"></span>
-          </div>
-          <div class="tty-keyrow"><span class="spacebar"></span></div>
+        <div class="keybed-row">
+          <span class="k green"></span><span class="k green"></span><span class="k green"></span>
+          <span class="k"></span><span class="k"></span><span class="k"></span><span class="k"></span>
+          <span class="k"></span><span class="k"></span><span class="k"></span>
         </div>
-
-        <div class="tty-plate">
-          <div class="tty-plate-title">РЕЖИМ</div>
-          <div class="tty-plate-lines">СВЯЗЬ<br>ПЕЧАТЬ<br>ЛЕНТА<br>СТОП</div>
+        <div class="keybed-row">
+          <span class="k"></span><span class="k"></span><span class="k"></span><span class="k"></span>
+          <span class="k"></span><span class="k"></span><span class="k"></span><span class="k"></span>
+          <span class="k"></span><span class="k"></span>
         </div>
+        <div class="keybed-row space"><span class="spacebar"></span></div>
       </div>
 
       <div class="tty-base"></div>
     </div>
   </div>
-</div>
 
+    </div>
 
+    
 <!-- BUTTONS -->
     <div class="btn-row">
       <button class="btn" onclick="resetGame()">Reset</button>
@@ -1030,7 +1125,7 @@ function integrateContent(bundle, source='(unknown source)'){
  const check = validateBundle(bundle);
  if (!check.ok) {
   console.warn(`[Red Sunset] Import failed from ${source}:`, check.errors);
-  addLog(`ÃÂÃÂÃÂÃÂ ÃÂÃÂÃÂÃÂ  Import failed from ${source}: ${check.errors.join(' ')}`);
+  addLog(`⚠  Import failed from ${source}: ${check.errors.join(' ')}`);
   return { ok:false, errors: check.errors };
  }
  check.warnings.forEach(w => console.warn(`[Red Sunset] Import warning from ${source}: ${w}`));
@@ -1068,7 +1163,7 @@ function integrateContent(bundle, source='(unknown source)'){
   ensureAdvisorLoyaltyDefaults();
  }
 
- addLog(`ÃÂÃÂÃÂÃÂ Imported content from ${source} (P:${pOut.length} E:${eOut.length} A:${aOut.length})`);
+ addLog(`" Imported content from ${source} (P:${pOut.length} E:${eOut.length} A:${aOut.length})`);
  renderPolicies();
  renderAdvisors();
  return { ok:true };
@@ -1082,7 +1177,7 @@ function importFromScriptTag(scriptId){
   return integrateContent(json, `script#${scriptId}`);
  } catch (err) {
   console.warn(`[Red Sunset] Failed to parse embedded JSON in #${scriptId}`, err);
-  addLog(`ÃÂÃÂÃÂÃÂ ÃÂÃÂÃÂÃÂ  Embedded JSON parse failed in #${scriptId}`);
+  addLog(`⚠  Embedded JSON parse failed in #${scriptId}`);
   return { ok:false, errors:[String(err)] };
  }
 }
@@ -1094,7 +1189,7 @@ async function importFromUrl(url){
   return integrateContent(json, url);
  } catch (err) {
   console.warn(`[Red Sunset] Fetch import failed: ${url}`, err);
-  addLog(`ÃÂÃÂÃÂÃÂ ÃÂÃÂÃÂÃÂ  Fetch import failed: ${url}`);
+  addLog(`⚠  Fetch import failed: ${url}`);
   return { ok:false, errors:[String(err)] };
  }
 }
@@ -1107,7 +1202,7 @@ function importFromFile(file){
    integrateContent(json, file.name);
   } catch (err) {
    console.warn('[Red Sunset] File import parse failed:', err);
-   addLog(`ÃÂÃÂÃÂÃÂ ÃÂÃÂÃÂÃÂ  File import parse failed: ${file.name}`);
+   addLog(`⚠  File import parse failed: ${file.name}`);
   }
  };
  reader.readAsText(file);
@@ -1204,7 +1299,7 @@ function resolveEventChoice(choiceIdx) {
     applyMetricChange(key, val);
   });
   // Log
-  addLog(`Event: ${event.name} ÃÂ¢ÃÂÃÂ chose "${choice.text}"`);
+  addLog(`Event: ${event.name} — chose "${choice.text}"`);
   activeEvent = null;
   document.getElementById('event-panel').classList.remove('active');
   // Drain queued trigger events one at a time
@@ -1302,18 +1397,18 @@ function applyMetricChange(metricKey, delta) {
 
   // Check for crisis
   if (gameState.metrics[key] === 0) {
-    addLog(`ÃÂÃÂÃÂÃÂ ÃÂÃÂÃÂÃÂ  CRISIS: ${metricKey} has reached 0!`);
+    addLog(`⚠  CRISIS: ${metricKey} has reached 0!`);
   }
 }
 
-/* ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ
-   TRIGGER SYSTEM  ÃÂ¢ÃÂÃÂ  GDD v2.0 rules
-   ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ */
+/* ════════════════════════════════════════════════════════════════════
+   TRIGGER SYSTEM  —  GDD v2.0 rules
+   ════════════════════════════════════════════════════════════════════ */
 
 function fireTrigger(id, logMsg) {
   if (gameState.firedTriggers[id]) return false;
   gameState.firedTriggers[id] = true;
-  addLog('ÃÂ¢ÃÂÃÂ  ' + logMsg);
+  addLog('⚠ ' + logMsg);
   return true;
 }
 
@@ -1325,7 +1420,7 @@ function checkAllTriggers() {
   const ir = gameState.intlRelations;
   const sep = gameState.separatism || 0;
 
-  // ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ INFLATION TRIGGER (GDD: trigger at 20%) ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ
+  // ── INFLATION TRIGGER (GDD: trigger at 20%) ──────────────────────
   if (es.inflation >= 20 && fireTrigger('inflation_20', 'Inflation crisis! Public pressure mounts.')) {
     applyMetricChange('popularSupport', -20);
     applyMetricChange('partyUnity', -8);
@@ -1337,13 +1432,13 @@ function checkAllTriggers() {
     applyMetricChange('militaryReadiness', -5);
   }
 
-  // ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ BUDGET BALANCE TRIGGER (GDD: trigger at -10) ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ
-  if (es.budgetBalance <= -10 && fireTrigger('budget_neg10', 'Budget deficit critical ÃÂ¢ÃÂÃÂ inflation surge.')) {
+  // ── BUDGET BALANCE TRIGGER (GDD: trigger at -10) ─────────────────
+  if (es.budgetBalance <= -10 && fireTrigger('budget_neg10', 'Budget deficit critical — inflation surge.')) {
     applyMetricChange('inflation', 20);
   }
 
-  // ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ SOCIAL PARASITISM TRIGGER (GDD: trigger at 25%) ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ
-  if (es.socialParasitism >= 25 && fireTrigger('parasitism_25', 'Social parasitism crisis ÃÂ¢ÃÂÃÂ public unrest event triggered.')) {
+  // ── SOCIAL PARASITISM TRIGGER (GDD: trigger at 25%) ──────────────
+  if (es.socialParasitism >= 25 && fireTrigger('parasitism_25', 'Social parasitism crisis — public unrest event triggered.')) {
     displayTriggerEvent({
       name: 'Social Parasitism Crisis',
       description: 'Widespread absenteeism, underground markets, and work avoidance have become impossible to ignore. The state\'s authority to compel economic participation is collapsing.',
@@ -1355,12 +1450,12 @@ function checkAllTriggers() {
     });
   }
 
-  // ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ POPULAR SUPPORT TRIGGERS ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ
-  // Trigger 1: 45 ÃÂ¢ÃÂÃÂ cannot resist coup with popular support
-  if (m.popularSupport <= 45 && fireTrigger('popsup_45', 'Popular support low ÃÂ¢ÃÂÃÂ coup resistance via public appeal no longer viable.')) {
+  // ── POPULAR SUPPORT TRIGGERS ──────────────────────────────────────
+  // Trigger 1: 45 — cannot resist coup with popular support
+  if (m.popularSupport <= 45 && fireTrigger('popsup_45', 'Popular support low — coup resistance via public appeal no longer viable.')) {
     gameState.coupResistDisabled = true;
   }
-  // Trigger 2: 30 ÃÂ¢ÃÂÃÂ protests and demonstrations
+  // Trigger 2: 30 — protests and demonstrations
   if (m.popularSupport <= 30 && fireTrigger('popsup_30', 'Mass protests erupt across Soviet cities!')) {
     ms.loyalty   = clamp(ms.loyalty   - 4, 0, 100);
     pf.hardliner = clamp(pf.hardliner - 15, 0, 100);
@@ -1369,20 +1464,20 @@ function checkAllTriggers() {
       name: 'Mass Protests',
       description: 'Hundreds of thousands take to the streets in Moscow, Leningrad, and across the republics. Gorbachev\'s authority is openly challenged.',
       choices: [
-        { text: 'Address the nation ÃÂ¢ÃÂÃÂ promise reforms', effects: { popularSupport: +8, partyUnity: -5 } },
+        { text: 'Address the nation — promise reforms', effects: { popularSupport: +8, partyUnity: -5 } },
         { text: 'Deploy security forces', effects: { stability: +5, popularSupport: -15, foreignRelations: -8 } },
         { text: 'Declare a state of emergency', effects: { stability: +8, popularSupport: -20, partyUnity: -10 } },
       ]
     });
   }
-  // Trigger 3: 5 ÃÂ¢ÃÂÃÂ revolution or civil war
-  if (m.popularSupport <= 5 && fireTrigger('popsup_5', 'GAME OVER: Revolution ÃÂ¢ÃÂÃÂ Gorbachev swept from power.')) {
+  // Trigger 3: 5 — revolution or civil war
+  if (m.popularSupport <= 5 && fireTrigger('popsup_5', 'GAME OVER: Revolution — Gorbachev swept from power.')) {
     triggerGameOver('revolution', 'The Soviet people have lost all faith in Gorbachev\'s leadership. Mass uprisings and civil unrest sweep the country. The USSR dissolves in chaos.');
   }
 
-  // ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ PARTY UNITY ÃÂ¢ÃÂÃÂ REFORM FACTION ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ
-  // Trigger 1: reform <= 50 ÃÂ¢ÃÂÃÂ Yeltsin breaks with Gorbachev
-  if (pf.reform <= 50 && fireTrigger('reform_50', 'Yeltsin breaks with the Kremlin ÃÂ¢ÃÂÃÂ political crisis in Moscow.')) {
+  // ── PARTY UNITY — REFORM FACTION ─────────────────────────────────
+  // Trigger 1: reform <= 50 — Yeltsin breaks with Gorbachev
+  if (pf.reform <= 50 && fireTrigger('reform_50', 'Yeltsin breaks with the Kremlin — political crisis in Moscow.')) {
     displayTriggerEvent({
       name: 'Yeltsin\'s Break with Gorbachev',
       description: 'Boris Yeltsin publicly denounces the pace of reform and resigns from the Politburo. His dramatic departure signals a fracturing of the reformist coalition and a growing rival power centre.',
@@ -1393,28 +1488,28 @@ function checkAllTriggers() {
       ]
     });
   }
-  // Trigger 2: reform <= 30 ÃÂ¢ÃÂÃÂ hardliner or moderate advisor unlocked
-  if (pf.reform <= 30 && fireTrigger('reform_30', 'Reform faction collapsed ÃÂ¢ÃÂÃÂ hardliner advisors gaining influence.')) {
+  // Trigger 2: reform <= 30 — hardliner or moderate advisor unlocked
+  if (pf.reform <= 30 && fireTrigger('reform_30', 'Reform faction collapsed — hardliner advisors gaining influence.')) {
     addLog('Conservative advisors now pressing for greater access to power.');
     pf.hardliner = clamp(pf.hardliner + 10, 0, 100);
   }
 
-  // ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ PARTY UNITY ÃÂ¢ÃÂÃÂ MODERATE FACTION ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ
-  // Trigger 1: moderate <= 40 ÃÂ¢ÃÂÃÂ perestroika jeopardised, inflation +5%
-  if (pf.moderate <= 40 && fireTrigger('moderate_40', 'Moderate faction wavering ÃÂ¢ÃÂÃÂ perestroika support collapses.')) {
+  // ── PARTY UNITY — MODERATE FACTION ───────────────────────────────
+  // Trigger 1: moderate <= 40 — perestroika jeopardised, inflation +5%
+  if (pf.moderate <= 40 && fireTrigger('moderate_40', 'Moderate faction wavering — perestroika support collapses.')) {
     applyMetricChange('inflation', 5);
     addLog('Moderate Politburo members withdraw support for restructuring.');
   }
-  // Trigger 2: moderate <= 30 ÃÂ¢ÃÂÃÂ moderates shift to hardliner
+  // Trigger 2: moderate <= 30 — moderates shift to hardliner
   if (pf.moderate <= 30 && fireTrigger('moderate_30', 'Moderates defecting to hardliner camp.')) {
     pf.hardliner = clamp(pf.hardliner + 15, 0, 100);
     pf.moderate  = 30;
     addLog('Several moderate Politburo members align with conservative faction.');
   }
 
-  // ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ PARTY UNITY ÃÂ¢ÃÂÃÂ HARDLINER FACTION ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ
-  // Trigger 1: hardliner <= 30 ÃÂ¢ÃÂÃÂ Nina\'s Letter event
-  if (pf.hardliner <= 30 && fireTrigger('hard_30', 'Conservative outrage ÃÂ¢ÃÂÃÂ "Nina\'s Letter" published.')) {
+  // ── PARTY UNITY — HARDLINER FACTION ──────────────────────────────
+  // Trigger 1: hardliner <= 30 — Nina\'s Letter event
+  if (pf.hardliner <= 30 && fireTrigger('hard_30', 'Conservative outrage — "Nina\'s Letter" published.')) {
     displayTriggerEvent({
       name: 'Nina\'s Letter',
       description: 'A Leningrad schoolteacher named Nina Andreyeva publishes a letter in Sovetskaya Rossiya defending Stalinism and attacking Gorbachev\'s reforms. It is widely believed to be organised by Ligachev and becomes a conservative manifesto.',
@@ -1425,7 +1520,7 @@ function checkAllTriggers() {
       ]
     });
   }
-  // Trigger 2: hardliner <= 20 ÃÂ¢ÃÂÃÂ coup attempt
+  // Trigger 2: hardliner <= 20 — coup attempt
   if (pf.hardliner <= 20 && fireTrigger('hard_20', 'CRITICAL: Coup conspiracy forming.')) {
     displayTriggerEvent({
       name: 'Coup Conspiracy',
@@ -1438,11 +1533,11 @@ function checkAllTriggers() {
     });
   }
 
-  // ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ SEPARATISM ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ
-  if (sep >= 30 && fireTrigger('sep_30', 'Separatist movements mobilising ÃÂ¢ÃÂÃÂ rallies and strikes.')) {
+  // ── SEPARATISM ────────────────────────────────────────────────────
+  if (sep >= 30 && fireTrigger('sep_30', 'Separatist movements mobilising — rallies and strikes.')) {
     applyMetricChange('stability', -5);
   }
-  if (sep >= 50 && fireTrigger('sep_50', 'Civil unrest spreading ÃÂ¢ÃÂÃÂ multiple republics in open defiance.')) {
+  if (sep >= 50 && fireTrigger('sep_50', 'Civil unrest spreading — multiple republics in open defiance.')) {
     applyMetricChange('stability', -10);
     applyMetricChange('popularSupport', -8);
     displayTriggerEvent({
@@ -1455,24 +1550,24 @@ function checkAllTriggers() {
       ]
     });
   }
-  if (sep >= 70 && fireTrigger('sep_70', 'Political crisis ÃÂ¢ÃÂÃÂ Union dissolving.')) {
+  if (sep >= 70 && fireTrigger('sep_70', 'Political crisis — Union dissolving.')) {
     applyMetricChange('stability', -15);
     applyMetricChange('partyUnity', -10);
     addLog('Multiple republics have formally declared sovereignty.');
   }
 
-  // ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ FOREIGN RELATIONS ÃÂ¢ÃÂÃÂ US/CANADA ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ
-  if (ir.us <= 10 && fireTrigger('us_10', 'US relations near collapse ÃÂ¢ÃÂÃÂ defence spending pressure.')) {
+  // ── FOREIGN RELATIONS — US/CANADA ────────────────────────────────
+  if (ir.us <= 10 && fireTrigger('us_10', 'US relations near collapse — defence spending pressure.')) {
     es.budgetBalance = clamp(es.budgetBalance - 1, -100, 100);
     applyMetricChange('militaryReadiness', +1);
   }
-  if (ir.us <= 0 && fireTrigger('us_0', 'CRISIS: US relations severed ÃÂ¢ÃÂÃÂ World War III risk!')) {
+  if (ir.us <= 0 && fireTrigger('us_0', 'CRISIS: US relations severed — World War III risk!')) {
     displayTriggerEvent({
       name: 'Superpower Crisis',
       description: 'Soviet-American relations have completely broken down. Both sides are on high alert. The world is closer to nuclear war than at any time since the Cuban Missile Crisis.',
       choices: [
         { text: 'Emergency diplomatic back-channel', effects: { foreignRelations: +15, partyUnity: -8, militaryReadiness: -5 } },
-        { text: 'Military posture ÃÂ¢ÃÂÃÂ show strength', effects: { foreignRelations: -10, militaryReadiness: +10, economy: -10 } },
+        { text: 'Military posture — show strength', effects: { foreignRelations: -10, militaryReadiness: +10, economy: -10 } },
         { text: 'Propose emergency summit', effects: { foreignRelations: +10, popularSupport: +5, partyUnity: -5 } },
       ]
     });
@@ -1483,8 +1578,8 @@ function checkAllTriggers() {
     addLog('Western financial institutions offering credit. Military spending pressure eases.');
   }
 
-  // ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ FOREIGN RELATIONS ÃÂ¢ÃÂÃÂ CHINA ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ
-  if (ir.china <= 20 && fireTrigger('china_20', 'China tensions rising ÃÂ¢ÃÂÃÂ border reinforcement required.')) {
+  // ── FOREIGN RELATIONS — CHINA ─────────────────────────────────────
+  if (ir.china <= 20 && fireTrigger('china_20', 'China tensions rising — border reinforcement required.')) {
     displayTriggerEvent({
       name: 'Sino-Soviet Border Tensions',
       description: 'Chinese troop buildups along the Sino-Soviet border are forcing a Soviet military response. Diplomatic channels are strained.',
@@ -1496,66 +1591,66 @@ function checkAllTriggers() {
     });
   }
 
-  // ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ FOREIGN RELATIONS ÃÂ¢ÃÂÃÂ EASTERN BLOC ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ
-  if (ir.eastEu <= 40 && fireTrigger('bloc_40', 'Bloc instability ÃÂ¢ÃÂÃÂ emergency meeting with satellite leaders.')) {
+  // ── FOREIGN RELATIONS — EASTERN BLOC ─────────────────────────────
+  if (ir.eastEu <= 40 && fireTrigger('bloc_40', 'Bloc instability — emergency meeting with satellite leaders.')) {
     displayTriggerEvent({
       name: 'Warsaw Pact Summit',
       description: 'Leaders of Poland, East Germany, Hungary, Czechoslovakia, Romania, and Bulgaria demand clarity on whether the Brezhnev Doctrine still applies. Solidarity is spreading. Budapest is restless.',
       choices: [
         { text: 'Reaffirm Soviet commitment to intervene', effects: { ir: null, partyUnity: +5, foreignRelations: -8, popularSupport: -5 } },
-        { text: 'Announce the Sinatra Doctrine ÃÂ¢ÃÂÃÂ each country decides for itself', effects: { partyUnity: -10, foreignRelations: +10, popularSupport: +5 } },
+        { text: 'Announce the Sinatra Doctrine — each country decides for itself', effects: { partyUnity: -10, foreignRelations: +10, popularSupport: +5 } },
         { text: 'Offer economic aid to stabilise', effects: { economy: -8, ir: null, stability: +3 } },
       ]
     });
   }
-  if (ir.eastEu <= 20 && fireTrigger('bloc_20', 'Bloc crisis ÃÂ¢ÃÂÃÂ coups and revolutions in satellite states.')) {
+  if (ir.eastEu <= 20 && fireTrigger('bloc_20', 'Bloc crisis — coups and revolutions in satellite states.')) {
     applyMetricChange('stability', -5);
     gameState.separatism = clamp(gameState.separatism + 10, 0, 100);
     displayTriggerEvent({
       name: 'Revolutions of 1989',
       description: 'Poland\'s Solidarity movement sweeps elections. Hungary opens its border with Austria. Mass protests in East Germany. Romania is on the brink. The Soviet empire in Eastern Europe is collapsing.',
       choices: [
-        { text: 'Accept the revolutions ÃÂ¢ÃÂÃÂ non-intervention', effects: { partyUnity: -10, foreignRelations: +15, popularSupport: +5 } },
+        { text: 'Accept the revolutions — non-intervention', effects: { partyUnity: -10, foreignRelations: +15, popularSupport: +5 } },
         { text: 'Selective military intervention', effects: { foreignRelations: -20, militaryReadiness: -8, popularSupport: -10 } },
         { text: 'Emergency consultation with Politburo', effects: { partyUnity: -3, stability: -3 } },
       ]
     });
   }
-  if (ir.eastEu <= 10 && fireTrigger('bloc_10', 'Bloc dissolution ÃÂ¢ÃÂÃÂ Warsaw Pact effectively dead.')) {
+  if (ir.eastEu <= 10 && fireTrigger('bloc_10', 'Bloc dissolution — Warsaw Pact effectively dead.')) {
     displayTriggerEvent({
       name: 'End of the Warsaw Pact',
       description: 'The satellite states are openly seeking NATO membership. The Warsaw Pact exists only on paper. Soviet strategic depth in Europe is gone.',
       choices: [
-        { text: 'Formally dissolve the Pact ÃÂ¢ÃÂÃÂ negotiate NATO assurances', effects: { foreignRelations: +10, partyUnity: -10, militaryReadiness: -5 } },
-        { text: 'Demand the Pact continue ÃÂ¢ÃÂÃÂ issue warnings', effects: { foreignRelations: -10, partyUnity: +5 } },
+        { text: 'Formally dissolve the Pact — negotiate NATO assurances', effects: { foreignRelations: +10, partyUnity: -10, militaryReadiness: -5 } },
+        { text: 'Demand the Pact continue — issue warnings', effects: { foreignRelations: -10, partyUnity: +5 } },
       ]
     });
   }
 
-  // ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ FOREIGN RELATIONS ÃÂ¢ÃÂÃÂ WESTERN EUROPE ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ
-  if (ir.westEu >= 80 && fireTrigger('west_80', 'Strong Western ties: election dividend ÃÂ¢ÃÂÃÂ troop reduction and loans.')) {
+  // ── FOREIGN RELATIONS — WESTERN EUROPE ───────────────────────────
+  if (ir.westEu >= 80 && fireTrigger('west_80', 'Strong Western ties: election dividend — troop reduction and loans.')) {
     applyMetricChange('militaryReadiness', -2);
     es.budgetBalance = clamp(es.budgetBalance + 3, -100, 100);
     addLog('Western Europe offering preferential loans and reduced military pressure.');
   }
 
-  // ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ FOREIGN RELATIONS ÃÂ¢ÃÂÃÂ NON-ALIGNED ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ
-  if (ir.nonAlign >= 70 && fireTrigger('na_70', 'Non-Aligned ties strong ÃÂ¢ÃÂÃÂ additional oil sales.')) {
+  // ── FOREIGN RELATIONS — NON-ALIGNED ──────────────────────────────
+  if (ir.nonAlign >= 70 && fireTrigger('na_70', 'Non-Aligned ties strong — additional oil sales.')) {
     es.budgetBalance = clamp(es.budgetBalance + 1, -100, 100);
   }
-  if (ir.nonAlign >= 90 && fireTrigger('na_90', 'Non-Aligned Movement support peaks ÃÂ¢ÃÂÃÂ budget boost.')) {
+  if (ir.nonAlign >= 90 && fireTrigger('na_90', 'Non-Aligned Movement support peaks — budget boost.')) {
     es.budgetBalance = clamp(es.budgetBalance + 2, -100, 100);
     addLog('Non-Aligned Movement countries offering trade and diplomatic support.');
   }
 
-  // ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ MILITARY ÃÂ¢ÃÂÃÂ COMBAT READINESS ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ
-  if (ms.combatReadiness <= 50 && fireTrigger('combat_50', 'Military readiness declining ÃÂ¢ÃÂÃÂ loyalty and separatism effects.')) {
+  // ── MILITARY — COMBAT READINESS ───────────────────────────────────
+  if (ms.combatReadiness <= 50 && fireTrigger('combat_50', 'Military readiness declining — loyalty and separatism effects.')) {
     ms.loyalty = clamp(ms.loyalty - 10, 0, 100);
     pf.hardliner = clamp(pf.hardliner - 5, 0, 100);
     gameState.separatism = clamp(gameState.separatism + 5, 0, 100);
     addLog('Declining readiness is demoralising the officer corps and emboldening separatists.');
   }
-  if (ms.combatReadiness <= 25 && fireTrigger('combat_25', 'Military near collapse ÃÂ¢ÃÂÃÂ crackdown option removed.')) {
+  if (ms.combatReadiness <= 25 && fireTrigger('combat_25', 'Military near collapse — crackdown option removed.')) {
     // doubled effect
     ms.loyalty = clamp(ms.loyalty - 20, 0, 100);
     pf.hardliner = clamp(pf.hardliner - 10, 0, 100);
@@ -1564,11 +1659,11 @@ function checkAllTriggers() {
     addLog('Military too weak to suppress protests. Crackdown option deactivated.');
   }
 
-  // ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ MILITARY ÃÂ¢ÃÂÃÂ LOYALTY ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ
+  // ── MILITARY — LOYALTY ────────────────────────────────────────────
   if (ms.loyalty <= 45 && fireTrigger('mloyalty_45', 'Military loyalty wavering.')) {
     addLog('Officers are questioning orders. Reliability in a crisis is uncertain.');
   }
-  if (ms.loyalty <= 30 && fireTrigger('mloyalty_30', 'Military loyalty critical ÃÂ¢ÃÂÃÂ coup conspirators gain army support.')) {
+  if (ms.loyalty <= 30 && fireTrigger('mloyalty_30', 'Military loyalty critical — coup conspirators gain army support.')) {
     addLog('If a coup occurs now, significant portions of the military will side with the conspirators.');
     gameState.militaryCoupSupport = true;
   }
@@ -1608,7 +1703,7 @@ Let every collective and every cadre raise labour discipline, expose opportunism
 function triggerGameOver(type, message) {
   gameState.gameOver = true;
   const panel = document.getElementById('event-panel');
-  document.getElementById('event-title').textContent = type === 'revolution' ? 'ÃÂ¢ÃÂÃÂ REVOLUTION' : type === 'coup' ? 'ÃÂ¢ÃÂÃÂ COUP' : 'ÃÂ¢ÃÂÃÂ GAME OVER';
+  document.getElementById('event-title').textContent = type === 'revolution' ? '★ REVOLUTION' : type === 'coup' ? '★ COUP' : '★ GAME OVER';
   document.getElementById('event-desc').textContent = message;
   document.getElementById('event-choices').innerHTML = '<button class="event-btn" onclick="resetGame()">Start Over</button>';
   panel.classList.add('active');
@@ -1632,14 +1727,14 @@ function togglePolicySelection(policyId) {
     return;
   }
   if (gameState.selectedPolicies.length >= max) {
-    addLog(`ÃÂ¢ÃÂÃÂ  You can select up to ${max} policies per turn.`);
+    addLog(`⚠ You can select up to ${max} policies per turn.`);
     return;
   }
   const policy = policies.find(p => p.id === policyId);
   if (!policy) return;
   const spend = plannedSpend();
   if (gameState.budget < spend + policy.cost) {
-    addLog('ÃÂ¢ÃÂÃÂ  Not enough budget for that policy selection.');
+    addLog('⚠ Not enough budget for that policy selection.');
     return;
   }
   gameState.selectedPolicies.push(policyId);
@@ -1655,7 +1750,7 @@ function applyPolicyImmediate(policyId) {
   const policy = policies.find(p => p.id === policyId);
   if (!policy) return;
   if (gameState.budget < policy.cost) {
-    addLog('ÃÂ¢ÃÂÃÂ  Not enough budget.');
+    addLog('⚠ Not enough budget.');
     return;
   }
   gameState.budget -= policy.cost;
@@ -1957,15 +2052,21 @@ function render() {
   renderDate();
   renderFactions();
   renderIntl();
-renderPolitburoVisual();
+  renderPressures();
+  renderPolitburoVisual();
   renderAdvisors();
 }
 
 function sanitizeLogEntry(s){
-  let out = String(s || '');
-  out = out.replace(/Ã¢ÂÂ /g, '[!] ').replace(/Ã¢ÂÂ/g, '*').replace(/Ã¢ÂÂ/g, '-');
-  out = out.replace(/[^\x20-\x7E]/g, '');
-  return out.replace(/\s+/g, ' ').trim();
+  let out = String(s ?? '');
+  // Fix common mojibake while preserving Unicode.
+  const fixes = [
+    [/Ã¢ÂÂ/g,'—'], [/â/g,'—'],
+    [/Ã¢ÂÂ\s*/g,'⚠ '], [/âÂ\s*/g,'⚠ '], [/â\s*/g,'⚠ '],
+    [/Ã¢ÂÂ/g,'★'], [/â/g,'★']
+  ];
+  fixes.forEach(([re, rep]) => { out = out.replace(re, rep); });
+  return out.replace(/\s+/g,' ').trim();
 }
 
 function addLog(entry) {
@@ -1975,9 +2076,8 @@ function addLog(entry) {
   const div = document.createElement('div');
   div.className = 'log-entry';
 
-  // Teletype realism: micro drift + worn ribbon ink density
-  const jitter = (Math.random() - 0.5) * 1.0; // px
-  const ink = 0.78 + Math.random() * 0.22;    // opacity
+  const jitter = (Math.random() - 0.5) * 1.0;
+  const ink = 0.78 + Math.random() * 0.22;
   div.style.setProperty('--jitter', jitter.toFixed(2) + 'px');
   div.style.setProperty('--ink', ink.toFixed(2));
 
