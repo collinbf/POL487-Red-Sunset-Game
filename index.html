@@ -3010,43 +3010,50 @@ if (_importInput) {
 </script>
 
 <style>
-.game-layout, .masthead{visibility:hidden;}
-.newsreel-projector-top,.newsreel-projector-bottom{display:none!important;}
-.newsreel-frame.slide-blank .newsreel-content{visibility:hidden;}
+.game-layout, .masthead { visibility:hidden; }
+.newsreel-projector-top, .newsreel-projector-bottom { display:none !important; }
+.newsreel-flicker, .newsreel-scratches { display:none !important; }
+
+.newsreel-frame.slide-blank .newsreel-content { visibility:hidden; }
+
+@keyframes slideIn {
+  0%% {opacity:0; transform:translateY(200px) scale(0.65); filter:brightness(0);} 
+  2%% {opacity:1; transform:translateY(-25px) scale(1.2); filter:brightness(6);} 
+  5%% {transform:translateY(10px) scale(0.92);} 
+  9%% {transform:translateY(-3px) scale(1.03);} 
+  14%% {transform:translateY(0) scale(1);} 
+}
 </style>
 
 <script>
-// SAFE OVERRIDE (guaranteed working)
 window.launcherStartGame = function(){
-  try{
-    unlockAllAudio();
-    const launcher=document.getElementById('launcher-modal');
-    launcher.style.display='none';
+ unlockAllAudio();
+ const launcher=document.getElementById('launcher-modal');
+ launcher.style.display='none';
 
-    const modal=document.getElementById('intro-modal');
-    modal.style.display='flex';
+ const modal=document.getElementById('intro-modal');
+ modal.style.display='flex';
 
-    const frame=modal.querySelector('.newsreel-frame');
-    if(frame){
-      frame.classList.add('slide-blank');
+ const frame=modal.querySelector('.newsreel-frame');
+ if(frame){
+   frame.classList.add('slide-blank');
 
-      setTimeout(()=>{
-        projectorAudio.currentTime=0.8;
-        projectorAudio.play().catch(()=>{});
+   // start audio immediately
+   projectorAudio.currentTime = 0;
+   projectorAudio.play().catch(()=>{});
 
-        frame.classList.remove('slide-blank');
-        frame.classList.add('slide-in','slide-flash');
-      },350);
-    }
-  }catch(e){console.error(e);} 
+   // wait for click at 1.626s
+   setTimeout(()=>{
+     frame.classList.remove('slide-blank');
+     frame.classList.add('slide-in','slide-flash');
+   },1626);
+ }
 };
 
 window.dismissIntro = function(){
   projectorAudio.pause();
-  projectorAudio.currentTime=0;
-
+  projectorAudio.currentTime = 0;
   startGame();
-
   document.getElementById('intro-modal').style.display='none';
   document.querySelector('.game-layout').style.visibility='visible';
   document.querySelector('.masthead').style.visibility='visible';
