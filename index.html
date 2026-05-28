@@ -59,7 +59,7 @@
 
   /* GOVERNMENT */
   .gov-composition { display:flex; gap:4px; flex-wrap:wrap; margin-bottom:.7rem; align-items:center; }
-  .gov-label { font-family:'IM Fell English',serif; font-style:italic; font-size: 13px; opacity: .90; width:100%; margin-bottom:3px; }
+  .gov-label { font-family:'IM Fell English',serif; font-style:italic; font-size: 15px; opacity: .90; width:100%; margin-bottom:3px; }
   .gov-chip { display:inline-flex; align-items:center; gap:3px; padding:2px 7px; border-radius:2px; border:.5px solid; font-size:12px; font-weight:600; white-space:nowrap; }
   .gov-chip.reform { background:rgba(45,110,68,.1); border-color:rgba(45,110,68,.4); color:var(--green); }
   .gov-chip.moderate { background:rgba(154,122,46,.1); border-color:rgba(154,122,46,.4); color:#8b5a0a; }
@@ -217,7 +217,7 @@
 
   .tty-assembly{
     --paperH: 200px;
-    --paperW: calc(100% - 16px);
+    --paperW: calc(100% - 26px);
     --printerW: 100%;
     --slotH: 14px;
 
@@ -449,8 +449,29 @@
 
   /* BUTTONS */
   .btn-row { display:flex; gap:6px; margin-top:.8rem; flex-wrap:wrap; }
+  .tty-controls { align-items:center; margin-top:.6rem; }
+  .tty-controls .btn-reset { margin-left:auto; }
+
   .btn { background:transparent; border:1px solid var(--red); color:var(--red-dark); padding:5px 12px; font-family:'Cormorant Garamond',serif; font-size:11px; letter-spacing:.08em; text-transform:uppercase; cursor:pointer; border-radius:2px; transition:background .15s,color .15s; }
   .btn:hover { background:var(--red); color:var(--cream); }
+
+  /* Pronounced action buttons — End Turn & Clear */
+  .btn.btn-action {
+    background: var(--red-dark);
+    color: var(--cream);
+    border: 1.5px solid var(--red-dark);
+    font-family: 'Playfair Display', serif;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .12em;
+    padding: 6px 14px;
+    box-shadow: 2px 2px 0 rgba(92,17,17,0.45);
+  }
+  .btn.btn-action:hover {
+    background: var(--red);
+    border-color: var(--red);
+    box-shadow: 3px 3px 0 rgba(92,17,17,0.55);
+  }
 
   /* RESPONSIVE */
   @media(max-width:780px){ .game-layout { grid-template-columns:1fr; } .sidebar { padding-right:0; border-right:none; border-bottom:1.5px solid var(--rule); padding-bottom:1rem; margin-bottom:1rem; position:static; max-height:none; } .main { padding-left:0; } .advisor-grid { grid-template-columns:repeat(2,1fr); } }
@@ -524,7 +545,7 @@
   <p class="masthead-title">
  <span style="font-size:.75em;vertical-align:middle;margin-right:.15em;opacity:.85;">&#9773;</span>Red Sunset<span style="font-size:.75em;vertical-align:middle;margin-left:.15em;opacity:.85;">&#9773;</span>
  </p>
-  <p class="masthead-sub">March 1985 &mdash; Gorbachev Takes Power</p>
+  <p class="masthead-sub">Реформа. Гласность. Перестройка.</p>
 </div>
 
 <!-- GAME LAYOUT -->
@@ -608,7 +629,7 @@
         <span class="tty-btn red"></span>
         <div class="tty-badge-row">
           <span class="tty-badge">★ СОЮЗ</span>
-          <span class="tty-meta">60 WPM • ТА</span>
+          <span class="tty-meta">60 СЛМ • ТА</span>
         </div>
         <span class="tty-btn amber"></span>
       </div>
@@ -657,10 +678,11 @@
 
     </div>
 
-    
-<!-- BUTTONS -->
-    <div class="btn-row">
-      <button class="btn" onclick="resetGame()">Reset</button>
+<!-- CONTROL BUTTONS — beneath the teletype -->
+    <div class="btn-row tty-controls">
+      <button class="btn btn-action" onclick="endTurn()">End Turn</button>
+      <button class="btn btn-action" onclick="clearPolicySelection()">Clear</button>
+      <button class="btn btn-reset" onclick="resetGame()">Reset</button>
     </div>
 
  
@@ -716,8 +738,6 @@
   <span style="font-family:'IM Fell English',serif; font-size:13px; opacity:.85;">Selected this turn: <strong id="policy-selected-count">0</strong>/3</span>
   <span style="font-family:'IM Fell English',serif; font-size:13px; opacity:.85;">Predicted cost: <strong id="policy-predicted-cost">0</strong></span>
   <span class="budget-badge">Budget: <strong id="budget-inline">100</strong></span>
-  <button class="btn" onclick="endTurn()" style="padding:4px 10px;">End Turn</button>
-  <button class="btn" onclick="clearPolicySelection()" style="padding:4px 10px;">Clear</button>
 </div>
 
       <div class="filter-row" id="policy-filters">
