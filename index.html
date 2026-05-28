@@ -523,22 +523,79 @@
   .btn { background:transparent; border:1px solid var(--red); color:var(--red-dark); padding:5px 12px; font-family:'Cormorant Garamond',serif; font-size:11px; letter-spacing:.08em; text-transform:uppercase; cursor:pointer; border-radius:2px; transition:background .15s,color .15s; }
   .btn:hover { background:var(--red); color:var(--cream); }
 
-  /* Pronounced action buttons — End Turn & Clear */
-  .btn.btn-action {
+  /* ACTION BAR — End Turn prominent placement */
+  .action-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+    margin-top: 18px;
+    padding-top: 16px;
+    border-top: 2px solid var(--rule);
+  }
+  .action-btn-primary {
     background: var(--red-dark);
     color: var(--cream);
     border: 1.5px solid var(--red-dark);
-    font-family: 'Playfair Display', serif;
-    font-size: 11px;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 12px;
     font-weight: 700;
-    letter-spacing: .12em;
-    padding: 6px 14px;
+    letter-spacing: .10em;
+    text-transform: uppercase;
+    padding: 10px 16px;
+    cursor: pointer;
+    border-radius: 2px;
     box-shadow: 2px 2px 0 rgba(92,17,17,0.45);
+    transition: background .15s, box-shadow .15s, transform .1s;
+    white-space: nowrap;
   }
-  .btn.btn-action:hover {
+  .action-btn-primary:hover {
     background: var(--red);
     border-color: var(--red);
     box-shadow: 3px 3px 0 rgba(92,17,17,0.55);
+    transform: translateY(-1px);
+  }
+  .action-btn-primary:active {
+    transform: translateY(2px);
+    box-shadow: 1px 1px 0 rgba(92,17,17,0.55);
+  }
+  .action-btn-secondary {
+    background: transparent;
+    color: var(--red-dark);
+    border: 1.5px solid rgba(139,26,26,0.50);
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 12px;
+    letter-spacing: .10em;
+    text-transform: uppercase;
+    padding: 10px 16px;
+    cursor: pointer;
+    border-radius: 2px;
+    transition: background .15s, color .15s;
+    white-space: nowrap;
+  }
+  .action-btn-secondary:hover {
+    background: rgba(139,26,26,0.08);
+  }
+  .action-btn-ghost {
+    background: transparent;
+    color: rgba(92,17,17,0.45);
+    border: 1px solid rgba(139,26,26,0.22);
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 11px;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    padding: 10px 14px;
+    cursor: pointer;
+    border-radius: 2px;
+    transition: color .15s, border-color .15s;
+    white-space: nowrap;
+  }
+  .action-btn-ghost:hover {
+    color: var(--red-dark);
+    border-color: rgba(139,26,26,0.45);
+  }
+  @media (max-width: 600px) {
+    .action-bar { gap: 8px; }
   }
 
   /* RESPONSIVE */
@@ -1430,13 +1487,6 @@
 
     </div>
 
-<!-- CONTROL BUTTONS — beneath the teletype -->
-    <div class="btn-row tty-controls">
-      <button class="btn btn-action" onclick="endTurn()">End Turn</button>
-      <button class="btn btn-action" onclick="clearPolicySelection()">Clear</button>
-      <button class="btn btn-reset" onclick="resetGame()">Reset</button>
-    </div>
-
     <div class="utility-panel" style="margin-top:10px;">
   <div class="section-title" style="font-size:10px;">Campaign</div>
   <div class="utility-row">
@@ -1512,6 +1562,13 @@
         <button class="filter-btn" onclick="setPolicyFilter('Foreign', this)">Foreign</button>
       </div>
       <div class="policy-grid" id="policy-grid"></div>
+
+      <!-- ACTION BAR -->
+      <div class="action-bar">
+        <button class="action-btn-primary" onclick="endTurn()">Advance to Next Month ⟶</button>
+        <button class="action-btn-secondary" onclick="clearPolicySelection()">Clear Selection</button>
+        <button class="action-btn-ghost" onclick="resetGame()">↺ Reset</button>
+      </div>
     </div>
 
     <!-- ADVISORS PANEL -->
@@ -1808,36 +1865,125 @@ let policies = [
 
 let events = [
   {
-    id: 'chernobyl',
-    name: 'Chernobyl Disaster',
-    trigger: { month: 4, year: 1986 },
-    description: 'A catastrophic nuclear accident at Chernobyl power plant in Ukraine kills dozens, contaminates vast areas, and shocks the world.',
+    id: 'chernenko_funeral',
+    name: 'State Funeral: Comrade Chernenko',
+    trigger: { month: 3, year: 1985 },
+    description: `Comrade Konstantin Ustinovich Chernenko, General Secretary of the Central Committee of the Communist Party of the Soviet Union, has been laid to rest in the Kremlin Wall Necropolis beside Red Square, in accordance with the solemn rites befitting a servant of the Soviet people.
+
+As his successor and the newly confirmed General Secretary, you are called upon to deliver the funeral address before the assembled Central Committee and Supreme Soviet. The international press and fraternal delegations of socialist states are in attendance. Your words will be recorded and distributed throughout the Union.
+
+The eulogy is a political instrument. Choose your emphasis carefully.`,
     choices: [
-      { text: 'Full transparency & aid', effects: { popularSupport: +10, foreignRelations: +8, partyUnity: -5 } },
-      { text: 'Controlled disclosure', effects: { stability: -3, popularSupport: -5, partyUnity: +3 } },
-      { text: 'Blame local officials', effects: { stability: 0, partyUnity: +5, popularSupport: -8 } },
+      { text: 'Emphasise reform and détente with the West', effects: { popularSupport: +5, partyUnity: -5, foreignRelations: +5 } },
+      { text: 'Emphasise preparedness against foreign threats', effects: { popularSupport: -5, partyUnity: +5, foreignRelations: -10 } },
+      { text: 'Speak of youth, energy, and the need for acceleration', effects: { popularSupport: +5, partyUnity: 0, foreignRelations: 0 } },
+    ],
+  },
+  {
+    id: 'chernobyl',
+    name: 'Reactor No. 4: Chernobyl',
+    trigger: { month: 4, year: 1986 },
+    description: `Comrade General Secretary — at 01:23 on the 26th of April, Reactor No. 4 of the V. I. Lenin Nuclear Power Station at Chernobyl sustained a catastrophic failure during a scheduled safety test. Two sequential explosions destroyed the reactor housing and ignited a graphite fire. Radioactive material has been dispersed across extensive areas of the Ukrainian SSR, the Byelorussian SSR, and neighbouring socialist and capitalist states alike.
+
+Abnormal radiation readings have now been detected by Swedish monitoring stations, and Western governments are pressing Moscow for an accounting. The full scope of contamination remains under assessment. The Ministry of Medium Machine Building, the KGB, and the Council of Ministers await your directive.
+
+The situation demands a response. The world is watching.`,
+    choices: [
+      { text: 'Suppress the incident — maintain public order and normalcy', effects: { economy: +2, stability: +5, popularSupport: -15, partyUnity: +8, foreignRelations: -15, militaryReadiness: -3 } },
+      { text: 'Centralised emergency mobilisation — evacuate, contain, and seal the zone', effects: { economy: -12, stability: +5, popularSupport: +8, partyUnity: +3, foreignRelations: +3, militaryReadiness: -8 } },
+      { text: 'Full public disclosure and international cooperation', effects: { economy: -7, stability: -8, popularSupport: +10, partyUnity: -15, foreignRelations: +15, militaryReadiness: -3 } },
+    ],
+  },
+  {
+    id: 'rust_landing',
+    name: 'Violation of Sovereign Airspace: West German Aircraft',
+    trigger: { month: 5, year: 1987 },
+    description: `Comrade General Secretary — at approximately 18:30 on the 28th of May, a Cessna 172 light aircraft registered in the Federal Republic of Germany penetrated Soviet airspace along the Finnish border and proceeded, without interception, along a corridor of nearly 800 kilometres before landing on the Bolshoy Moskvoretsky Bridge adjacent to Red Square. The pilot has been identified as Mathias Rust, 18 years of age, a civilian claiming to seek dialogue for world peace.
+
+The aircraft was tracked intermittently by air defence installations, then lost, then reclassified as a domestic flight. The air defence network of the Moscow Military District failed at every stage.
+
+Two Western journalists have already filed reports framing the incident favourably. The Ministry of Defence awaits your instructions. The Politburo is convened.`,
+    choices: [
+      { text: 'Condemn the Defence Ministry failure; dismiss senior commanders; arrest the pilot', effects: { stability: -5, partyUnity: +5, foreignRelations: -5, militaryReadiness: -10 } },
+      { text: 'Declare Rust a symbol of peace; frame the breach as proof of openness; pursue further talks with Washington', effects: { popularSupport: +7, foreignRelations: +10, partyUnity: -8 } },
+      { text: 'Use the scandal to purge the Defence Ministry bureaucracy and advance military reform', effects: { stability: -8, partyUnity: -5, militaryReadiness: -5 } },
+    ],
+  },
+  {
+    id: 'october_revolution_70',
+    name: '70th Anniversary of the Great October Revolution',
+    trigger: { month: 11, year: 1987 },
+    description: `Comrade General Secretary — the Union of Soviet Socialist Republics prepares to mark the seventieth anniversary of the Great October Socialist Revolution of 1917. You are to deliver the ceremonial address at the Kremlin Palace of Congresses before the Central Committee, the Supreme Soviet, and assembled delegations of fraternal socialist parties from across the globe.
+
+The speech will be broadcast on all Union television and radio channels. Every word will be parsed — by the Politburo, by the intelligentsia, by the Western press, and by party cadres from Vladivostok to Tallinn. The conservative wing expects a defence of the Soviet historical inheritance. The reformist current hopes for a reckoning. Both cannot be satisfied.
+
+What do you say at the podium?`,
+    choices: [
+      { text: 'Defend the Soviet past; describe Stalin\'s crimes only as "certain excesses"', effects: { economy: +3, stability: +8, popularSupport: +3, partyUnity: +15, foreignRelations: -8, militaryReadiness: +3 } },
+      { text: 'Offer a controlled historical critique — condemn Stalinist lawlessness, defend Lenin and the Revolution', effects: { stability: +3, popularSupport: +8, partyUnity: +7, foreignRelations: +3 } },
+      { text: 'Push full glasnost — name the purges, the executions, the terror, and call for honest reckoning', effects: { economy: -3, stability: -8, popularSupport: +10, partyUnity: -18, foreignRelations: +8, militaryReadiness: -3 } },
+      { text: 'Frame perestroika for the West — speak of "new thinking," openness, and reform for international audiences', effects: { economy: +3, stability: -3, popularSupport: +3, partyUnity: -8, foreignRelations: +15, militaryReadiness: -3 } },
+    ],
+  },
+  {
+    id: 'yeltsin_incident',
+    name: 'The Yeltsin Affair',
+    trigger: { month: 11, year: 1987 },
+    description: `Comrade General Secretary — following his denunciation at the October Plenum of the Central Committee and your personal rebuke, Boris Nikolayevich Yeltsin, First Secretary of the Moscow City Party Committee, has been found in his office incapacitated and bleeding. He has been conveyed to hospital under medical escort.
+
+The circumstances remain contested. Some accounts describe a self-inflicted wound; others attribute the episode to cardiac exhaustion. Yeltsin's written apology of the 3rd of November was rejected. The conservative faction, led by Ligachev, demands an exemplary response.
+
+The Western press is already speculating. Your handling of this matter will signal to the party, to the reformists, and to the Soviet public what the limits of glasnost truly are.`,
+    choices: [
+      { text: 'Publicly rebuke and remove Yeltsin — an example must be made of factional deviation', effects: { economy: -3, stability: +7, popularSupport: -8, partyUnity: +8, foreignRelations: -3 } },
+      { text: 'Medicalise the incident — place Yeltsin on leave, transfer him quietly to a lesser post', effects: { stability: +7, popularSupport: -3, partyUnity: +3 } },
+      { text: 'Accept Yeltsin\'s apology and keep him within the reform coalition', effects: { economy: +3, stability: -3, popularSupport: +8, partyUnity: -8, foreignRelations: +3 } },
+      { text: 'Allow limited public discussion — treat this as evidence that party privilege must be debated openly', effects: { economy: -3, stability: -8, popularSupport: +8, partyUnity: -15, foreignRelations: +7, militaryReadiness: -3 } },
+    ],
+  },
+  {
+    id: 'oil_crash',
+    name: 'Collapse of Oil Revenue',
+    trigger: { month: 7, year: 1986 },
+    description: `Comrade General Secretary — a communication from the Ministry of Finance and Gosplan requires your urgent attention.
+
+Following the decision by the Kingdom of Saudi Arabia to sharply increase crude oil production, the world market price has fallen from approximately $30 per barrel in the previous year to below $10 per barrel at present. The Union's export revenues, which depend substantially on hydrocarbon sales to the capitalist world, have contracted severely. The balance of hard currency is deteriorating. Scheduled import obligations, including grain purchases, machinery acquisitions, and debt servicing, are now at risk.
+
+Gosplan has prepared three courses of action for your consideration.`,
+    choices: [
+      { text: 'Increase production output to compensate for the price drop', effects: { budget: -5, economy: -8 } },
+      { text: 'Maintain current production levels and absorb the revenue shortfall', effects: { budget: -12 } },
+      { text: 'Reduce production to preserve equipment and defer capital expenditure', effects: { budget: -18, economy: +3 } },
     ],
   },
   {
     id: 'moscow-coup',
-    name: 'Hard-liner Pressure Increases',
+    name: 'Hardliner Faction Demands Action',
     trigger: { month: 8, year: 1990 },
-    description: 'Conservative forces in the Politburo, the military, and the KGB grow increasingly alarmed by economic chaos and ethnic upheaval. They demand a crackdown.',
+    description: `Comrade General Secretary — representatives of the conservative wing of the Central Committee, elements within the Ministry of Defence, and senior officers of the Committee for State Security have communicated their position in terms that admit no ambiguity.
+
+The course of reform has produced economic disorder, national separatism, ideological confusion, and the erosion of party authority. The Union is bleeding. They demand a return to order. The language in circulation among certain senior figures — "state of emergency," "temporary stabilisation measures," "constitutional protection of socialist gains" — is not unfamiliar to students of Soviet history.
+
+You must respond. Silence is itself a choice, and they will interpret it accordingly.`,
     choices: [
-      { text: 'Appease hard-liners', effects: { stability: +5, partyUnity: +8, popularSupport: -10 } },
-      { text: 'Continue reforms', effects: { partyUnity: -10, stability: -5, popularSupport: +5 } },
-      { text: 'Seek compromise', effects: { partyUnity: -3, stability: +2, popularSupport: 0 } },
+      { text: 'Accommodate the hardliners — implement stabilisation measures and slow the reform programme', effects: { stability: +5, partyUnity: +8, popularSupport: -10 } },
+      { text: 'Reaffirm the reform course and resist the pressure', effects: { partyUnity: -10, stability: -5, popularSupport: +5 } },
+      { text: 'Seek a negotiated compromise — partial concessions in exchange for continued loyalty', effects: { partyUnity: -3, stability: +2, popularSupport: 0 } },
     ],
   },
   {
     id: 'economics-collapse',
-    name: 'Economic Crisis Deepens',
+    name: 'Deepening Economic Crisis',
     trigger: { month: 6, year: 1991 },
-    description: 'Food shortages worsen, inflation soars, and consumer goods disappear from shelves. Public confidence in the regime collapses.',
+    description: `Comrade General Secretary — the economic situation in the Union has passed beyond the threshold of administrative difficulty into a condition that may appropriately be called crisis.
+
+Queues for basic foodstuffs now extend several hours in Moscow, Leningrad, and the majority of provincial centres. Consumer goods have vanished from state retail channels and reappeared at speculative prices in unofficial markets. Real wages continue to fall against measured and unmeasured price increases. Gosbank estimates that budget deficit financing through monetary emission has reached levels inconsistent with price stability.
+
+The Council of Ministers and the Supreme Soviet await your directive. Each path before you carries substantial costs.`,
     choices: [
-      { text: 'Emergency price controls', effects: { economy: -8, stability: +3, foreignRelations: -2 } },
-      { text: 'Market liberalization', effects: { economy: +5, stability: -10, popularSupport: -15 } },
-      { text: 'Blame speculators & hoarders', effects: { stability: 0, popularSupport: -5, partyUnity: +2 } },
+      { text: 'Impose emergency price controls and centralise distribution', effects: { economy: -8, stability: +3, foreignRelations: -2 } },
+      { text: 'Accelerate market liberalisation — allow prices to find their level', effects: { economy: +5, stability: -10, popularSupport: -15 } },
+      { text: 'Identify and prosecute speculators and hoarders as enemies of socialist order', effects: { stability: 0, popularSupport: -5, partyUnity: +2 } },
     ],
   },
 ];
@@ -2825,9 +2971,11 @@ function testPravdaEvent(){
   const demo = {
     id: 'test_pravda',
     name: 'Central Committee Communique',
-    description: `The Central Committee reminds all organs to maintain discipline and clarity in reporting. Guided by the principles of Marxism-Leninism and proletarian internationalism, all party organisations are instructed to strengthen ideological vigilance, uphold democratic centralism, and ensure the unity of word and deed
+    description: `The Central Committee of the Communist Party of the Soviet Union directs all party organs, Soviet institutions, and mass organisations to maintain the highest standards of ideological discipline and clarity in their reporting to superior bodies.
 
-Let every collective and every cadre raise labour discipline, expose opportunism and petty-bourgeois wavering, and advance socialist construction with steadfast resolve.`,
+Guided by the principles of Marxism-Leninism and proletarian internationalism, all primary party organisations are instructed to strengthen vigilance, uphold democratic centralism without deviation, and ensure the unity of word and deed in the fulfilment of party directives.
+
+Every collective, every cadre — from the Union level to the enterprise level — is called upon to raise labour discipline, expose opportunist and petty-bourgeois wavering wherever it appears, and advance socialist construction with steadfast revolutionary resolve.`,
     choices: [
       { text: 'Publish as lead story', effects: { popularSupport: +2, foreignRelations: +1 } },
       { text: 'Publish as short notice', effects: { partyUnity: +1, stability: +1 } },
