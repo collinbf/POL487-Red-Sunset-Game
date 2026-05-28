@@ -106,6 +106,13 @@
   .event-choices { display:flex; flex-direction:column; gap:6px; }
   .event-btn { background:transparent; border:1px solid var(--red); color:var(--red-dark); padding:6px 10px; font-family:'Cormorant Garamond',serif; font-size:11px; letter-spacing:.08em; text-transform:uppercase; cursor:pointer; border-radius:2px; transition:background .15s,color .15s; text-align:left; }
   .event-btn:hover { background:var(--red); color:var(--cream); }
+  .event-queue-status { display:none; margin:0 0 10px; padding:5px 8px; border:1px solid rgba(139,26,26,.35); background:rgba(242,234,216,.72); color:var(--red-dark); font-family:'Playfair Display',serif; font-size:11px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; }
+  .event-queue-status.active { display:inline-block; }
+  .ending-summary { display:grid; grid-template-columns:repeat(auto-fit,minmax(145px,1fr)); gap:8px; margin:12px 0; }
+  .ending-stat { border:1px solid rgba(139,26,26,.24); background:rgba(242,234,216,.62); padding:8px; }
+  .ending-stat span { display:block; font-family:'IM Fell English',serif; font-size:12px; opacity:.76; }
+  .ending-stat strong { display:block; font-family:'Playfair Display',serif; font-size:18px; color:var(--red-dark); margin-top:2px; }
+  .ending-list { margin:8px 0 0 18px; font-size:13px; line-height:1.45; }
 
   /* POLICY MENU */
   .policy-panel { background:rgba(139,26,26,.04); border:1px solid var(--rule); border-radius:3px; padding:12px; margin-bottom:1rem; }
@@ -117,6 +124,35 @@
   .policy-cost { font-size:9px; color:var(--gold); margin-bottom:2px; }
   .policy-effect { font-size:10px; line-height:1.4; color:var(--ink); opacity:.75; }
   .policy-empty { grid-column:1/-1; padding:18px; font-family:'IM Fell English',serif; font-style:italic; color:rgba(43,31,16,.7); }
+  .active-policy-list { display:flex; gap:6px; flex-wrap:wrap; margin:8px 2px 10px; }
+  .active-policy-chip, .save-chip, .advisor-status-chip { border:1px solid rgba(139,26,26,.35); background:rgba(242,234,216,.7); color:var(--red-dark); border-radius:2px; padding:3px 7px; font-family:'IM Fell English',serif; font-size:12px; }
+  .advisor-statuses { display:flex; gap:4px; flex-wrap:wrap; margin-top:8px; }
+  .advisor-status-chip.low { color:var(--red); border-color:rgba(139,26,26,.55); }
+  .advisor-status-chip.high { color:var(--green); border-color:rgba(45,110,68,.45); }
+  .advisor-card.resigned { opacity:.54; filter:grayscale(.35); }
+
+  .utility-panel, .debug-panel, .tree-panel { background:rgba(232,220,192,0.92); border:2px solid rgba(139,26,26,0.35); border-radius:6px; padding:14px; margin-bottom:1rem; }
+  .utility-row, .debug-row { display:flex; gap:6px; flex-wrap:wrap; align-items:center; margin-top:7px; }
+  .utility-row .btn, .debug-row .btn { font-size:10px; padding:6px 8px; }
+  .save-status { min-height:16px; margin-top:6px; font-family:'IM Fell English',serif; font-size:12px; opacity:.76; }
+  .volume-wrap { display:grid; grid-template-columns:auto 1fr; gap:8px; align-items:center; width:100%; margin-top:7px; font-family:'IM Fell English',serif; font-size:12px; }
+  .volume-wrap input { width:100%; accent-color:var(--red); }
+
+  .policy-tree { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:14px; }
+  .tree-node { border:2px solid rgba(139,26,26,.34); background:rgba(242,234,216,.72); border-radius:4px; padding:12px; min-height:128px; }
+  .tree-node.enacted { border-color:rgba(45,110,68,.65); background:rgba(45,110,68,.08); }
+  .tree-node.locked { opacity:.72; }
+  .tree-title { font-family:'Playfair Display',serif; font-size:15px; font-weight:900; color:var(--red-dark); margin-bottom:5px; }
+  .tree-meta, .tree-req { font-family:'IM Fell English',serif; font-size:12px; line-height:1.35; }
+  .tree-status { display:inline-block; margin-top:8px; padding:3px 7px; border:1px solid currentColor; border-radius:2px; font-size:10px; letter-spacing:.08em; text-transform:uppercase; font-weight:700; }
+  .tree-status.ready { color:var(--green); }
+  .tree-status.locked { color:var(--red); }
+  .tree-status.done { color:var(--gold); }
+
+  .debug-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:10px; }
+  .debug-card { border:1px solid rgba(139,26,26,.24); background:rgba(242,234,216,.58); padding:10px; border-radius:4px; }
+  .debug-card label { display:flex; justify-content:space-between; gap:8px; font-family:'IM Fell English',serif; font-size:13px; margin-bottom:6px; }
+  .debug-card input, .debug-card select { width:100%; accent-color:var(--red); }
 
   
   
@@ -231,6 +267,15 @@
   .policy-grid, .advisor-grid { grid-template-columns:repeat(auto-fill,minmax(128px,1fr)); gap:12px; }
   .policy-card, .advisor-card { aspect-ratio:auto; min-height:178px; padding:14px 12px 12px; }
   .policy-name { font-size:14px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: .01ms !important;
+  }
 }
 
 /* HISTORY LOG */
@@ -529,8 +574,67 @@
 
 
 /* === PRAVDA PANEL (override v11) === */
-.event-panel.pravda{ display:none !important; }
+.event-panel.pravda{ display:none !important; position:relative; overflow:hidden; transform-origin:top center; }
 .event-panel.pravda.active{ display:block !important; }
+.event-panel.pravda.paper-unfurl{
+  animation: paperUnfurl 0.92s cubic-bezier(0.18,0.84,0.26,1) both;
+  will-change: clip-path, transform, opacity, filter;
+}
+.event-panel.pravda.paper-unfurl::before{
+  content:'';
+  position:absolute;
+  inset:0;
+  z-index:3;
+  pointer-events:none;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.55) 0%, rgba(255,255,255,0.18) 12%, transparent 34%),
+    linear-gradient(90deg, transparent 0%, rgba(0,0,0,0.08) 49%, rgba(255,255,255,0.24) 50%, transparent 56%);
+  mix-blend-mode:multiply;
+  animation: paperSheen 0.92s cubic-bezier(0.18,0.84,0.26,1) both;
+}
+.event-panel.pravda.paper-unfurl::after{
+  content:'';
+  position:absolute;
+  left:10px;
+  right:10px;
+  bottom:0;
+  height:30px;
+  z-index:4;
+  pointer-events:none;
+  background:linear-gradient(180deg, rgba(255,255,255,0.22), rgba(0,0,0,0.13));
+  border-bottom:2px solid rgba(0,0,0,0.28);
+  transform-origin:bottom center;
+  animation: paperCurl 0.92s cubic-bezier(0.18,0.84,0.26,1) both;
+}
+.event-panel.pravda.paper-unfurl .pravda-masthead,
+.event-panel.pravda.paper-unfurl .pravda-photo,
+.event-panel.pravda.paper-unfurl .pravda-main{
+  animation: paperContentIn 0.58s ease-out both;
+}
+.event-panel.pravda.paper-unfurl .pravda-photo{ animation-delay:0.22s; }
+.event-panel.pravda.paper-unfurl .pravda-main{ animation-delay:0.30s; }
+@keyframes paperUnfurl{
+  0%   { opacity:0; clip-path:inset(0 0 98% 0); transform:translateY(-14px) rotateX(18deg) scaleY(0.08); filter:drop-shadow(0 2px 0 rgba(0,0,0,0)); }
+  32%  { opacity:1; clip-path:inset(0 0 52% 0); transform:translateY(-5px) rotateX(7deg) scaleY(0.56); filter:drop-shadow(0 10px 9px rgba(0,0,0,0.18)); }
+  62%  { clip-path:inset(0 0 10% 0); transform:translateY(2px) rotateX(-2deg) scaleY(1.035); filter:drop-shadow(0 18px 15px rgba(0,0,0,0.20)); }
+  82%  { clip-path:inset(0 0 0 0); transform:translateY(0) rotateX(1deg) scaleY(0.992); }
+  100% { opacity:1; clip-path:inset(0 0 0 0); transform:translateY(0) rotateX(0) scaleY(1); filter:drop-shadow(0 10px 12px rgba(0,0,0,0.16)); }
+}
+@keyframes paperCurl{
+  0%   { opacity:0; transform:translateY(-160px) scaleY(0.08) rotateX(80deg); }
+  42%  { opacity:.95; transform:translateY(-58px) scaleY(.75) rotateX(46deg); }
+  76%  { opacity:.65; transform:translateY(2px) scaleY(.38) rotateX(20deg); }
+  100% { opacity:0; transform:translateY(20px) scaleY(.18) rotateX(0); }
+}
+@keyframes paperSheen{
+  0%   { opacity:.85; transform:translateY(-40%); }
+  55%  { opacity:.42; transform:translateY(18%); }
+  100% { opacity:0; transform:translateY(55%); }
+}
+@keyframes paperContentIn{
+  from { opacity:0; transform:translateY(-8px); }
+  to   { opacity:1; transform:translateY(0); }
+}
 .pravda-mast-name{ display:flex; justify-content:center; }
 .pravda-logo{ max-width:min(520px, 90%); height:auto; display:block; }
 .pravda-grid{ display:grid !important; grid-template-columns: 260px 1fr !important; gap:14px !important; margin-top:12px !important; align-items:stretch !important; }
@@ -1332,15 +1436,22 @@
       <button class="btn btn-reset" onclick="resetGame()">Reset</button>
     </div>
 
- 
-    
-
-
-    <div style="margin-top:10px;">
-  <div class="section-title" style="font-size:10px;">DEVELOPER</div>
-  <div class="btn-row" style="margin-top:6px;">
-    <button class="btn" onclick="testPravdaEvent()">Test Event</button>
+    <div class="utility-panel" style="margin-top:10px;">
+  <div class="section-title" style="font-size:10px;">Campaign</div>
+  <div class="utility-row">
+    <button class="btn" onclick="saveGame(true)">Save</button>
+    <button class="btn" onclick="loadGame()">Load</button>
+    <button class="btn" onclick="clearSavedGame()">Clear Save</button>
   </div>
+  <div class="volume-wrap">
+    <span>Audio</span>
+    <input id="audio-volume" type="range" min="0" max="100" value="70" oninput="setAudioVolume(this.value)" />
+  </div>
+  <div class="utility-row">
+    <button class="btn" id="audio-toggle" onclick="toggleAudioMute()">Mute</button>
+    <span class="save-chip" id="save-chip">No save loaded</span>
+  </div>
+  <div class="save-status" id="save-status"></div>
 </div>
 </div><!-- /sidebar -->
 
@@ -1350,7 +1461,9 @@
     <!-- MAIN TABS -->
     <div class="main-tabs">
       <button class="main-tab active" onclick="switchMainTab('game', this)">Game</button>
+      <button class="main-tab" onclick="switchMainTab('tree', this)">Reform Tree</button>
       <button class="main-tab" onclick="switchMainTab('library', this)">Library</button>
+      <button class="main-tab" onclick="switchMainTab('dev', this)">Dev</button>
     </div>
 
     <!-- GAME TAB -->
@@ -1358,6 +1471,7 @@
 
     <!-- EVENT PANEL -->
 <div class="event-panel pravda" id="event-panel">
+  <div class="event-queue-status" id="event-queue-status"></div>
   <div class="pravda-masthead">
     <div class="pravda-mast-top" id="pravda-mast-top"></div>
     <div class="pravda-mast-name" id="pravda-mast-name">
@@ -1395,6 +1509,7 @@
   <span style="font-family:'IM Fell English',serif; font-size:13px; opacity:.85;">Predicted cost: <strong id="policy-predicted-cost">0</strong></span>
   <span class="budget-badge">Budget: <strong id="budget-inline">100</strong></span>
 </div>
+      <div class="active-policy-list" id="active-policy-list"></div>
 
       <div class="filter-row" id="policy-filters">
         <button class="filter-btn active" onclick="setPolicyFilter('All', this)">All</button>
@@ -1418,6 +1533,14 @@
     </div><!-- /advisor-panel -->
 
     </div><!-- /tab-game -->
+
+    <!-- POLICY TREE TAB -->
+    <div id="tab-tree" class="main-tab-panel" style="display:none;">
+      <div class="tree-panel">
+        <div class="section-title panel-header">Reform Tree</div>
+        <div class="policy-tree" id="policy-tree"></div>
+      </div>
+    </div><!-- /tab-tree -->
 
     <!-- LIBRARY TAB -->
     <div id="tab-library" class="main-tab-panel" style="display:none;">
@@ -1445,6 +1568,22 @@
 
     </div><!-- /tab-library -->
 
+    <!-- DEV TAB -->
+    <div id="tab-dev" class="main-tab-panel" style="display:none;">
+      <div class="debug-panel">
+        <div class="section-title panel-header">Playtest Tools</div>
+        <div class="debug-row">
+          <button class="btn" onclick="testPravdaEvent()">Test Event</button>
+          <button class="btn" onclick="debugFireNextEvent()">Fire Next Event</button>
+          <button class="btn" onclick="debugAdvanceMonths(6)">+6 Months</button>
+          <button class="btn" onclick="debugForceEnding('coup')">Force Coup</button>
+          <button class="btn" onclick="debugForceEnding('dissolution')">Force Dissolution</button>
+          <button class="btn" onclick="debugForceEnding('success')">Force Success</button>
+        </div>
+        <div class="debug-grid" id="debug-grid"></div>
+      </div>
+    </div><!-- /tab-dev -->
+
   </div><!-- /main -->
 
 </div><!-- /game-layout -->
@@ -1463,8 +1602,10 @@ const gameState = {
  selectedPolicies: [],
   policiesCommittedTurn: null, // up to 3 policies chosen this turn
   enactedPolicies: [],
+  activePolicies: [],
   advisorStatus: {},
   gameOver: false,
+  ending: null,
 
   lastTurnSpend: 0,
   economySub: {
@@ -1540,6 +1681,8 @@ const gameState = {
 const uiState = {
   policyCategory: 'All',
   advisorFaction: 'All',
+  audioMuted: false,
+  audioVolume: 0.7,
 };
 
 // Active event currently displayed (simplifies button handlers)
@@ -1590,6 +1733,10 @@ function formatEffects(effects){
     const sign = (Number.isFinite(n) && n > 0) ? '+' : '';
     return formatStatKey(k) + ' ' + sign + v;
   }).join('<br>');
+}
+function formatMonthYear(month, year){
+  const monthNames = ['', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  return `${monthNames[month] || 'Month'} ${year}`;
 }
 function getBrentPriceUSD(year, month){
   const i = month - 1;
@@ -1776,6 +1923,9 @@ function normalisePolicy(p){
    description: String(p.description || ''),
    effects: isObject(p.effects) ? p.effects : {},
    duration: p.duration ? String(p.duration) : 'permanent',
+   durationTurns: p.durationTurns != null ? clampInt(p.durationTurns, 1, 120, null) : null,
+   ongoingEffects: isObject(p.ongoingEffects) ? p.ongoingEffects : {},
+   expireEffects: isObject(p.expireEffects) ? p.expireEffects : {},
    // Optional forward fields (safe to ignore for now)
    prerequisites: Array.isArray(p.prerequisites) ? p.prerequisites : [],
    advisorRequired: p.advisorRequired ? String(p.advisorRequired) : null,
@@ -1983,6 +2133,8 @@ window.RedSunset = {
  importFromUrl,
  importFromScriptTag,
  renderLibrary,
+ saveGame,
+ loadGame,
 };
 
 
@@ -2035,7 +2187,7 @@ function getPolicyAvailability(policy){
   const missingPrereqs = (policy.prerequisites || []).filter(id => !enacted.has(id));
   const requiredAdvisor = policy.advisorRequired || null;
   const advisorLoyalty = requiredAdvisor ? Number(gameState.advisorLoyalty[requiredAdvisor] ?? 0) : 100;
-  const advisorLocked = Boolean(requiredAdvisor && advisorLoyalty < 20);
+  const advisorLocked = Boolean(requiredAdvisor && (advisorLoyalty < 20 || isAdvisorResigned(requiredAdvisor)));
   const alreadyEnacted = enacted.has(policy.id);
   const reasons = [];
 
@@ -2058,6 +2210,22 @@ function availablePoliciesForCurrentFilters(){
     if (cat && cat !== 'All' && String(p.category || '').toLowerCase() !== String(cat).toLowerCase()) return false;
     return getPolicyAvailability(p).available;
   });
+}
+
+function getPolicyDurationTurns(policy){
+  if (policy.durationTurns != null) return Number(policy.durationTurns);
+  const raw = String(policy.duration || '').toLowerCase();
+  const match = raw.match(/(\d+)/);
+  if (match && !raw.includes('permanent')) return clamp(Number(match[1]), 1, 120);
+  return null;
+}
+
+function isAdvisorResigned(advisorId){
+  return Boolean(gameState.advisorStatus && gameState.advisorStatus[advisorId] && gameState.advisorStatus[advisorId].resigned);
+}
+
+function policiesUsingAdvisor(advisorId){
+  return policies.filter(p => p.advisorRequired === advisorId || (p.advisorOpposition || []).includes(advisorId));
 }
 
 
@@ -2095,9 +2263,21 @@ function playPaperCrackle() {
   } catch(e) {}
 }
 
+function animatePaperUnfurl(panel) {
+  if (!panel) return;
+  panel.classList.remove('paper-unfurl');
+  // Force a style flush so repeated events replay the animation.
+  void panel.offsetWidth;
+  panel.classList.add('paper-unfurl');
+  window.setTimeout(() => {
+    panel.classList.remove('paper-unfurl');
+  }, 1100);
+}
+
 function displayEvent(event) {
   activeEvent = event;
   setupPravdaMasthead();
+  renderEventQueueStatus();
   const panel = document.getElementById('event-panel');
   document.getElementById('event-title').textContent = event.name;
   const descEl = document.getElementById('event-desc');
@@ -2113,6 +2293,7 @@ function displayEvent(event) {
   `).join('');
   document.getElementById('event-choices').innerHTML = choicesHtml;
   panel.classList.add('active');
+  animatePaperUnfurl(panel);
   playPaperCrackle();
 }
 
@@ -2128,19 +2309,23 @@ function resolveEventChoice(choiceIdx) {
   // Log
   addLog(`Event: ${event.name} — chose "${choice.text}"`);
   activeEvent = null;
-  document.getElementById('event-panel').classList.remove('active');
+  const panel = document.getElementById('event-panel');
+  panel.classList.remove('active', 'paper-unfurl');
   if (checkEndConditions()) {
     render();
     renderPolicies();
+    saveGame(false);
     return;
   }
   // Drain queued trigger events one at a time
   if (triggerEventQueue.length > 0) {
     const next = triggerEventQueue.shift();
+    renderEventQueueStatus();
     setTimeout(() => displayTriggerEvent(next), 200);
   }
   render();
   renderPolitburoVisual();
+  saveGame(false);
 }
 
 function computeBudgetBalanceForTurn(){
@@ -2162,6 +2347,26 @@ function computeBudgetBalanceForTurn(){
   gameState.economySub.socialParasitism = clamp(Math.round(sp + (gameState.economySub.inflation * 0.01) + (Math.max(0, -next) * 0.02) - (econ * 0.01)), 0, 100);
   gameState.lastTurnSpend = spend;
   gameState.turnSpend = 0;
+}
+
+function applyActivePolicyEffects(){
+  if (!Array.isArray(gameState.activePolicies)) gameState.activePolicies = [];
+  const stillActive = [];
+
+  gameState.activePolicies.forEach(active => {
+    const policy = policies.find(p => p.id === active.id);
+    if (!policy) return;
+    Object.entries(policy.ongoingEffects || {}).forEach(([key, val]) => applyMetricChange(key, val));
+    active.remainingTurns = Number(active.remainingTurns || 0) - 1;
+    if (active.remainingTurns > 0) {
+      stillActive.push(active);
+    } else {
+      Object.entries(policy.expireEffects || {}).forEach(([key, val]) => applyMetricChange(key, val));
+      addLog(`${policy.name} expires.`);
+    }
+  });
+
+  gameState.activePolicies = stillActive;
 }
 
 function updateAdvisorLoyaltyForTurn(){
@@ -2243,6 +2448,7 @@ function endTurn() {
 
   if (checkEndConditions()) return;
 
+  applyActivePolicyEffects();
   computeBudgetBalanceForTurn();
   gameState.turn++;
   advanceDate();
@@ -2261,6 +2467,7 @@ function endTurn() {
     render();
     renderPolicies();
     addTassDateline();
+    saveGame(false);
     return;
   }
 
@@ -2278,6 +2485,7 @@ function endTurn() {
 
   // Print TASS dateline for new turn
   addTassDateline();
+  saveGame(false);
 }
 
 function resetGame() {
@@ -2590,9 +2798,23 @@ function checkAllTriggers() {
 /* Queue for trigger events that fire mid-turn (shown after any active event) */
 let triggerEventQueue = [];
 
+function renderEventQueueStatus(){
+  const el = document.getElementById('event-queue-status');
+  if (!el) return;
+  const count = triggerEventQueue.length;
+  if (count > 0) {
+    el.textContent = `Crisis queue: ${count} pending`;
+    el.classList.add('active');
+  } else {
+    el.textContent = '';
+    el.classList.remove('active');
+  }
+}
+
 function displayTriggerEvent(event) {
   if (activeEvent) {
     triggerEventQueue.push(event);
+    renderEventQueueStatus();
   } else {
     displayEvent({ ...event, id: 'trigger_' + Date.now(), trigger: {} });
   }
@@ -2618,6 +2840,7 @@ Let every collective and every cadre raise labour discipline, expose opportunism
 function triggerGameOver(type, message) {
   gameState.gameOver = true;
   activeEvent = null;
+  gameState.ending = { type, message, turn: gameState.turn, month: gameState.month, year: gameState.year };
   const panel = document.getElementById('event-panel');
   const titles = {
     revolution: 'REVOLUTION',
@@ -2626,11 +2849,32 @@ function triggerGameOver(type, message) {
     dissolution: 'DISSOLUTION',
     success: 'SUCCESSFUL REFORM',
   };
+  const enacted = (gameState.enactedPolicies || []).map(policyName);
+  const metricsHtml = Object.entries(gameState.metrics).map(([key, val]) => `
+    <div class="ending-stat"><span>${escapeHtml(formatStatKey(key))}</span><strong>${Math.round(Number(val || 0))}%</strong></div>
+  `).join('');
+  const enactedHtml = enacted.length
+    ? `<ul class="ending-list">${enacted.map(name => `<li>${escapeHtml(name)}</li>`).join('')}</ul>`
+    : '<p>No major reforms were enacted.</p>';
+
   document.getElementById('event-title').textContent = '★ ' + (titles[type] || 'GAME OVER');
-  document.getElementById('event-desc').innerHTML = '<p>' + escapeHtml(message) + '</p>';
-  document.getElementById('event-choices').innerHTML = '<button class="event-btn" onclick="resetGame()">Start Over</button>';
+  document.getElementById('event-desc').innerHTML = `
+    <p>${escapeHtml(message)}</p>
+    <div class="ending-summary">
+      <div class="ending-stat"><span>Final Date</span><strong>${escapeHtml(formatMonthYear(gameState.month, gameState.year))}</strong></div>
+      <div class="ending-stat"><span>Turn</span><strong>${gameState.turn}</strong></div>
+      <div class="ending-stat"><span>Separatism</span><strong>${Math.round(Number(gameState.separatism || 0))}%</strong></div>
+      <div class="ending-stat"><span>Budget</span><strong>${gameState.budget}</strong></div>
+      ${metricsHtml}
+    </div>
+    <p><strong>Reform record</strong></p>
+    ${enactedHtml}
+  `;
+  document.getElementById('event-choices').innerHTML = '<button class="event-btn" onclick="saveGame(true)">Save Outcome</button><button class="event-btn" onclick="resetGame()">Start Over</button>';
   panel.classList.add('active');
+  animatePaperUnfurl(panel);
   renderPolicies();
+  saveGame(false);
   addLog('GAME OVER: ' + message);
 }
 
@@ -2708,6 +2952,12 @@ function applyPolicyImmediate(policyId) {
   }
   if (!gameState.enactedPolicies) gameState.enactedPolicies = [];
   if (!gameState.enactedPolicies.includes(policy.id)) gameState.enactedPolicies.push(policy.id);
+  const durationTurns = getPolicyDurationTurns(policy);
+  if (durationTurns) {
+    if (!Array.isArray(gameState.activePolicies)) gameState.activePolicies = [];
+    gameState.activePolicies = gameState.activePolicies.filter(x => x.id !== policy.id);
+    gameState.activePolicies.push({ id: policy.id, remainingTurns: durationTurns, startedTurn: gameState.turn });
+  }
   addLog(`Policy: ${policy.name} (-${policy.cost} budget)`);
 }
 
@@ -2727,6 +2977,7 @@ function commitPolicies() {
   checkEndConditions();
   render();
   renderPolicies();
+  saveGame(false);
 }
 
 
@@ -2841,8 +3092,7 @@ function renderStatus() {
 }
 
 function renderDate() {
-  const monthNames = ['', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-  document.getElementById('current-date').textContent = `${monthNames[gameState.month]} ${gameState.year}`;
+  document.getElementById('current-date').textContent = formatMonthYear(gameState.month, gameState.year);
   const bInline = document.getElementById('budget-inline');
   if (bInline) bInline.textContent = String(gameState.budget);
   const pDate = document.getElementById('pravda-date');
@@ -2925,6 +3175,7 @@ function renderPolicies() {
   if (pcEl) pcEl.textContent = String(plannedSpend());
   const commitBtn = document.getElementById('policy-commit-btn');
   if (commitBtn) commitBtn.disabled = picks.length === 0 || (gameState.policiesCommittedTurn === gameState.turn);
+  renderActivePolicies();
 }
 
 function renderAdvisors() {
@@ -2935,23 +3186,104 @@ function renderAdvisors() {
 
   const html = list.map(a => {
     const loyalty = (gameState.advisorLoyalty[a.id] ?? a.defaultLoyalty ?? a.loyalty ?? 50);
+    const status = gameState.advisorStatus[a.id] || {};
+    const related = policiesUsingAdvisor(a.id);
+    const requiredFor = related.filter(p => p.advisorRequired === a.id && !enactedPolicySet().has(p.id)).map(p => p.name);
+    const opposedSelected = related.filter(p => (p.advisorOpposition || []).includes(a.id) && (gameState.selectedPolicies || []).includes(p.id)).map(p => p.name);
     let cls = 'mid';
     if (loyalty >= 75) cls = 'high';
     if (loyalty <= 40) cls = 'low';
+    const chips = [];
+    if (status.resigned || loyalty < 20) chips.push('<span class="advisor-status-chip low">Resigned</span>');
+    else if (status.emboldened || loyalty >= 80) chips.push('<span class="advisor-status-chip high">Emboldened</span>');
+    if (requiredFor.length) chips.push(`<span class="advisor-status-chip">Required: ${requiredFor.length}</span>`);
+    if (opposedSelected.length) chips.push('<span class="advisor-status-chip low">Opposes pick</span>');
 
     return `
-      <div class="advisor-card">
+      <div class="advisor-card${status.resigned || loyalty < 20 ? ' resigned' : ''}">
         <div class="card-corner tl">${a.faction || 'Advisor'}</div>
         <div class="card-corner br">${a.role || ''}</div>
         <div class="card-body">
           <div class="advisor-name">${a.name}</div>
           <div class="advisor-faction">${a.faction}</div>
           <div class="advisor-loyalty ${cls}">Loyalty: ${loyalty}</div>
+          <div class="advisor-statuses">${chips.join('')}</div>
         </div>
       </div>`;
   }).join('');
 
   document.getElementById('advisor-grid').innerHTML = html;
+}
+
+function renderActivePolicies(){
+  const el = document.getElementById('active-policy-list');
+  if (!el) return;
+  const active = Array.isArray(gameState.activePolicies) ? gameState.activePolicies : [];
+  if (!active.length) {
+    el.innerHTML = '';
+    return;
+  }
+  el.innerHTML = active.map(ap => `<span class="active-policy-chip">${escapeHtml(policyName(ap.id))}: ${ap.remainingTurns} turns</span>`).join('');
+}
+
+function renderPolicyTree(){
+  const el = document.getElementById('policy-tree');
+  if (!el) return;
+  const enacted = enactedPolicySet();
+  el.innerHTML = policies.map(p => {
+    const availability = getPolicyAvailability(p);
+    const isDone = enacted.has(p.id);
+    const reqs = (p.prerequisites || []).length
+      ? (p.prerequisites || []).map(id => enacted.has(id) ? `✓ ${policyName(id)}` : `Requires ${policyName(id)}`).join('<br>')
+      : 'Root policy';
+    const advisor = p.advisorRequired ? `<br>Advisor: ${escapeHtml(advisorName(p.advisorRequired))}` : '';
+    const status = isDone ? 'done' : availability.available ? 'ready' : 'locked';
+    const label = isDone ? 'Enacted' : availability.available ? 'Ready' : 'Locked';
+    return `
+      <div class="tree-node ${status === 'done' ? 'enacted' : status}">
+        <div class="tree-title">${escapeHtml(p.name)}</div>
+        <div class="tree-meta">${escapeHtml(p.category || 'Policy')} · Cost ${p.cost}${advisor}</div>
+        <div class="tree-req">${reqs}</div>
+        ${availability.reasons.length && !isDone ? `<div class="tree-req">${availability.reasons.map(escapeHtml).join('<br>')}</div>` : ''}
+        <span class="tree-status ${status}">${label}</span>
+      </div>`;
+  }).join('');
+}
+
+function debugMetricRows(){
+  const rows = [
+    ...Object.keys(gameState.metrics).map(key => ({ group:'metrics', key, label:formatStatKey(key), value:gameState.metrics[key], min:0, max:100 })),
+    { group:'state', key:'budget', label:'Budget', value:gameState.budget, min:0, max:500 },
+    { group:'state', key:'separatism', label:'Separatism', value:gameState.separatism, min:0, max:100 },
+    { group:'economySub', key:'inflation', label:'Inflation', value:gameState.economySub.inflation, min:0, max:100 },
+    { group:'economySub', key:'budgetBalance', label:'Budget Balance', value:gameState.economySub.budgetBalance, min:-100, max:100 },
+    { group:'economySub', key:'socialParasitism', label:'Social Parasitism', value:gameState.economySub.socialParasitism, min:0, max:100 },
+    { group:'militarySub', key:'combatReadiness', label:'Combat Readiness', value:gameState.militarySub.combatReadiness, min:0, max:100 },
+    { group:'militarySub', key:'loyalty', label:'Military Loyalty', value:gameState.militarySub.loyalty, min:0, max:100 },
+  ];
+  return rows;
+}
+
+function renderDebugPanel(){
+  const el = document.getElementById('debug-grid');
+  if (!el) return;
+  el.innerHTML = debugMetricRows().map(row => `
+    <div class="debug-card">
+      <label><span>${escapeHtml(row.label)}</span><strong id="debug-val-${row.group}-${row.key}">${Math.round(Number(row.value || 0))}</strong></label>
+      <input type="range" min="${row.min}" max="${row.max}" value="${row.value}" oninput="debugSetValue('${row.group}','${row.key}',this.value)" />
+    </div>
+  `).join('');
+}
+
+function renderUtility(){
+  const chip = document.getElementById('save-chip');
+  if (!chip) return;
+  const saved = getSavedGameMeta();
+  chip.textContent = saved ? `Saved: ${saved.date}` : 'No save found';
+  const toggle = document.getElementById('audio-toggle');
+  if (toggle) toggle.textContent = uiState.audioMuted ? 'Unmute' : 'Mute';
+  const volume = document.getElementById('audio-volume');
+  if (volume) volume.value = Math.round(uiState.audioVolume * 100);
 }
 
 function renderLibrary() {
@@ -3023,6 +3355,11 @@ function render() {
   renderPolitburoVisual();
   renderAdvisors();
   renderLibrary();
+  renderActivePolicies();
+  renderPolicyTree();
+  renderDebugPanel();
+  renderUtility();
+  renderEventQueueStatus();
 }
 
 function sanitizeLogEntry(s){
@@ -3068,7 +3405,8 @@ function unlockAllAudio(){
     // Prime teletype audio
     if (!ttyAudio) {
       ttyAudio = makeAudio('sounds/teletype_sound.mp3');
-      ttyAudio.volume = 0.55;
+      ttyAudio.volume = Math.min(0.75, uiState.audioMuted ? 0 : uiState.audioVolume);
+      ttyAudio.muted = uiState.audioMuted;
       ttyAudio.loop = true;
     }
     const t = ttyAudio.play();
@@ -3085,7 +3423,8 @@ function startTtySound() {
   try {
     if (!ttyAudio) {
       ttyAudio = makeAudio('sounds/teletype_sound.mp3');
-      ttyAudio.volume = 0.55;
+      ttyAudio.volume = Math.min(0.75, uiState.audioMuted ? 0 : uiState.audioVolume);
+      ttyAudio.muted = uiState.audioMuted;
       ttyAudio.loop = true;
     }
     if (ttyAudio.paused) ttyAudio.play().catch(() => {});
@@ -3168,6 +3507,159 @@ function addTassDateline() {
   flushTtyQueue();
 }
 
+const SAVE_KEY = 'red-sunset-save-v1';
+
+function setSaveStatus(msg){
+  const el = document.getElementById('save-status');
+  if (el) el.textContent = msg || '';
+}
+
+function getSavedGameMeta(){
+  try {
+    const raw = localStorage.getItem(SAVE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    return parsed && parsed.meta ? parsed.meta : null;
+  } catch(e) {
+    return null;
+  }
+}
+
+function saveGame(manual=false){
+  try {
+    const payload = {
+      meta: {
+        savedAt: new Date().toISOString(),
+        date: formatMonthYear(gameState.month, gameState.year),
+        turn: gameState.turn,
+      },
+      gameState: JSON.parse(JSON.stringify(gameState)),
+      uiState: {
+        audioMuted: uiState.audioMuted,
+        audioVolume: uiState.audioVolume,
+      },
+      gameStarted,
+    };
+    localStorage.setItem(SAVE_KEY, JSON.stringify(payload));
+    if (manual) setSaveStatus(`Saved ${payload.meta.date}, turn ${payload.meta.turn}.`);
+    renderUtility();
+    return true;
+  } catch(e) {
+    setSaveStatus('Save failed in this browser.');
+    return false;
+  }
+}
+
+function restoreGameState(savedState){
+  Object.keys(gameState).forEach(key => delete gameState[key]);
+  Object.assign(gameState, savedState || {});
+  if (!Array.isArray(gameState.selectedPolicies)) gameState.selectedPolicies = [];
+  if (!Array.isArray(gameState.enactedPolicies)) gameState.enactedPolicies = [];
+  if (!Array.isArray(gameState.activePolicies)) gameState.activePolicies = [];
+  if (!gameState.advisorStatus) gameState.advisorStatus = {};
+  if (!gameState.firedTriggers) gameState.firedTriggers = {};
+  if (!Array.isArray(gameState.history)) gameState.history = [];
+  ensureAdvisorLoyaltyDefaults();
+}
+
+function loadGame(){
+  try {
+    const raw = localStorage.getItem(SAVE_KEY);
+    if (!raw) {
+      setSaveStatus('No saved campaign found.');
+      return;
+    }
+    const payload = JSON.parse(raw);
+    restoreGameState(payload.gameState);
+    if (payload.uiState) {
+      uiState.audioMuted = Boolean(payload.uiState.audioMuted);
+      uiState.audioVolume = Number(payload.uiState.audioVolume ?? uiState.audioVolume);
+    }
+    gameStarted = Boolean(payload.gameStarted);
+    activeEvent = null;
+    triggerEventQueue = [];
+    ttyPrintQueue = [];
+    ttyPrinting = false;
+    document.getElementById('event-panel')?.classList.remove('active', 'paper-unfurl');
+    document.querySelector('.game-layout').style.visibility = 'visible';
+    document.querySelector('.masthead').style.visibility = 'visible';
+    const launcher = document.getElementById('launcher-modal');
+    if (launcher) launcher.style.display = 'none';
+    const intro = document.getElementById('intro-modal');
+    if (intro) intro.style.display = 'none';
+    applyAudioSettings();
+    render();
+    renderPolicies();
+    setSaveStatus(`Loaded ${formatMonthYear(gameState.month, gameState.year)}, turn ${gameState.turn}.`);
+  } catch(e) {
+    setSaveStatus('Load failed. Saved data may be corrupt.');
+  }
+}
+
+function clearSavedGame(){
+  try { localStorage.removeItem(SAVE_KEY); } catch(e) {}
+  setSaveStatus('Saved campaign cleared.');
+  renderUtility();
+}
+
+function setAudioVolume(value){
+  uiState.audioVolume = clamp(Number(value) / 100, 0, 1);
+  if (uiState.audioVolume > 0) uiState.audioMuted = false;
+  applyAudioSettings();
+  renderUtility();
+}
+
+function toggleAudioMute(){
+  uiState.audioMuted = !uiState.audioMuted;
+  applyAudioSettings();
+  renderUtility();
+}
+
+function applyAudioSettings(){
+  const muted = uiState.audioMuted;
+  const volume = muted ? 0 : uiState.audioVolume;
+  try { if (typeof projectorAudio !== 'undefined' && projectorAudio) { projectorAudio.muted = muted; projectorAudio.volume = volume; } } catch(e){}
+  try { if (ttyAudio) { ttyAudio.muted = muted; ttyAudio.volume = Math.min(0.75, volume); } } catch(e){}
+}
+
+function debugSetValue(group, key, value){
+  const n = Number(value);
+  if (group === 'metrics') gameState.metrics[key] = clamp(Math.round(n), 0, 100);
+  if (group === 'economySub') gameState.economySub[key] = clamp(Math.round(n), key === 'budgetBalance' ? -100 : 0, 100);
+  if (group === 'militarySub') gameState.militarySub[key] = clamp(Math.round(n), 0, 100);
+  if (group === 'state' && key === 'budget') gameState.budget = clamp(Math.round(n), 0, 500);
+  if (group === 'state' && key === 'separatism') gameState.separatism = clamp(Math.round(n), 0, 100);
+  const val = document.getElementById(`debug-val-${group}-${key}`);
+  if (val) val.textContent = String(Math.round(n));
+  render();
+}
+
+function debugAdvanceMonths(count){
+  for (let i = 0; i < count; i++) advanceDate();
+  gameState.turn += count;
+  addLog(`Debug: advanced ${count} months.`);
+  render();
+}
+
+function debugFireNextEvent(){
+  const next = events.find(e => e.trigger && !gameState.firedTriggers['event_' + e.id]);
+  if (!next) {
+    addLog('Debug: no date-based event available.');
+    return;
+  }
+  gameState.firedTriggers['event_' + next.id] = true;
+  displayEvent(next);
+}
+
+function debugForceEnding(type){
+  const messages = {
+    coup: 'Debug outcome: the conservative apparatus seizes control and terminates the reform project.',
+    dissolution: 'Debug outcome: Union authority evaporates and the republics move beyond Moscow control.',
+    success: 'Debug outcome: reform survives long enough to continue into a new constitutional settlement.',
+  };
+  triggerGameOver(type, messages[type] || 'Debug outcome reached.');
+}
+
 
 // Init
 ensureAdvisorLoyaltyDefaults();
@@ -3193,7 +3685,7 @@ function startGame() {
 
 // ── SLIDE PROJECTOR SOUND ────────────────────────────────────────────────────
 const projectorAudio = makeAudio('sounds/slideprojector_sounds.wav');
-projectorAudio.volume = 0.7;
+projectorAudio.volume = uiState.audioVolume;
 
 // Loop only between 0:03 and 0:11
 const PROJ_LOOP_START = 3.0;
@@ -3273,7 +3765,9 @@ function switchMainTab(tab, btn) {
   document.querySelectorAll('.main-tab-panel').forEach(p => p.style.display = 'none');
   document.querySelectorAll('.main-tab').forEach(b => b.classList.remove('active'));
   document.getElementById('tab-' + tab).style.display = 'block';
-  btn.classList.add('active');
+  if (btn) btn.classList.add('active');
+  renderPolicyTree();
+  renderDebugPanel();
 }
 
 
