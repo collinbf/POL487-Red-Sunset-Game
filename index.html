@@ -1687,7 +1687,7 @@ function setupPravdaMasthead(){
 
 function playPaperCrackle() {
   try {
-    const sfx = new Audio('sounds/papercrackle1.wav');
+    const sfx = makeAudio('sounds/papercrackle1.wav');
     sfx.volume = 0.7;
     sfx.play().catch(() => {});
   } catch(e) {}
@@ -2497,13 +2497,48 @@ function sanitizeLogEntry(s){
   return out.replace(/\s+/g,' ').trim();
 }
 
+// ── AUDIO HELPERS (GitHub Pages + autoplay policies) ───────────────
+function makeAudio(relPath){
+  // Build an absolute URL that works for GitHub Pages project subpaths too.
+  try { return new Audio(new URL(relPath, document.baseURI).href); }
+  catch(e){ return new Audio(relPath); }
+}
+
+// Unlock audio on first user gesture (required by most browsers).
+let audioUnlocked = false;
+function unlockAllAudio(){
+  if (audioUnlocked) return;
+  audioUnlocked = true;
+  try {
+    // Prime projector audio (play/pause resets gesture lock)
+    if (typeof projectorAudio !== 'undefined' && projectorAudio) {
+      const p = projectorAudio.play();
+      if (p && p.catch) p.catch(()=>{});
+      projectorAudio.pause();
+      projectorAudio.currentTime = PROJ_LOOP_START;
+    }
+  } catch(e){}
+  try {
+    // Prime teletype audio
+    if (!ttyAudio) {
+      ttyAudio = makeAudio('sounds/teletype_sound.mp3');
+      ttyAudio.volume = 0.55;
+      ttyAudio.loop = true;
+    }
+    const t = ttyAudio.play();
+    if (t && t.catch) t.catch(()=>{});
+    ttyAudio.pause();
+    ttyAudio.currentTime = 0;
+  } catch(e){}
+}
+
 // ── TELETYPE SOUND ──────────────────────────────────────────────────────────
 let ttyAudio = null;
 
 function startTtySound() {
   try {
     if (!ttyAudio) {
-      ttyAudio = new Audio('sounds/teletype_sound.mp3');
+      ttyAudio = makeAudio('sounds/teletype_sound.mp3');
       ttyAudio.volume = 0.55;
       ttyAudio.loop = true;
     }
@@ -2600,12 +2635,18 @@ if (gameState.economySub && gameState.economySub.oilBaseline == null) {
 render();
 renderPolicies();
 
-// Print opening TASS dateline then opening log message
-addTassDateline();
-setTimeout(() => addLog('Gorbachev assumes office. The era of reform begins.'), 200);
+// ── GAME START GATING (wait for Begin) ───────────────────────────────────────
+let gameStarted = false;
+function startGame() {
+  if (gameStarted) return;
+  gameStarted = true;
+  // Print opening TASS dateline then opening log message
+  addTassDateline();
+  setTimeout(() => addLog('Gorbachev assumes office. The era of reform begins.'), 200);
+}
 
 // ── SLIDE PROJECTOR SOUND ────────────────────────────────────────────────────
-const projectorAudio = new Audio('sounds/slideprojector_sounds.wav');
+const projectorAudio = makeAudio('sounds/slideprojector_sounds.wav');
 projectorAudio.volume = 0.7;
 
 // Loop only between 0:03 and 0:11
@@ -2618,24 +2659,25 @@ projectorAudio.addEventListener('timeupdate', () => {
   }
 });
 
-// Start playing as soon as the user has interacted (autoplay policy)
-// We attempt immediately; browsers allow it on first user gesture too.
-projectorAudio.play().catch(() => {
-  // Autoplay blocked — start on first click/keydown anywhere
-  const startOnGesture = () => {
-    projectorAudio.play().catch(() => {});
-    document.removeEventListener('click', startOnGesture);
-    document.removeEventListener('keydown', startOnGesture);
-  };
-  document.addEventListener('click', startOnGesture);
-  document.addEventListener('keydown', startOnGesture);
-});
+// Try to start immediately; if blocked, start on first gesture on the intro overlay.
+try {
+  projectorAudio.play().catch(() => {
+    const overlay = document.getElementById('intro-modal') || document;
+    const onFirstGesture = () => { unlockAllAudio(); projectorAudio.play().catch(()=>{}); };
+    overlay.addEventListener('pointerdown', onFirstGesture, { once: true });
+    overlay.addEventListener('touchstart', onFirstGesture, { once: true });
+    document.addEventListener('keydown', onFirstGesture, { once: true });
+  });
+} catch(e) {}
 
 function dismissIntro() {
+  // Ensure audio is unlocked in the context of this user gesture
+  unlockAllAudio();
   // Stop projector sound
   projectorAudio.pause();
   projectorAudio.currentTime = 0;
-
+  // Start the game (teletype/log begins after Begin)
+  startGame();
   const overlay = document.getElementById('intro-modal');
   overlay.classList.add('dismissed');
   setTimeout(() => overlay.style.display = 'none', 700);
