@@ -1410,7 +1410,7 @@
           <div class="newsreel-stamp">СОВЕРШЕННО СЕКРЕТНО</div>
           <div style="clear:both;"></div>
           <div class="intro-begin-row">
-            <button class="intro-begin-btn" onclick="dismissIntro()">Begin — Март 1985</button>
+            <button class="intro-begin-btn" onclick="dismissIntro()">Begin — Март 1985 г.</button>
           </div>
         </div>
       </div>
@@ -1514,7 +1514,7 @@
         <span class="tty-btn red"></span>
         <div class="tty-badge-row">
           <span class="tty-badge">★ СОЮЗ</span>
-          <span class="tty-meta">60 СЛМ • ТА</span>
+          <span class="tty-meta">60 БОД • ТА</span>
         </div>
         <span class="tty-btn amber"></span>
       </div>
@@ -3673,8 +3673,8 @@ let ttyPrintQueue = [];
 let ttyPrinting = false;
 
 function formatTassDate(month, year) {
-  const monthsRU = ['ЯНВАРЯ','ФЕВРАЛЯ','МАРТА','АПРЕЛЯ','МАЯ','ИЮНЯ',
-                    'ИЮЛЯ','АВГУСТА','СЕНТЯБРЯ','ОКТЯБРЯ','НОЯБРЯ','ДЕКАБРЯ'];
+  const monthsRU = ['ЯНВАРЬ','ФЕВРАЛЬ','МАРТ','АПРЕЛЬ','МАЙ','ИЮНЬ',
+                    'ИЮЛЬ','АВГУСТ','СЕНТЯБРЬ','ОКТЯБРЬ','НОЯБРЬ','ДЕКАБРЬ'];
   return `${year} ${monthsRU[(month||1)-1]}`;
 }
 
