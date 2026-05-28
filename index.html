@@ -536,6 +536,226 @@
 .faction-bar{ position:relative; overflow:hidden; }
 .faction-fill{ position:absolute; top:0; left:50%; height:100%; }
 .zero-line{ position:absolute; left:50%; top:-2px; bottom:-2px; width:1px; background:rgba(0,0,0,0.35); }
+
+/* ── MAIN TABS ────────────────────────────────────────────────── */
+.main-tabs {
+  display: flex;
+  gap: 0;
+  margin-bottom: 1rem;
+  border-bottom: 2px solid var(--rule);
+}
+.main-tab {
+  background: transparent;
+  border: none;
+  border-bottom: 3px solid transparent;
+  margin-bottom: -2px;
+  padding: 6px 18px 8px;
+  font-family: 'Playfair Display', serif;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: .10em;
+  text-transform: uppercase;
+  color: var(--ink);
+  opacity: .55;
+  cursor: pointer;
+  transition: opacity .15s, border-color .15s;
+}
+.main-tab:hover { opacity: .85; }
+.main-tab.active { opacity: 1; border-bottom-color: var(--red-dark); color: var(--red-dark); }
+
+/* ── NEWSREEL SCREEN ─────────────────────────────────────────── */
+.newsreel-screen {
+  margin-bottom: 2rem;
+}
+.newsreel-projector-top,
+.newsreel-projector-bottom {
+  background: #1a1a1a;
+  padding: 6px 0;
+}
+.newsreel-sprocket-row {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  padding: 0 8px;
+}
+.sprocket {
+  display: block;
+  width: 14px;
+  height: 10px;
+  border-radius: 2px;
+  background: #3a3a3a;
+  border: 1px solid #111;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.08);
+}
+
+.newsreel-frame {
+  position: relative;
+  background: #e8e0c8;
+  overflow: hidden;
+  border-left: 8px solid #1a1a1a;
+  border-right: 8px solid #1a1a1a;
+  min-height: 420px;
+}
+
+/* Film grain / flicker overlay */
+.newsreel-flicker {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 4;
+  background: repeating-linear-gradient(
+    0deg,
+    rgba(0,0,0,0.03) 0px,
+    rgba(0,0,0,0.03) 1px,
+    transparent 1px,
+    transparent 3px
+  );
+  animation: flicker 0.12s steps(1) infinite;
+}
+@keyframes flicker {
+  0%   { opacity: 1; }
+  25%  { opacity: 0.96; }
+  50%  { opacity: 1; }
+  75%  { opacity: 0.94; }
+  100% { opacity: 1; }
+}
+
+/* Vertical film scratches */
+.newsreel-scratches {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 3;
+  background:
+    linear-gradient(90deg, transparent 23%, rgba(255,255,255,0.18) 23.2%, transparent 23.4%),
+    linear-gradient(90deg, transparent 67%, rgba(0,0,0,0.10) 67.15%, transparent 67.3%),
+    linear-gradient(90deg, transparent 81%, rgba(255,255,255,0.12) 81.1%, transparent 81.2%);
+  animation: scratch 4.5s steps(1) infinite;
+}
+@keyframes scratch {
+  0%, 89%  { opacity: 1; }
+  90%       { opacity: 0; }
+  91%       { opacity: 1; }
+  94%       { opacity: 0; }
+  95%       { opacity: 1; }
+}
+
+/* Vignette */
+.newsreel-vignette {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 2;
+  background: radial-gradient(ellipse at 50% 50%, transparent 55%, rgba(0,0,0,0.55) 100%);
+}
+
+.newsreel-content {
+  position: relative;
+  z-index: 5;
+  padding: 2.5rem 3rem;
+  filter: sepia(0.55) contrast(1.1) brightness(0.92);
+}
+.newsreel-logo {
+  font-family: 'Playfair Display', serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .28em;
+  text-align: center;
+  color: rgba(30,20,10,0.75);
+  margin-bottom: .5rem;
+}
+.newsreel-title {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(1.2rem, 3vw, 1.9rem);
+  font-weight: 900;
+  text-align: center;
+  color: rgba(20,10,5,0.92);
+  letter-spacing: .08em;
+  line-height: 1.15;
+}
+.newsreel-subtitle {
+  font-family: 'IM Fell English', serif;
+  font-style: italic;
+  font-size: 14px;
+  text-align: center;
+  color: rgba(30,20,10,0.70);
+  margin-top: .3rem;
+  letter-spacing: .04em;
+}
+.newsreel-divider {
+  height: 2px;
+  background: linear-gradient(90deg, transparent, rgba(30,20,10,0.55), transparent);
+  margin: 1.1rem 0;
+}
+.newsreel-body {
+  font-family: 'IM Fell English', serif;
+  font-size: 14.5px;
+  line-height: 1.72;
+  color: rgba(20,10,5,0.90);
+  column-count: 2;
+  column-gap: 2rem;
+  column-rule: 1px solid rgba(30,20,10,0.20);
+  hyphens: auto;
+}
+.newsreel-body p { margin: 0 0 .9rem; }
+.newsreel-body p:first-child::first-letter {
+  float: left;
+  font-family: 'Playfair Display', serif;
+  font-weight: 900;
+  font-size: 3.2rem;
+  line-height: 0.82;
+  padding: 4px 7px 0 0;
+  color: rgba(20,10,5,0.88);
+}
+.newsreel-stamp {
+  margin-top: 1.4rem;
+  text-align: right;
+  font-family: 'Playfair Display', serif;
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: .22em;
+  color: rgba(139,26,26,0.65);
+  border: 1.5px solid rgba(139,26,26,0.45);
+  display: inline-block;
+  float: right;
+  padding: 3px 10px;
+  transform: rotate(-2deg);
+}
+
+/* ── ENCYCLOPEDIA ─────────────────────────────────────────────── */
+.ency-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 10px;
+  margin-top: .5rem;
+}
+.ency-card {
+  background: var(--cream);
+  border: 1px solid var(--rule);
+  border-radius: 3px;
+  padding: 10px 12px;
+  cursor: pointer;
+  transition: background .15s, transform .12s;
+}
+.ency-card:hover { background: #fff; transform: translateY(-2px); }
+.ency-card.ency-empty { opacity: .6; cursor: default; }
+.ency-card.ency-empty:hover { transform: none; background: var(--cream); }
+.ency-term {
+  display: block;
+  font-family: 'Playfair Display', serif;
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--red-dark);
+  margin-bottom: 3px;
+}
+.ency-stub {
+  display: block;
+  font-family: 'IM Fell English', serif;
+  font-style: italic;
+  font-size: 11px;
+  color: var(--ink);
+  opacity: .6;
+}
 </style>
 </head>
 <body>
@@ -559,7 +779,6 @@
       <div class="dash-meta">
         <span id="current-date">March 1985</span>
         <span id="status-badge" class="status-badge">Stable</span>
-        <span class="budget-badge">Budget: <strong id="budget-inline">100</strong></span>
 </div>
     </div>
 
@@ -700,6 +919,15 @@
   <!-- RIGHT MAIN: GAMEPLAY -->
   <div class="main">
 
+    <!-- MAIN TABS -->
+    <div class="main-tabs">
+      <button class="main-tab active" onclick="switchMainTab('game', this)">Game</button>
+      <button class="main-tab" onclick="switchMainTab('library', this)">Library</button>
+    </div>
+
+    <!-- GAME TAB -->
+    <div id="tab-game" class="main-tab-panel">
+
     <!-- EVENT PANEL -->
 <div class="event-panel pravda" id="event-panel">
   <div class="pravda-masthead">
@@ -759,7 +987,74 @@
         <button class="filter-btn" onclick="setAdvisorFilter('Military', this)">Military</button>
       </div>
       <div class="advisor-grid" id="advisor-grid"></div>
-    </div>
+    </div><!-- /advisor-panel -->
+
+    </div><!-- /tab-game -->
+
+    <!-- LIBRARY TAB -->
+    <div id="tab-library" class="main-tab-panel" style="display:none;">
+
+      <!-- NEWSREEL BRIEFING -->
+      <div class="newsreel-screen">
+        <div class="newsreel-projector-top">
+          <div class="newsreel-sprocket-row">
+            <span class="sprocket"></span><span class="sprocket"></span><span class="sprocket"></span>
+            <span class="sprocket"></span><span class="sprocket"></span><span class="sprocket"></span>
+            <span class="sprocket"></span><span class="sprocket"></span>
+          </div>
+        </div>
+        <div class="newsreel-frame">
+          <div class="newsreel-flicker"></div>
+          <div class="newsreel-scratches"></div>
+          <div class="newsreel-vignette"></div>
+          <div class="newsreel-content">
+            <div class="newsreel-logo">★ СОЮЗКИНОЖУРНАЛ ★</div>
+            <div class="newsreel-title">СОВЕТСКИЙ СОЮЗ — 1985</div>
+            <div class="newsreel-subtitle">Briefing for Party Cadres</div>
+            <div class="newsreel-divider"></div>
+            <div class="newsreel-body">
+              <p>March 1985. Mikhail Sergeyevich Gorbachev assumes the office of General Secretary of the Communist Party of the Soviet Union. He is 54 years old — the youngest member of the Politburo to take power since Stalin.</p>
+              <p>The USSR he inherits is not the USSR of 1945, nor of 1961. It is a superpower in stasis. Eleven time zones. Three hundred million citizens. The world's largest nuclear arsenal. And an economy that has not grown in a decade.</p>
+              <p>Oil prices are falling. The war in Afghanistan grinds on. Corruption runs from the factory floor to the Politburo. A generation of elderly General Secretaries — Brezhnev, Andropov, Chernenko — died in office within three years of one another. The party apparatus is exhausted. The people are cynical.</p>
+              <p>Gorbachev believes the system can be saved. He will speak of <em>glasnost</em> — openness. Of <em>perestroika</em> — restructuring. Of <em>uskoreniye</em> — acceleration. He believes these are repairs, not replacements.</p>
+              <p>He is wrong about what they will become. But he does not know that yet.</p>
+              <p>Neither do you.</p>
+            </div>
+            <div class="newsreel-stamp">СОВЕРШЕННО СЕКРЕТНО</div>
+          </div>
+        </div>
+        <div class="newsreel-projector-bottom">
+          <div class="newsreel-sprocket-row">
+            <span class="sprocket"></span><span class="sprocket"></span><span class="sprocket"></span>
+            <span class="sprocket"></span><span class="sprocket"></span><span class="sprocket"></span>
+            <span class="sprocket"></span><span class="sprocket"></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ENCYCLOPEDIA -->
+      <div class="library-panel">
+        <div class="section-title panel-header" style="margin-top:1.5rem;">Encyclopedia</div>
+        <p style="font-family:'IM Fell English',serif; font-size:13px; font-style:italic; opacity:.75; margin-bottom:1rem;">Key terms, figures, and concepts. Content to be added by Team 6.</p>
+
+        <div class="ency-grid" id="ency-grid">
+          <!-- Placeholder entries -->
+          <div class="ency-card ency-empty"><span class="ency-term">Glasnost</span><span class="ency-stub">Entry pending</span></div>
+          <div class="ency-card ency-empty"><span class="ency-term">Perestroika</span><span class="ency-stub">Entry pending</span></div>
+          <div class="ency-card ency-empty"><span class="ency-term">Uskoreniye</span><span class="ency-stub">Entry pending</span></div>
+          <div class="ency-card ency-empty"><span class="ency-term">Politburo</span><span class="ency-stub">Entry pending</span></div>
+          <div class="ency-card ency-empty"><span class="ency-term">KGB</span><span class="ency-stub">Entry pending</span></div>
+          <div class="ency-card ency-empty"><span class="ency-term">CPSU</span><span class="ency-stub">Entry pending</span></div>
+          <div class="ency-card ency-empty"><span class="ency-term">Nomenklatura</span><span class="ency-stub">Entry pending</span></div>
+          <div class="ency-card ency-empty"><span class="ency-term">Brezhnev Doctrine</span><span class="ency-stub">Entry pending</span></div>
+          <div class="ency-card ency-empty"><span class="ency-term">Sinatra Doctrine</span><span class="ency-stub">Entry pending</span></div>
+          <div class="ency-card ency-empty"><span class="ency-term">Warsaw Pact</span><span class="ency-stub">Entry pending</span></div>
+          <div class="ency-card ency-empty"><span class="ency-term">Chernobyl</span><span class="ency-stub">Entry pending</span></div>
+          <div class="ency-card ency-empty"><span class="ency-term">INF Treaty</span><span class="ency-stub">Entry pending</span></div>
+        </div>
+      </div>
+
+    </div><!-- /tab-library -->
 
   </div><!-- /main -->
 
@@ -2212,7 +2507,14 @@ renderPolicies();
 addTassDateline();
 setTimeout(() => addLog('Gorbachev assumes office. The era of reform begins.'), 200);
 
-// Imports (Dev) file picker
+function switchMainTab(tab, btn) {
+  document.querySelectorAll('.main-tab-panel').forEach(p => p.style.display = 'none');
+  document.querySelectorAll('.main-tab').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + tab).style.display = 'block';
+  btn.classList.add('active');
+}
+
+
 const _importInput = document.getElementById('import-file');
 if (_importInput) {
  _importInput.addEventListener('change', (e) => {
