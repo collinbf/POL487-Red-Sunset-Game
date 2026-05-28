@@ -2600,17 +2600,11 @@ if (gameState.economySub && gameState.economySub.oilBaseline == null) {
 render();
 renderPolicies();
 
-// ── GAME START GATING (wait for Begin) ───────────────────────────────────────
-let gameStarted = false;
-function startGame() {
-  if (gameStarted) return;
-  gameStarted = true;
-  // Print opening TASS dateline then opening log message
-  addTassDateline();
-  setTimeout(() => addLog('Gorbachev assumes office. The era of reform begins.'), 200);
-}
+// Print opening TASS dateline then opening log message
+addTassDateline();
+setTimeout(() => addLog('Gorbachev assumes office. The era of reform begins.'), 200);
 
-// ── SLIDE PROJECTOR SOUND ──────────────────────────────────────────────────── 
+// ── SLIDE PROJECTOR SOUND ────────────────────────────────────────────────────
 const projectorAudio = new Audio('sounds/slideprojector_sounds.wav');
 projectorAudio.volume = 0.7;
 
@@ -2644,7 +2638,7 @@ function dismissIntro() {
 
   const overlay = document.getElementById('intro-modal');
   overlay.classList.add('dismissed');
-  setTimeout(() => { overlay.style.display = 'none'; startGame(); }, 700);
+  setTimeout(() => overlay.style.display = 'none', 700);
 }
 
 function switchMainTab(tab, btn) {
