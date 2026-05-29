@@ -4339,6 +4339,7 @@ function renderMetrics() {
   const labelMap = { economy:'Economy', stability:'Stability', popularSupport:'Popular Support', partyUnity:'Party Unity', foreignRelations:'Foreign Relations', militaryReadiness:'Military Capability' };
 
   for (const [key, val0] of Object.entries(gameState.metrics)) {
+    if (!labelMap[key]) continue;
     const val = Number(val0);
     const label = labelMap[key];
     const color = getMetricColor(val);
@@ -4558,7 +4559,7 @@ function debugMetricRows(){
     { group:'economySub', key:'inflation', label:'Inflation', value:gameState.economySub.inflation, min:0, max:100 },
     { group:'economySub', key:'budgetBalance', label:'Budget Balance', value:gameState.economySub.budgetBalance, min:-100, max:100 },
     { group:'economySub', key:'socialParasitism', label:'Social Parasitism', value:gameState.economySub.socialParasitism, min:0, max:100 },
-    { group:'militarySub', key:'combatReadiness', label:'Combat Readiness', value:gameState.militarySub.combatReadiness, min:0, max:100 },
+    { group:'militarySub', key:'militaryReadiness', label:'Military Readiness', value:gameState.militarySub.combatReadiness, min:0, max:100 },
     { group:'militarySub', key:'loyalty', label:'Military Loyalty', value:gameState.militarySub.loyalty, min:0, max:100 },
   ];
   return rows;
