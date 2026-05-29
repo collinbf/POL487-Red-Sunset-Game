@@ -222,6 +222,150 @@
   
   /* PLAYING-CARD LOOK for policy/advisor choices */
   .policy-card, .advisor-card { position:relative; border:4px solid rgba(92,17,17,0.90); border-radius:4px; background:linear-gradient(180deg, rgba(255,255,255,0.10) 0%, rgba(242,234,216,0.80) 45%, rgba(232,220,192,0.92) 100%); box-shadow:8px 8px 0 rgba(92,17,17,0.55), 0 18px 28px rgba(0,0,0,0.18); overflow:hidden; padding:16px 14px 14px; cursor:pointer; transition:transform .15s, box-shadow .15s; aspect-ratio:3/4; min-height:210px; text-align:left; }
+  /* Advisor card: full-bleed photo background */
+  .advisor-card { padding:0; background:#1a1410; }
+  .advisor-card-photo-bg { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; object-position:top center; filter:grayscale(25%) contrast(1.08) brightness(0.72); z-index:0; }
+  .advisor-card-photo-bg-placeholder { position:absolute; inset:0; background:linear-gradient(160deg,#2a1a1a,#0d0a08); z-index:0; display:flex; align-items:center; justify-content:center; font-size:52px; opacity:0.3; }
+  .advisor-card-overlay { position:absolute; inset:0; background:linear-gradient(180deg, rgba(0,0,0,0.15) 0%, rgba(0,0,0,0.08) 30%, rgba(0,0,0,0.70) 62%, rgba(0,0,0,0.94) 100%); z-index:1; }
+  .advisor-card .card-corner { z-index:3; background:rgba(92,17,17,0.88); }
+  .advisor-card .card-corner.br { display:block; }
+  .advisor-card .card-body { position:absolute; bottom:0; left:0; right:0; z-index:2; padding:10px 12px 32px; }
+  .advisor-name { font-size:14px; font-family:'Playfair Display',serif; font-weight:900; color:#fff; text-shadow:0 1px 4px rgba(0,0,0,0.9); margin:0 0 3px; text-align:left; }
+  .advisor-faction { font-size:9.5px; letter-spacing:.1em; text-transform:uppercase; color:rgba(200,164,74,0.95); text-shadow:0 1px 3px rgba(0,0,0,0.8); margin-bottom:4px; text-align:left; }
+  .advisor-loyalty { font-size:12px; font-family:'Playfair Display',serif; font-weight:700; color:#fff; text-shadow:0 1px 4px rgba(0,0,0,0.9), 0 0 8px rgba(0,0,0,0.7); text-align:left; }
+  .advisor-loyalty.high { color:#7eeaa0; text-shadow:0 1px 4px rgba(0,0,0,0.9), 0 0 10px rgba(0,0,0,0.8); }
+  .advisor-loyalty.mid  { color:#f5d070; text-shadow:0 1px 4px rgba(0,0,0,0.9), 0 0 10px rgba(0,0,0,0.8); }
+  .advisor-loyalty.low  { color:#ff7070; text-shadow:0 1px 4px rgba(0,0,0,0.9), 0 0 10px rgba(0,0,0,0.8); }
+  .advisor-card .advisor-statuses { margin-top:5px; }
+  .advisor-card .advisor-status-chip { background:rgba(0,0,0,0.55); border-color:rgba(255,255,255,0.25); color:#f2ead8; font-size:10px; }
+  .advisor-card .advisor-status-chip.low { color:#ff8080; border-color:rgba(200,60,60,0.55); }
+  .advisor-card .advisor-status-chip.high { color:#80e0a0; border-color:rgba(60,160,80,0.55); }
+  /* Advisor profile detail modal */
+  .advisor-detail-modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 7500;
+    background: rgba(10,6,3,0.82);
+    align-items: center;
+    justify-content: center;
+    overflow-y: auto;
+    padding: 4vh 1rem;
+  }
+  .advisor-detail-modal.active { display: flex; animation: backdropIn 0.3s ease-out forwards; }
+  .advisor-detail-card {
+    position: relative;
+    width: min(640px, 100%);
+    max-height: 90vh;
+    overflow-y: auto;
+    background: linear-gradient(180deg, rgba(255,255,255,0.08) 0%, rgba(242,234,216,0.96) 18%, rgba(232,220,192,0.98) 100%);
+    border: 3px solid rgba(92,17,17,0.92);
+    box-shadow: 0 24px 50px rgba(0,0,0,0.65), 8px 8px 0 rgba(92,17,17,0.45);
+    padding: 0;
+  }
+  .advisor-detail-close {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    z-index: 2;
+    width: 32px;
+    height: 32px;
+    border: 1.5px solid rgba(92,17,17,0.55);
+    background: rgba(242,234,216,0.95);
+    color: var(--red-dark);
+    font-size: 20px;
+    line-height: 1;
+    cursor: pointer;
+    border-radius: 2px;
+  }
+  .advisor-detail-close:hover { background: #fff; }
+  .advisor-detail-hero {
+    position: relative;
+    min-height: 140px;
+    background: #1a1410;
+    padding: 18px 20px 16px;
+    overflow: hidden;
+  }
+  .advisor-detail-hero img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: top center;
+    filter: grayscale(20%) contrast(1.05) brightness(0.55);
+  }
+  .advisor-detail-hero-placeholder {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 64px;
+    opacity: 0.25;
+    color: #f2ead8;
+  }
+  .advisor-detail-hero-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(0,0,0,0.2) 0%, rgba(0,0,0,0.75) 100%);
+  }
+  .advisor-detail-hero-text { position: relative; z-index: 1; }
+  .advisor-detail-name {
+    font-family: 'Playfair Display', serif;
+    font-size: 22px;
+    font-weight: 900;
+    color: #fff;
+    text-shadow: 0 1px 4px rgba(0,0,0,0.9);
+    margin: 0 0 4px;
+  }
+  .advisor-detail-role {
+    font-size: 11px;
+    color: rgba(200,164,74,0.95);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+  .advisor-detail-faction {
+    display: inline-block;
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 2px 8px;
+    border: 1px solid rgba(200,164,74,0.6);
+    color: #f5d070;
+    background: rgba(0,0,0,0.35);
+  }
+  .advisor-detail-body { padding: 16px 20px 20px; }
+  .advisor-detail-section { margin-bottom: 14px; }
+  .advisor-detail-section h4 {
+    font-family: 'Playfair Display', serif;
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--red-dark);
+    margin: 0 0 6px;
+    border-bottom: 1px solid rgba(139,26,26,0.25);
+    padding-bottom: 4px;
+  }
+  .advisor-detail-section p,
+  .advisor-detail-section li {
+    font-family: 'IM Fell English', serif;
+    font-size: 14px;
+    line-height: 1.45;
+    color: var(--ink);
+    margin: 0;
+  }
+  .advisor-detail-policy-list { list-style: none; padding: 0; margin: 0; }
+  .advisor-detail-policy-list li {
+    padding: 5px 0;
+    border-bottom: 1px dashed rgba(139,26,26,0.18);
+    font-size: 13px;
+  }
+  .advisor-detail-policy-list li:last-child { border-bottom: none; }
+  .advisor-detail-policy-list .enacted { opacity: 0.55; text-decoration: line-through; }
+  .advisor-detail-policy-list .opposed-active { color: var(--red); font-style: italic; }
+  .advisor-detail-empty { font-style: italic; opacity: 0.65; }
   .policy-card:hover, .advisor-card:hover { transform: translateY(-3px); box-shadow:10px 10px 0 rgba(92,17,17,0.58), 0 22px 34px rgba(0,0,0,0.22);}
   .policy-card.locked, .policy-card.locked:hover {
     cursor: not-allowed;
@@ -1629,7 +1773,7 @@
       <div class="section-title panel-header">Available Policies</div>
   <div id="policy-selection" style="margin:10px 2px 10px; display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
   <span style="font-family:'IM Fell English',serif; font-size:13px; opacity:.85;">Selected this turn: <strong id="policy-selected-count">0</strong>/3</span>
-  <span style="font-family:'IM Fell English',serif; font-size:13px; opacity:.85;">Predicted cost: <strong id="policy-predicted-cost">0</strong></span>
+  <span style="font-family:'IM Fell English',serif; font-size:13px; opacity:.65; font-style:italic;">Showing 6 of available policies — redraw for more</span>
   <span class="budget-badge">Budget: <strong id="budget-inline">100</strong></span>
 </div>
       <div class="active-policy-list" id="active-policy-list"></div>
@@ -1638,6 +1782,7 @@
         <button class="filter-btn active" onclick="setPolicyFilter('All', this)">All</button>
         <button class="filter-btn" onclick="setPolicyFilter('Domestic', this)">Domestic</button>
         <button class="filter-btn" onclick="setPolicyFilter('Foreign', this)">Foreign</button>
+        <button class="filter-btn" onclick="dealPolicyHand(true);renderPolicies();" title="Draw a new set of 6 policies" style="margin-left:auto;">↺ Redraw Hand</button>
       </div>
       <div class="policy-grid" id="policy-grid"></div>
 
@@ -1717,6 +1862,14 @@
   </div><!-- /main -->
 
 </div><!-- /game-layout -->
+
+<!-- ADVISOR PROFILE MODAL -->
+<div id="advisor-detail-modal" class="advisor-detail-modal" aria-hidden="true" onclick="if(event.target===this)closeAdvisorDetail()">
+  <div class="advisor-detail-card" role="dialog" aria-labelledby="advisor-detail-title">
+    <button type="button" class="advisor-detail-close" onclick="closeAdvisorDetail()" aria-label="Close profile">&times;</button>
+    <div id="advisor-detail-body"></div>
+  </div>
+</div>
 
 <script>
 
@@ -1811,9 +1964,51 @@ const gameState = {
 const uiState = {
   policyCategory: 'All',
   advisorFaction: 'All',
+  advisorDetailId: null,
   audioMuted: false,
   audioVolume: 0.7,
+  policyHandIds: [],   // IDs of policies currently shown (the "hand")
+  policyHandTurn: -1,  // Turn on which the hand was last dealt
 };
+
+const POLICY_HAND_SIZE = 6; // Number of policy cards shown at once
+
+// ── POLICY VISIBILITY GATE (Option D: date + metric + advisor) ────────
+function checkPolicyVisible(policy) {
+  const v = policy.visibleIf;
+  if (!v) return true; // no gate — always visible
+  const m  = gameState.metrics;
+  const pf = gameState.partyFactions;
+  const y  = gameState.year;
+  const sep = gameState.separatism || 0;
+
+  if (v.minYear  !== undefined && y < v.minYear)  return false;
+  if (v.maxYear  !== undefined && y > v.maxYear)  return false;
+
+  if (v.minSeparatism     !== undefined && sep                    < v.minSeparatism)     return false;
+  if (v.maxStability      !== undefined && m.stability            > v.maxStability)      return false;
+  if (v.maxEconomy        !== undefined && m.economy              > v.maxEconomy)        return false;
+  if (v.maxPartyUnity     !== undefined && m.partyUnity           > v.maxPartyUnity)     return false;
+  if (v.minHardlinerFaction !== undefined && pf.hardliner         < v.minHardlinerFaction) return false;
+
+  return true;
+}
+
+function dealPolicyHand(forceRedraw) {
+  // Re-deal if: new turn, forced redraw, or hand is empty
+  if (!forceRedraw && uiState.policyHandTurn === gameState.turn && uiState.policyHandIds.length > 0) return;
+  const cat = uiState.policyCategory;
+  const pool = policies.filter(p => {
+    if (cat && cat !== 'All' && String(p.category || '').toLowerCase() !== String(cat).toLowerCase()) return false;
+    if (!checkPolicyVisible(p)) return false;
+    const a = getPolicyAvailability(p);
+    return !a.alreadyEnacted && a.missingPrereqs.length === 0;
+  });
+  // Shuffle and pick POLICY_HAND_SIZE
+  const shuffled = pool.slice().sort(() => Math.random() - 0.5);
+  uiState.policyHandIds = shuffled.slice(0, POLICY_HAND_SIZE).map(p => p.id);
+  uiState.policyHandTurn = gameState.turn;
+}
 
 // Active event currently displayed (simplifies button handlers)
 let activeEvent = null;
@@ -1829,6 +2024,7 @@ function setActiveFilter(containerId, btnEl) {
 function setPolicyFilter(category, btnEl) {
   uiState.policyCategory = category;
   setActiveFilter('policy-filters', btnEl);
+  dealPolicyHand(true); // redeal for new category
   renderPolicies();
 }
 
@@ -1883,6 +2079,7 @@ function flashTestButton() {  const btn = document.getElementById('test-event-bt
 // 2. THE CONTENT  -  Policies, Events, Advisors (placeholder data from other teams)
 
 let policies = [
+  // ── CORE POLICIES ─────────────────────────────────────────────────
   {
     id: 'uskoreniye',
     name: 'Uskoreniye (Acceleration)',
@@ -1893,6 +2090,7 @@ let policies = [
     duration: 'permanent',
     advisorRequired: 'ryzhkov',
     advisorOpposition: ['ligachev'],
+    // No visibleIf — available from the start
   },
   {
     id: 'glasnost',
@@ -1904,6 +2102,7 @@ let policies = [
     duration: 'permanent',
     advisorRequired: 'yakovlev',
     advisorOpposition: ['ligachev'],
+    // No visibleIf — available from the start
   },
   {
     id: 'perestroika',
@@ -1916,6 +2115,7 @@ let policies = [
     prerequisites: ['uskoreniye'],
     advisorRequired: 'yakovlev',
     advisorOpposition: ['ligachev', 'akhromeyev'],
+    // Prereq gate handles visibility
   },
   {
     id: 'inf-treaty',
@@ -1927,6 +2127,7 @@ let policies = [
     duration: 'permanent',
     advisorRequired: 'shevardnadze',
     advisorOpposition: ['akhromeyev'],
+    visibleIf: { minYear: 1987 },
   },
   {
     id: 'afghanistan-pullout',
@@ -1938,40 +2139,346 @@ let policies = [
     duration: 'permanent',
     advisorRequired: 'shevardnadze',
     advisorOpposition: ['akhromeyev'],
+    visibleIf: { minYear: 1988 },
   },
   {
     id: 'geneva_summit',
     name: 'Geneva Summit — Meet with Reagan',
     category: 'Foreign',
     cost: 8,
-    description: 'Travel to Geneva for a direct bilateral meeting with President Reagan. The first Soviet–American summit since 1979. Pursue arms reduction, reject engagement, or seek a bold nuclear concession.',
+    description: 'Travel to Geneva for a direct bilateral meeting with President Reagan.',
     effects: { foreignRelations: +8, partyUnity: -5, economy: +3 },
     duration: 'permanent',
     advisorRequired: 'shevardnadze',
     advisorOpposition: ['ligachev', 'akhromeyev'],
+    visibleIf: { minYear: 1985, maxYear: 1986 },
   },
   {
     id: 'reykjavik_summit',
     name: 'Reykjavik Summit — Nuclear Ultimatum',
     category: 'Foreign',
     cost: 10,
-    description: 'Convene with Reagan in Iceland with a dramatic proposal: the total elimination of all strategic nuclear weapons within ten years. The talks will hinge on the American SDI programme.',
+    description: 'Convene with Reagan in Iceland with a dramatic proposal: the total elimination of all strategic nuclear weapons within ten years.',
     effects: { foreignRelations: +3, partyUnity: +3, militaryReadiness: +3 },
     duration: 'permanent',
     prerequisites: ['geneva_summit'],
     advisorRequired: 'shevardnadze',
     advisorOpposition: ['akhromeyev'],
+    visibleIf: { minYear: 1986, maxYear: 1987 },
   },
   {
     id: 'sino_soviet_summit',
     name: 'Sino-Soviet Summit — Normalise with Beijing',
     category: 'Foreign',
     cost: 8,
-    description: 'Accept Deng Xiaoping\'s invitation to Beijing — the first Soviet–Chinese summit since 1959. Pursue demilitarisation of the border, resolve the Cambodia question, or decline entirely amid the Tiananmen crisis.',
+    description: 'Accept Deng Xiaoping\'s invitation to Beijing — the first Soviet–Chinese summit since 1959.',
     effects: { foreignRelations: +10, economy: +5, militaryReadiness: -5 },
     duration: 'permanent',
     advisorRequired: 'shevardnadze',
     advisorOpposition: ['akhromeyev'],
+    visibleIf: { minYear: 1989 },
+  },
+
+  // ── YAKOVLEV POLICIES ──────────────────────────────────────────────
+  {
+    id: 'yakovlev_glasnost_initiation',
+    name: 'Initiate Glasnost',
+    category: 'Domestic',
+    cost: 0,
+    description: 'Lift decades of censorship across all Soviet media. Citizens and journalists are permitted to openly discuss and criticise the government and party.',
+    effects: { popularSupport: +8, partyUnity: -8, stability: -5 },
+    duration: 'permanent',
+    advisorRequired: 'yakovlev',
+    advisorOpposition: ['ligachev'],
+    // No visibleIf — available from the start if Yakovlev is loyal
+  },
+  {
+    id: 'yakovlev_nonintervention',
+    name: 'Eastern Europe: Non-Intervention',
+    category: 'Foreign',
+    cost: 0,
+    description: 'Restrain Soviet forces from suppressing resistance in satellite states and publicly endorse their right to self-determination.',
+    effects: { foreignRelations: +8, partyUnity: -5, popularSupport: +3, stability: -3 },
+    duration: 'permanent',
+    advisorRequired: 'yakovlev',
+    advisorOpposition: ['akhromeyev'],
+    visibleIf: { minSeparatism: 20 },
+  },
+  {
+    id: 'yakovlev_molotov_ribbentrop',
+    name: 'Disclose the Molotov–Ribbentrop Secret Protocol',
+    category: 'Domestic',
+    cost: 0,
+    description: 'Publicly disclose the 1939 Nazi-Soviet Pact\'s secret annexes, directly implicating Stalin in the illegal occupation of the Baltic states.',
+    effects: { popularSupport: +5, partyUnity: -8, stability: -5, foreignRelations: +3 },
+    duration: 'permanent',
+    prerequisites: ['glasnost'],
+    advisorRequired: 'yakovlev',
+    advisorOpposition: ['ligachev'],
+    visibleIf: { minYear: 1988 },
+  },
+  {
+    id: 'yakovlev_manifesto',
+    name: 'Draft a New Ideological Manifesto',
+    category: 'Domestic',
+    cost: 5,
+    description: 'Commission Yakovlev to write a party document redefining Soviet socialism — moving away from Marxist-Leninist orthodoxy toward democratic socialist principles.',
+    effects: { popularSupport: +5, partyUnity: -10, stability: -3 },
+    duration: 'permanent',
+    prerequisites: ['glasnost'],
+    advisorRequired: 'yakovlev',
+    advisorOpposition: ['ligachev'],
+    visibleIf: { minYear: 1988 },
+  },
+
+  // ── AKHROMEYEV POLICIES ────────────────────────────────────────────
+  {
+    id: 'akhromeyev_afghanistan_escalation',
+    name: 'Escalate Operations in Afghanistan',
+    category: 'Foreign',
+    cost: 15,
+    description: 'Deploy additional troops to crack down on the Islamist insurgency in Afghanistan, displaying strength both at home and abroad.',
+    effects: { militaryReadiness: +10, economy: +5, popularSupport: -5, foreignRelations: -8, partyUnity: +5 },
+    duration: 'permanent',
+    advisorRequired: 'akhromeyev',
+    advisorOpposition: ['shevardnadze'],
+    visibleIf: { maxYear: 1988 }, // Irrelevant once withdrawal begins
+  },
+  {
+    id: 'akhromeyev_weapons_development',
+    name: 'Develop New Mid-Range Missile Platform',
+    category: 'Domestic',
+    cost: 15,
+    description: 'Direct and fund the development of a new mid-range missile platform to counter American deployment.',
+    effects: { militaryReadiness: +15, economy: -5, popularSupport: -5, foreignRelations: -10 },
+    duration: 'permanent',
+    advisorRequired: 'akhromeyev',
+    advisorOpposition: ['shevardnadze'],
+    visibleIf: { maxYear: 1987 }, // Pre-INF Treaty window only
+  },
+  {
+    id: 'akhromeyev_inf_treaty',
+    name: 'INF Treaty — Intermediate-Range Nuclear Forces',
+    category: 'Foreign',
+    cost: 0,
+    description: 'Sign the historic INF Treaty with the United States, eliminating an entire class of nuclear weapons and easing global tensions.',
+    effects: { foreignRelations: +15, popularSupport: +5, economy: +5, partyUnity: -8 },
+    duration: 'permanent',
+    advisorRequired: 'akhromeyev',
+    advisorOpposition: ['varennikov'],
+    visibleIf: { minYear: 1987, maxYear: 1988 },
+  },
+  {
+    id: 'akhromeyev_eastern_bloc_crackdown',
+    name: 'Tighten Control on Eastern Bloc Dissent',
+    category: 'Foreign',
+    cost: 5,
+    description: 'Deploy Soviet forces to quell protests in the Eastern Bloc, keeping satellite states stable and intact.',
+    effects: { stability: +8, foreignRelations: -10, popularSupport: -5, partyUnity: +8 },
+    duration: 'permanent',
+    advisorRequired: 'akhromeyev',
+    advisorOpposition: ['shevardnadze'],
+    visibleIf: { minSeparatism: 30 },
+  },
+
+  // ── ALIYEV POLICIES ────────────────────────────────────────────────
+  {
+    id: 'aliyev_infrastructure',
+    name: 'Regional Infrastructure Investment',
+    category: 'Domestic',
+    cost: 10,
+    description: 'Direct state funds into Soviet transport networks to stabilize the republics.',
+    effects: { economy: +10, stability: +10, popularSupport: +5, partyUnity: +5 },
+    duration: 'permanent',
+    advisorRequired: 'aliyev',
+    advisorOpposition: ['yakovlev'],
+    // No visibleIf — always available if Aliyev is loyal
+  },
+  {
+    id: 'aliyev_kgb_crackdown',
+    name: 'KGB Crackdown on Dissent',
+    category: 'Domestic',
+    cost: 5,
+    description: 'Utilise Aliyev\'s deep KGB ties to quietly suppress early nationalist and separatist movements.',
+    effects: { stability: +15, popularSupport: -10, foreignRelations: -5, partyUnity: +8 },
+    duration: 'permanent',
+    advisorRequired: 'aliyev',
+    advisorOpposition: ['shevardnadze'],
+    visibleIf: { maxStability: 50 },
+  },
+  {
+    id: 'aliyev_consolidate_bureaucracy',
+    name: 'Consolidate the Bureaucracy',
+    category: 'Domestic',
+    cost: 0,
+    description: 'Task Aliyev with managing the state apparatus to ensure party directives are strictly enforced at the local level.',
+    effects: { partyUnity: +15, economy: -5, popularSupport: -5 },
+    duration: 'permanent',
+    advisorRequired: 'aliyev',
+    advisorOpposition: ['yeltsin'],
+    visibleIf: { maxPartyUnity: 60 },
+  },
+  {
+    id: 'aliyev_regional_patronage',
+    name: 'Cultivate Regional Patronage in the Caucasus',
+    category: 'Domestic',
+    cost: 15,
+    description: 'Funnel federal resources to local party bosses in the Caucasus to secure absolute regional loyalty to Moscow.',
+    effects: { stability: +10, partyUnity: +5, economy: -5, popularSupport: -5 },
+    duration: 'permanent',
+    advisorRequired: 'aliyev',
+    advisorOpposition: ['yakovlev'],
+    visibleIf: { minSeparatism: 25 },
+  },
+
+  // ── VARENNIKOV POLICIES ────────────────────────────────────────────
+  {
+    id: 'varennikov_afghanistan',
+    name: 'Scorched Earth in Afghanistan',
+    category: 'Foreign',
+    cost: 10,
+    description: 'Authorise Varennikov to take total operational control in Afghanistan, lifting restrictions on civilian casualties and heavy bombing.',
+    effects: { militaryReadiness: +15, partyUnity: +8, foreignRelations: -15, popularSupport: -10 },
+    duration: 'permanent',
+    advisorRequired: 'varennikov',
+    advisorOpposition: ['shevardnadze'],
+    visibleIf: { maxYear: 1988 },
+  },
+  {
+    id: 'varennikov_martial_law',
+    name: 'Enforce Martial Law',
+    category: 'Domestic',
+    cost: 10,
+    description: 'Deploy the Red Army to crush separatist uprisings in the breakaway republics, ignoring local civilian authorities.',
+    effects: { stability: +20, popularSupport: -20, foreignRelations: -10, partyUnity: +8 },
+    duration: 'permanent',
+    advisorRequired: 'varennikov',
+    advisorOpposition: ['yakovlev'],
+    visibleIf: { minSeparatism: 40 },
+  },
+  {
+    id: 'varennikov_military_industrial',
+    name: 'Feed the Military-Industrial Complex',
+    category: 'Domestic',
+    cost: 15,
+    description: 'Divert crucial state funding back into massive conventional weapons manufacturing. The generals are appeased, but bread lines grow longer as the civilian economy starves.',
+    effects: { militaryReadiness: +20, economy: -15, popularSupport: -15 },
+    duration: 'permanent',
+    advisorRequired: 'varennikov',
+    advisorOpposition: ['ryzhkov'],
+    // No visibleIf — available whenever Varennikov is loyal
+  },
+  {
+    id: 'varennikov_intimidate_reformers',
+    name: 'Intimidate the Reformers',
+    category: 'Domestic',
+    cost: 0,
+    description: 'Allow Varennikov to deliver threatening speeches in the Politburo, reminding civilian leaders that the Army ultimately guarantees the State.',
+    effects: { partyUnity: +15, popularSupport: -8, stability: +5 },
+    duration: 'permanent',
+    advisorRequired: 'varennikov',
+    advisorOpposition: ['yeltsin'],
+    visibleIf: { minHardlinerFaction: 40 },
+  },
+
+  // ── NAZARBAYEV POLICIES ────────────────────────────────────────────
+  {
+    id: 'nazarbayev_industrialisation',
+    name: 'Kazakh Industrial Modernisation',
+    category: 'Domestic',
+    cost: 10,
+    description: 'Allocate federal funds to modernise heavy industry and agriculture in the Kazakh steppes.',
+    effects: { economy: +15, popularSupport: +5, partyUnity: -3 },
+    duration: 'permanent',
+    advisorRequired: 'nazarbayev',
+    advisorOpposition: ['ligachev'],
+    // No visibleIf — available whenever Nazarbayev is present
+  },
+  {
+    id: 'nazarbayev_union_treaty',
+    name: 'Mediate the New Union Treaty',
+    category: 'Domestic',
+    cost: 0,
+    description: 'Deploy Nazarbayev to negotiate power-sharing agreements between Moscow and the increasingly restless republics.',
+    effects: { stability: +10, partyUnity: -5, popularSupport: +8, foreignRelations: +3 },
+    duration: 'permanent',
+    advisorRequired: 'nazarbayev',
+    advisorOpposition: ['ligachev'],
+    visibleIf: { minSeparatism: 40 },
+  },
+  {
+    id: 'nazarbayev_resource_extraction',
+    name: 'Maximise Central Asian Resource Extraction',
+    category: 'Domestic',
+    cost: 0,
+    description: 'Demand maximum quotas of fossil fuels, minerals, and grain from Central Asia to prop up the failing central economy.',
+    effects: { economy: +10, popularSupport: -10, stability: -5 },
+    duration: 'permanent',
+    advisorRequired: 'nazarbayev',
+    advisorOpposition: ['yeltsin'],
+    visibleIf: { maxEconomy: 40 },
+  },
+  {
+    id: 'nazarbayev_ethnic_balance',
+    name: 'Balance Ethnic Tensions in Central Asia',
+    category: 'Domestic',
+    cost: 5,
+    description: 'Empower Nazarbayev to manage the delicate divide between ethnic Kazakhs and northern Russians to prevent violent clashes.',
+    effects: { stability: +15, popularSupport: +5, partyUnity: -3 },
+    duration: 'permanent',
+    advisorRequired: 'nazarbayev',
+    advisorOpposition: ['akhromeyev'],
+    visibleIf: { maxStability: 60 },
+  },
+
+  // ── KARIMOV POLICIES ───────────────────────────────────────────────
+  {
+    id: 'karimov_cotton_quota',
+    name: 'Uzbek Cotton Quota Enforcement',
+    category: 'Domestic',
+    cost: 0,
+    description: 'Mandate extreme measures to maximise the Uzbek cotton harvest. The federal treasury swells, but human rights watchdogs are appalled.',
+    effects: { economy: +15, popularSupport: -10, foreignRelations: -10 },
+    duration: 'permanent',
+    advisorRequired: 'karimov',
+    advisorOpposition: ['yakovlev'],
+    visibleIf: { minYear: 1989, maxEconomy: 50 },
+  },
+  {
+    id: 'karimov_purge_opposition',
+    name: 'Purge Local Opposition in Uzbekistan',
+    category: 'Domestic',
+    cost: 5,
+    description: 'Allow Karimov to unleash the state security apparatus against nationalist and democratic opposition groups.',
+    effects: { stability: +10, popularSupport: -8, foreignRelations: -5, partyUnity: +5 },
+    duration: 'permanent',
+    advisorRequired: 'karimov',
+    advisorOpposition: ['shevardnadze'],
+    visibleIf: { minYear: 1989, maxStability: 50 },
+  },
+  {
+    id: 'karimov_anticorruption',
+    name: 'Anti-Corruption Sweep — Cotton Scandal Legacy',
+    category: 'Domestic',
+    cost: 5,
+    description: 'Exploit the legacy of the Cotton Scandal to purge disloyal bureaucrats and replace them with Karimov\'s loyalists.',
+    effects: { economy: +5, partyUnity: -5, popularSupport: +3 },
+    duration: 'permanent',
+    advisorRequired: 'karimov',
+    advisorOpposition: ['yakovlev'],
+    visibleIf: { minYear: 1989 },
+  },
+  {
+    id: 'karimov_fergana_crackdown',
+    name: 'Suppress Ethnic Conflict in the Fergana Valley',
+    category: 'Domestic',
+    cost: 10,
+    description: 'Deploy heavily armed interior troops to stamp out inter-ethnic violence in the Fergana Valley with zero tolerance.',
+    effects: { stability: +15, popularSupport: -15, foreignRelations: -5 },
+    duration: 'permanent',
+    advisorRequired: 'karimov',
+    advisorOpposition: ['yeltsin'],
+    visibleIf: { minYear: 1989, minSeparatism: 45 },
   },
 ];
 
@@ -2113,12 +2620,157 @@ The Council of Ministers and the Supreme Soviet await your directive. Each path 
 ];
 
 let advisors = [
-  { id: 'yakovlev', name: 'Alexander Yakovlev', role: 'Chief Ideologist', faction: 'Reformist', loyalty: 75 },
-  { id: 'shevardnadze', name: 'Eduard Shevardnadze', role: 'Foreign Minister', faction: 'Reformist', loyalty: 70 },
-  { id: 'ligachev', name: 'Yegor Ligachev', role: 'Party Secretary', faction: 'Conservative', loyalty: 55 },
-  { id: 'yeltsin', name: 'Boris Yeltsin', role: 'Moscow Party Boss', faction: 'Reformist', loyalty: 50 },
-  { id: 'ryzhkov', name: 'Nikolai Ryzhkov', role: 'Prime Minister', faction: 'Centrist', loyalty: 60 },
-  { id: 'akhromeyev', name: 'Sergey Akhromeyev', role: 'Chief of Staff', faction: 'Military', loyalty: 65 },
+  {
+    id: 'yakovlev',
+    name: 'Alexander Yakovlev',
+    role: 'Chief Ideologist — Architect of Perestroika',
+    faction: 'Reformist',
+    loyalty: 70,
+    effectiveness: 80,
+    image: 'images/Александр_Яковлев_(cropped).jpg',
+    description: 'The ideological engine behind both perestroika and glasnost. Inspired by his time at Columbia University, Yakovlev became the de facto "father of glasnost," dismantling Soviet censorship. The most intellectually committed reformer in the Politburo.',
+    specialty: 'Unlocks glasnost-related policies. Required for Freedom of the Press and Multi-Party Elections.',
+    reactionLiberal: +5,
+    reactionConservative: -10,
+    threshold: 20,
+    thresholdEffect: 'Resigns publicly — Stability -5, Popular Support -5',
+  },
+  {
+    id: 'shevardnadze',
+    name: 'Eduard Shevardnadze',
+    role: 'Foreign Minister',
+    faction: 'Reformist',
+    loyalty: 70,
+    effectiveness: 80,
+    image: null,
+    description: 'A close ally of Gorbachev and the architect of the Soviet Union\'s new diplomatic openness. Essential for all arms control and Western engagement initiatives.',
+    specialty: 'Required advisor for all major foreign summit policies.',
+    reactionLiberal: +5,
+    reactionConservative: -8,
+    threshold: 20,
+    thresholdEffect: 'Resigns publicly — Foreign Relations -15, Popular Support -5',
+  },
+  {
+    id: 'ligachev',
+    name: 'Yegor Ligachev',
+    role: 'Second Secretary of the Central Committee',
+    faction: 'Conservative',
+    loyalty: 55,
+    effectiveness: 70,
+    image: null,
+    description: 'The principal conservative voice in the Politburo. Ligachev supports discipline, anti-corruption measures, and the primacy of party authority. He views glasnost as a dangerous experiment.',
+    specialty: 'Supports conservative domestic policies. Opposes all glasnost and liberalisation measures.',
+    reactionLiberal: -10,
+    reactionConservative: +10,
+    threshold: 15,
+    thresholdEffect: 'Leads conservative faction against reforms — Party Unity -10, Stability -8',
+  },
+  {
+    id: 'yeltsin',
+    name: 'Boris Yeltsin',
+    role: 'First Secretary, Moscow City Party Committee',
+    faction: 'Reformist',
+    loyalty: 50,
+    effectiveness: 75,
+    image: 'images/Boris_Yeltsin_deputies.jpg',
+    description: 'An ambitious and populist reformer whose relationship with Gorbachev is volatile. His denunciation at the 1987 Plenum marked the beginning of an open rivalry that would define the late Soviet period.',
+    specialty: 'Boosts popular support for reform policies. His loyalty is uniquely difficult to maintain.',
+    reactionLiberal: +8,
+    reactionConservative: -15,
+    threshold: 10,
+    thresholdEffect: 'Breaks openly with Gorbachev — Popular Support -10, Stability -8',
+  },
+  {
+    id: 'ryzhkov',
+    name: 'Nikolai Ryzhkov',
+    role: 'Chairman of the Council of Ministers',
+    faction: 'Centrist',
+    loyalty: 60,
+    effectiveness: 70,
+    image: null,
+    description: 'The pragmatic technocrat overseeing the Soviet economy. Ryzhkov supports measured reform but fears the social consequences of rapid liberalisation. A capable administrator caught between two camps.',
+    specialty: 'Supports economic modernisation policies. Required for major industrial programmes.',
+    reactionLiberal: +3,
+    reactionConservative: +3,
+    threshold: 20,
+    thresholdEffect: 'Resigns — Economy -10, Party Unity -5',
+  },
+  {
+    id: 'akhromeyev',
+    name: 'Sergey Akhromeyev',
+    role: 'Chief of the General Staff',
+    faction: 'Military',
+    loyalty: 50,
+    effectiveness: 90,
+    image: 'images/Sergey_Akhromeyev_1.jpg',
+    description: 'A loyal believer in Soviet Communism who favours reduced tensions with Washington yet remains unwavering in his commitment to the Soviet cause. His effective relationship with his US counterpart gives him unusual credibility in arms control.',
+    specialty: 'Oversees military readiness and arms control implementation. Opposes all liberalisation.',
+    reactionLiberal: -5,
+    reactionConservative: +15,
+    threshold: 10,
+    thresholdEffect: 'Commits suicide — Military Readiness -35, Party Unity -5, Stability -5',
+  },
+  {
+    id: 'aliyev',
+    name: 'Heydar Aliyev',
+    role: 'First Deputy Premier / Politburo Member',
+    faction: 'Conservative',
+    loyalty: 65,
+    effectiveness: 85,
+    image: 'images/Heydar_Aliyev_(crop).jpg',
+    description: 'A formidable conservative powerbroker and former KGB chief in Azerbaijan. A master of regional stability, infrastructure logistics, and strict party discipline. Your primary asset for maintaining control over the restive southern republics, though his methods reinforce the old guard\'s patronage networks.',
+    specialty: 'Maintains order and stifles separatism in the Caucasus. Oversees state infrastructure and transport logistics.',
+    reactionLiberal: -10,
+    reactionConservative: +15,
+    threshold: 15,
+    thresholdEffect: 'Incites bureaucratic strike before forced retirement — Party Unity -15, Stability -10',
+  },
+  {
+    id: 'varennikov',
+    name: 'Valentin Varennikov',
+    role: 'General of the Army / Deputy Minister of Defence',
+    faction: 'Conservative',
+    loyalty: 40,
+    effectiveness: 90,
+    image: 'images/Valentin_Varennikov.jpg',
+    description: 'A highly decorated WWII veteran and the uncompromising face of the military\'s old guard. Having commanded in Afghanistan and managed the Chernobyl cleanup, Varennikov views perestroika as a betrayal of Soviet ideals. The ultimate blunt instrument for crushing rebellion — and an active threat to democratic reform.',
+    specialty: 'Orchestrates counter-insurgency and large-scale military deployments. Imposes martial law.',
+    reactionLiberal: -20,
+    reactionConservative: +15,
+    threshold: 10,
+    thresholdEffect: 'Conspires to launch the August Coup — Stability -40, Party Unity -30',
+  },
+  {
+    id: 'nazarbayev',
+    name: 'Nursultan Nazarbayev',
+    role: 'First Secretary of Kazakhstan / Politburo Member',
+    faction: 'Centrist',
+    loyalty: 75,
+    effectiveness: 85,
+    image: 'images/Nazarbayev_Alma-Ata_Protocol.jpg',
+    description: 'A highly capable and forward-looking leader from the Kazakh SSR. Nazarbayev supports economic restructuring and a decentralised New Union Treaty, but is cautious about rapid political liberalisation. Essential for stability in Central Asia and keeping the resource-rich republics tied to Moscow.',
+    specialty: 'Balances ethnic tensions in Central Asia. Negotiates federal relations and drives regional modernisation.',
+    reactionLiberal: +5,
+    reactionConservative: -5,
+    threshold: 15,
+    thresholdEffect: 'Declares Kazakh independence — Economy -25, Stability -20',
+  },
+  {
+    id: 'karimov',
+    name: 'Islam Karimov',
+    role: 'First Secretary of Uzbekistan / Politburo Member',
+    faction: 'Conservative',
+    loyalty: 55,
+    effectiveness: 80,
+    image: 'images/Islam_Karimov_(cropped).jpg',
+    description: 'An iron-fisted leader installed to clean up corruption following the Uzbek Cotton Scandal. A ruthless pragmatist whose true loyalty is to his own regional supremacy. Highly effective at crushing dissent and maintaining agricultural quotas, but his authoritarian methods alienate reformers and risk international condemnation.',
+    specialty: 'Suppresses political opposition and nationalist movements. Controls the Uzbek cotton industry.',
+    reactionLiberal: -15,
+    reactionConservative: +10,
+    threshold: 10,
+    thresholdEffect: 'Insulates Uzbekistan and declares early independence — Stability -10, Foreign Relations -15',
+    availableFrom: { year: 1989 },
+  },
 ];
 
 let libraryEntries = [
@@ -2499,6 +3151,124 @@ function policiesUsingAdvisor(advisorId){
   return policies.filter(p => p.advisorRequired === advisorId || (p.advisorOpposition || []).includes(advisorId));
 }
 
+function advisorUnlockPolicies(advisorId){
+  return policies.filter(p => p.advisorRequired === advisorId);
+}
+
+function advisorOpposedPolicies(advisorId){
+  return policies.filter(p => (p.advisorOpposition || []).includes(advisorId));
+}
+
+function getAdvisorById(advisorId){
+  return advisors.find(a => a.id === advisorId);
+}
+
+function buildAdvisorDetailContent(a){
+  const loyalty = Number(gameState.advisorLoyalty[a.id] ?? a.defaultLoyalty ?? a.loyalty ?? 50);
+  const status = gameState.advisorStatus[a.id] || {};
+  const enacted = enactedPolicySet();
+  const selected = new Set(gameState.selectedPolicies || []);
+  let loyaltyCls = 'mid';
+  if (loyalty >= 75) loyaltyCls = 'high';
+  if (loyalty <= 40) loyaltyCls = 'low';
+
+  const statusNote = status.resigned || loyalty < 20
+    ? '<p class="advisor-detail-empty" style="color:var(--red);font-style:normal;">This advisor has resigned and no longer supports your agenda.</p>'
+    : status.emboldened || loyalty >= 80
+      ? '<p style="color:var(--green);font-style:italic;">Emboldened — unusually effective this month.</p>'
+      : '';
+
+  const unlocks = advisorUnlockPolicies(a.id);
+  const opposes = advisorOpposedPolicies(a.id);
+  const unlockHtml = unlocks.length
+    ? `<ul class="advisor-detail-policy-list">${unlocks.map(p => {
+        const done = enacted.has(p.id);
+        return `<li class="${done ? 'enacted' : ''}">${escapeHtml(p.name)}${done ? ' — enacted' : ''}</li>`;
+      }).join('')}</ul>`
+    : '<p class="advisor-detail-empty">No policies require this advisor.</p>';
+
+  const opposeHtml = opposes.length
+    ? `<ul class="advisor-detail-policy-list">${opposes.map(p => {
+        const active = selected.has(p.id);
+        return `<li class="${active ? 'opposed-active' : ''}">${escapeHtml(p.name)}${active ? ' — opposes your current selection' : ''}</li>`;
+      }).join('')}</ul>`
+    : '<p class="advisor-detail-empty">Does not formally oppose any policy in the deck.</p>';
+
+  const photo = a.image
+    ? `<img src="${escapeHtml(a.image)}" alt="">`
+    : `<div class="advisor-detail-hero-placeholder">☭</div>`;
+
+  const threshold = a.thresholdEffect
+    ? `<div class="advisor-detail-section"><h4>If loyalty falls too low</h4><p>${escapeHtml(a.thresholdEffect)}</p></div>`
+    : '';
+
+  return `
+    <div class="advisor-detail-hero">
+      ${photo}
+      <div class="advisor-detail-hero-overlay"></div>
+      <div class="advisor-detail-hero-text">
+        <h2 class="advisor-detail-name" id="advisor-detail-title">${escapeHtml(a.name)}</h2>
+        <div class="advisor-detail-role">${escapeHtml(a.role || '')}</div>
+        <span class="advisor-detail-faction">${escapeHtml(a.faction || 'Advisor')}</span>
+        <div class="advisor-loyalty ${loyaltyCls}" style="margin-top:10px;color:#fff;">Loyalty: ${loyalty}</div>
+      </div>
+    </div>
+    <div class="advisor-detail-body">
+      ${statusNote}
+      <div class="advisor-detail-section">
+        <h4>Profile</h4>
+        <p>${escapeHtml(a.description || 'No biography available.')}</p>
+      </div>
+      <div class="advisor-detail-section">
+        <h4>Specialty</h4>
+        <p>${escapeHtml(a.specialty || 'No specialty listed.')}</p>
+      </div>
+      <div class="advisor-detail-section">
+        <h4>Policies unlocked</h4>
+        ${unlockHtml}
+      </div>
+      <div class="advisor-detail-section">
+        <h4>Policies opposed</h4>
+        ${opposeHtml}
+      </div>
+      ${threshold}
+    </div>`;
+}
+
+function openAdvisorDetail(advisorId){
+  const a = getAdvisorById(advisorId);
+  if (!a) return;
+  const overlay = document.getElementById('advisor-detail-modal');
+  const body = document.getElementById('advisor-detail-body');
+  if (!overlay || !body) return;
+  uiState.advisorDetailId = advisorId;
+  body.innerHTML = buildAdvisorDetailContent(a);
+  overlay.classList.add('active');
+  overlay.setAttribute('aria-hidden', 'false');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeAdvisorDetail(){
+  const overlay = document.getElementById('advisor-detail-modal');
+  if (!overlay) return;
+  uiState.advisorDetailId = null;
+  overlay.classList.remove('active');
+  overlay.setAttribute('aria-hidden', 'true');
+  document.body.style.overflow = '';
+}
+
+function refreshAdvisorDetailIfOpen(){
+  if (!uiState.advisorDetailId) return;
+  const a = getAdvisorById(uiState.advisorDetailId);
+  const body = document.getElementById('advisor-detail-body');
+  if (!a || !body) return;
+  body.innerHTML = buildAdvisorDetailContent(a);
+}
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') closeAdvisorDetail();
+});
+
 
 function setupPravdaMasthead(eventImage, eventCaption){
   const setText = (id, txt) => { const el = document.getElementById(id); if (el) el.textContent = txt; };
@@ -2745,7 +3515,8 @@ function endTurn() {
     return;
   }
 
-  // Check for date-based events
+  // Deal a fresh policy hand for the new turn
+  dealPolicyHand(true);
   const hasEvent = checkEvents();
 
   if (!hasEvent && triggerEventQueue.length > 0) {
@@ -3418,14 +4189,12 @@ function renderIntl() {
 }
 
 function renderPolicies() {
-  const cat = uiState.policyCategory;
-  const baseList = (cat && cat !== 'All')
-    ? policies.filter(p => String(p.category || '').toLowerCase() === String(cat).toLowerCase())
-    : policies;
-  const list = baseList.filter(p => {
-    const a = getPolicyAvailability(p);
-    return !a.alreadyEnacted && a.missingPrereqs.length === 0;
-  });
+  // Deal a hand if needed (new turn or first render)
+  dealPolicyHand(false);
+  // Build list from hand IDs (preserving hand order, filtering out since-enacted)
+  const list = uiState.policyHandIds
+    .map(id => policies.find(p => p.id === id))
+    .filter(p => p && !getPolicyAvailability(p).alreadyEnacted);
   const picks = gameState.selectedPolicies || [];
   const html = list.map(p => {
     const isSel = picks.includes(p.id);
@@ -3458,37 +4227,46 @@ function renderAdvisors() {
   const f = uiState.advisorFaction;
   const list = (f && f !== 'All')
     ? advisors.filter(a => String(a.faction || '').toLowerCase() === String(f).toLowerCase())
-    : advisors;
+    : advisors.filter(a => {
+        if (a.availableFrom && gameState.year < a.availableFrom.year) return false;
+        return true;
+      });
 
   const html = list.map(a => {
     const loyalty = (gameState.advisorLoyalty[a.id] ?? a.defaultLoyalty ?? a.loyalty ?? 50);
     const status = gameState.advisorStatus[a.id] || {};
-    const related = policiesUsingAdvisor(a.id);
-    const requiredFor = related.filter(p => p.advisorRequired === a.id && !enactedPolicySet().has(p.id)).map(p => p.name);
-    const opposedSelected = related.filter(p => (p.advisorOpposition || []).includes(a.id) && (gameState.selectedPolicies || []).includes(p.id)).map(p => p.name);
     let cls = 'mid';
     if (loyalty >= 75) cls = 'high';
     if (loyalty <= 40) cls = 'low';
     const chips = [];
     if (status.resigned || loyalty < 20) chips.push('<span class="advisor-status-chip low">Resigned</span>');
     else if (status.emboldened || loyalty >= 80) chips.push('<span class="advisor-status-chip high">Emboldened</span>');
-    if (requiredFor.length) chips.push(`<span class="advisor-status-chip">Required: ${requiredFor.length}</span>`);
-    if (opposedSelected.length) chips.push('<span class="advisor-status-chip low">Opposes pick</span>');
+
+    const photoBg = a.image
+      ? `<img class="advisor-card-photo-bg" src="${a.image}" alt="${escapeHtml(a.name)}" onerror="this.style.display='none'">`
+      : `<div class="advisor-card-photo-bg-placeholder">☭</div>`;
+
+    const loyaltyBar = `<div style="height:3px;background:rgba(255,255,255,0.18);border-radius:2px;margin:4px 0 5px;">
+      <div style="height:100%;width:${loyalty}%;background:${loyalty >= 60 ? '#5dba7e' : loyalty >= 30 ? '#c9982e' : '#cc4040'};border-radius:2px;transition:width .4s;"></div>
+    </div>`;
 
     return `
-      <div class="advisor-card${status.resigned || loyalty < 20 ? ' resigned' : ''}">
-        <div class="card-corner tl">${a.faction || 'Advisor'}</div>
-        <div class="card-corner br">${a.role || ''}</div>
+      <div class="advisor-card${status.resigned || loyalty < 20 ? ' resigned' : ''}" role="button" tabindex="0" title="View advisor profile" onclick="openAdvisorDetail('${a.id}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openAdvisorDetail('${a.id}')}">
+        <div class="card-corner tl">${escapeHtml(a.faction || 'Advisor')}</div>
+        <div class="card-corner br">${escapeHtml((a.role || '').length > 18 ? (a.role || '').slice(0,17)+'…' : (a.role || ''))}</div>
+        ${photoBg}
+        <div class="advisor-card-overlay"></div>
         <div class="card-body">
-          <div class="advisor-name">${a.name}</div>
-          <div class="advisor-faction">${a.faction}</div>
+          <div class="advisor-name">${escapeHtml(a.name)}</div>
           <div class="advisor-loyalty ${cls}">Loyalty: ${loyalty}</div>
+          ${loyaltyBar}
           <div class="advisor-statuses">${chips.join('')}</div>
         </div>
       </div>`;
   }).join('');
 
   document.getElementById('advisor-grid').innerHTML = html;
+  refreshAdvisorDetailIfOpen();
 }
 
 function renderActivePolicies(){
