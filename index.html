@@ -181,10 +181,22 @@
   .volume-wrap { display:grid; grid-template-columns:auto 1fr; gap:8px; align-items:center; width:100%; margin-top:7px; font-family:'IM Fell English',serif; font-size:12px; }
   .volume-wrap input { width:100%; accent-color:var(--red); }
 
-  .policy-tree { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:14px; }
-  .tree-node { border:2px solid rgba(139,26,26,.34); background:rgba(242,234,216,.72); border-radius:4px; padding:12px; min-height:128px; }
-  .tree-node.enacted { border-color:rgba(45,110,68,.65); background:rgba(45,110,68,.08); }
-  .tree-node.locked { opacity:.72; }
+  .policy-tree { display:flex; flex-direction:column; gap:20px; }
+  .tree-category-group { display:flex; flex-direction:column; gap:8px; }
+  .tree-category-label { font-family:'Playfair Display',serif; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.1em; color:var(--red); border-bottom:1px solid rgba(139,26,26,0.25); padding-bottom:4px; margin-bottom:4px; }
+  .tree-chain { display:flex; flex-direction:column; gap:0; }
+  .tree-children { display:flex; flex-direction:column; gap:4px; margin-top:4px; padding-left:20px; border-left:2px solid rgba(139,26,26,0.20); margin-left:10px; }
+  .tree-node { border:1px solid rgba(139,26,26,.28); background:rgba(242,234,216,.72); border-radius:3px; padding:9px 11px; position:relative; }
+  .tree-node.enacted { border-color:rgba(45,110,68,.6); background:rgba(45,110,68,.07); }
+  .tree-node.locked { opacity:.75; }
+  .tree-node.ready { border-color:rgba(139,26,26,.55); }
+  .tree-effects { font-size:10px; color:var(--ink); opacity:.75; font-family:'IM Fell English',serif; margin-top:2px; }
+  .tree-advisor-row { display:flex; gap:8px; margin-top:3px; flex-wrap:wrap; }
+  .tree-advisor-req { font-size:9px; color:var(--green); font-family:'IM Fell English',serif; font-style:italic; }
+  .tree-advisor-opp { font-size:9px; color:var(--red); font-family:'IM Fell English',serif; font-style:italic; }
+  .tree-lock-reason { font-size:9px; color:var(--red); margin-top:3px; font-style:italic; opacity:.85; }
+  .ending-narrative p { margin-bottom:.8rem; font-family:'IM Fell English',serif; font-size:13.5px; line-height:1.65; }
+  .ending-narrative em { font-style:italic; opacity:.85; }
   .tree-title { font-family:'Playfair Display',serif; font-size:15px; font-weight:900; color:var(--red-dark); margin-bottom:5px; }
   .tree-meta, .tree-req { font-family:'IM Fell English',serif; font-size:12px; line-height:1.35; }
   .tree-status { display:inline-block; margin-top:8px; padding:3px 7px; border:1px solid currentColor; border-radius:2px; font-size:10px; letter-spacing:.08em; text-transform:uppercase; font-weight:700; }
@@ -3371,6 +3383,17 @@ window.RedSunset = {
 
 
 
+function processMonthlyEconomy() {
+  // Update oil price for the new month and sync to economySub
+  const oil = getBrentPriceUSD(gameState.year, gameState.month);
+  if (gameState.economySub) {
+    gameState.economySub.oilPrice = oil;
+    if (gameState.economySub.oilBaseline == null) {
+      gameState.economySub.oilBaseline = oil;
+    }
+  }
+}
+
 function advanceDate() {
   gameState.month++;
   processMonthlyEconomy();
@@ -3697,6 +3720,11 @@ function resolveEventChoice(choiceIdx) {
     gameState.budget = clamp(gameState.budget - cost, 0, 9999);
     addLog(`Response expenditure: -${cost} budget`);
   }
+  if (choice.budgetGain && Number(choice.budgetGain) > 0) {
+    const gain = Number(choice.budgetGain);
+    gameState.budget = clamp(gameState.budget + gain, 0, 9999);
+    addLog(`Emergency funds secured: +${gain} budget`);
+  }
   // Directly enact a policy card if the event choice specifies one
   if (choice.enactPolicy) {
     if (!gameState.enactedPolicies) gameState.enactedPolicies = [];
@@ -3723,6 +3751,7 @@ function resolveEventChoice(choiceIdx) {
     }
   }
   activeEvent = null;
+  gameState.selectedPolicies = []; // clear any stale selection from before the event
   const panel = document.getElementById('event-panel');
   panel.classList.remove('active', 'paper-unfurl');
   if (checkEndConditions()) {
@@ -3805,7 +3834,15 @@ function updateAdvisorLoyaltyForTurn(){
     const status = gameState.advisorStatus[a.id] || {};
     if (next < 20 && !status.resigned) {
       status.resigned = true;
-      addLog(`${a.name} resigns from the inner circle. Policies requiring this advisor are now unavailable.`);
+      // GDD: public resignation costs Stability −5
+      applyMetricChange('stability', -5);
+      // Faction shift: losing a reformist hurts reform faction, etc.
+      if (a.faction === 'Reformist') applyMetricChange('reformFaction', -5);
+      if (a.faction === 'Conservative') applyMetricChange('hardlinerFaction', -5);
+      // Any policies that required this advisor are now locked — log them
+      const lockedPolicies = policies.filter(p => p.advisorRequired === a.id && !enactedPolicySet().has(p.id));
+      const lockedNames = lockedPolicies.map(p => p.name).join(', ');
+      addLog(`${a.name} resigns. Stability −5. ${lockedNames ? 'Policies now locked: ' + lockedNames + '.' : 'No policies lost.'}`);
     }
     if (next >= 80 && !status.emboldened) {
       status.emboldened = true;
@@ -3819,6 +3856,12 @@ function updateAdvisorLoyaltyForTurn(){
 function checkEndConditions(){
   if (gameState.gameOver) return true;
   const m = gameState.metrics;
+
+  // Budget bankruptcy — sustained insolvency
+  if (gameState.budget <= 0 && (gameState.budgetCrisisTurns || 0) >= 3) {
+    triggerGameOver('bankruptcy', 'The treasury is empty and has been for months. The Union can no longer pay its obligations.');
+    return true;
+  }
 
   if (m.stability <= 0) {
     triggerGameOver('civil-war', 'State authority has collapsed. Strikes, republic militias, and emergency committees compete for power as the Union slides into civil war.');
@@ -3854,11 +3897,16 @@ function checkEndConditions(){
 
 function endTurn() {
   redrawsThisTurn = 0;
-  if (gameState.gameOver || activeEvent) return;
-  // Auto-commit selected policies at end of turn (revisable until now)
+  if (gameState.gameOver) return;
+  if (activeEvent) {
+    addLog('⚠ Resolve the current event before advancing.');
+    return;
+  }
+  // Commit any selected policies before advancing
   if (gameState.selectedPolicies && gameState.selectedPolicies.length > 0) {
     gameState.selectedPolicies.slice().forEach(id => applyPolicyImmediate(id));
     gameState.selectedPolicies = [];
+    gameState.policiesCommittedTurn = gameState.turn;
   }
 
   if (checkEndConditions()) return;
@@ -3882,6 +3930,28 @@ function endTurn() {
     const income     = Math.max(0, baseIncome + balBonus);
     gameState.budget = clamp(gameState.budget + income, 0, 9999);
     if (income > 0) addLog(`Budget income this month: +${income} (total: ${gameState.budget})`);
+
+    // Track insolvency streak for bankruptcy end condition
+    if (gameState.budget <= 0) {
+      gameState.budgetCrisisTurns = (gameState.budgetCrisisTurns || 0) + 1;
+      addLog(`⚠ Budget depleted — month ${gameState.budgetCrisisTurns} of insolvency.`);
+      // Fire a crisis event on first insolvency
+      if (gameState.budgetCrisisTurns === 1 && !gameState.firedTriggers['budget_crisis_1']) {
+        gameState.firedTriggers['budget_crisis_1'] = true;
+        displayTriggerEvent({
+          name: 'Treasury Crisis',
+          image: 'images/iron_market.jpg',
+          description: 'The Finance Ministry reports that the central budget has been exhausted. Wage arrears are accumulating across state enterprises, the military, and the civil service. Foreign creditors are refusing new lines of credit. Without immediate measures, the state faces insolvency within months.',
+          choices: [
+            { text: 'Emergency austerity — cut military and social spending', budgetCost: 0, effects: { economy: -8, popularSupport: -10, militaryReadiness: -5, stability: -3 }, budgetGain: 20 },
+            { text: 'Seek Western emergency credit line', effects: { foreignRelations: +5, economy: -3, partyUnity: -8 }, budgetGain: 15 },
+            { text: 'Print money — suppress the figures', effects: { economy: -5, popularSupport: -5, partyUnity: +3 }, budgetGain: 10 },
+          ],
+        });
+      }
+    } else {
+      gameState.budgetCrisisTurns = 0;
+    }
   })();
 
   gameState.turn++;
@@ -3965,13 +4035,12 @@ function endTurn() {
 
   // Deal a fresh policy hand for the new turn
   dealPolicyHand(true);
+  renderPolicies(); // always redraw — clears stale selection and removes enacted cards
   const hasEvent = checkEvents();
 
   if (!hasEvent && triggerEventQueue.length > 0) {
     const next = triggerEventQueue.shift();
     displayTriggerEvent(next);
-  } else if (!hasEvent) {
-    renderPolicies();
   }
 
   render();
@@ -4349,12 +4418,14 @@ function triggerGameOver(type, message) {
   const panel = document.getElementById('event-panel');
   const titles = {
     revolution: 'REVOLUTION',
-    coup: 'COUP',
+    coup: 'COUP D\'ÉTAT',
     'civil-war': 'CIVIL WAR',
     dissolution: 'DISSOLUTION',
     success: 'SUCCESSFUL REFORM',
+    bankruptcy: 'FISCAL COLLAPSE',
   };
-  const enacted = (gameState.enactedPolicies || []).map(policyName);
+  const enactedIds = (gameState.enactedPolicies || []);
+  const enacted = enactedIds.map(policyName);
   const metricsHtml = Object.entries(gameState.metrics).map(([key, val]) => `
     <div class="ending-stat"><span>${escapeHtml(formatStatKey(key))}</span><strong>${Math.round(Number(val || 0))}%</strong></div>
   `).join('');
@@ -4362,17 +4433,96 @@ function triggerGameOver(type, message) {
     ? `<ul class="ending-list">${enacted.map(name => `<li>${escapeHtml(name)}</li>`).join('')}</ul>`
     : '<p>No major reforms were enacted.</p>';
 
+  const m = gameState.metrics;
+  const sep = Math.round(Number(gameState.separatism || 0));
+  const hadGlasnost = enactedIds.includes('glasnost');
+  const hadPerestroika = enactedIds.includes('perestroika');
+  const hadAfghan = enactedIds.includes('afghanistan-pullout');
+  const hadINF = enactedIds.includes('inf_treaty');
+
+  const narratives = {
+    success: (() => {
+      const reform = hadGlasnost && hadPerestroika
+        ? 'Glasnost and perestroika — twin pillars of Gorbachev\'s programme — have redefined the relationship between state and citizen.'
+        : 'Reform, partial and contested, has nonetheless taken root in Soviet institutions.';
+      const foreign = hadINF
+        ? 'The INF Treaty transformed Moscow\'s standing in the world, delivering a peace dividend that stabilised the economy through its worst years.'
+        : 'Relations with the West remain uneasy, but open war has been avoided and the arms race slowed.';
+      const afghan = hadAfghan
+        ? 'The withdrawal from Afghanistan closed a bleeding wound that had drained a generation of men and billions of roubles.'
+        : 'Afghanistan continues to weigh on the treasury and on public morale — an open account that reform has not yet closed.';
+      return `<p>It is the winter of 1991. The Union endures.</p>
+<p>Not the Union of 1945, forged in total war and Stalinist iron — nor the Union of 1961, confident of its destiny, reaching for the stars. This is something stranger and more fragile: a reformed Union, renegotiated rather than commanded, held together less by fear than by the improbable persistence of one man's belief that it could be saved.</p>
+<p>${reform} ${foreign} ${afghan}</p>
+<p>History will argue about what was won and what was surrendered. But the question that consumed a decade — whether a system built on coercion could transform itself without destroying itself — has received, for now, the rarest of answers.</p>
+<p>Gorbachev closes the Politburo session and steps into the corridor. Outside the Kremlin windows, Moscow is grey and cold. Somewhere a church bell rings — something that would have been unthinkable ten years ago.</p>
+<p><em>The Soviet Union lives. What it becomes next is someone else's problem.</em></p>`;
+    })(),
+    dissolution: (() => {
+      const econNote = Number(m.economy || 0) < 25
+        ? 'The economy never recovered. Queues stretched around city blocks; shop shelves stood empty; the rouble became a currency exchanged for cigarettes and vodka.'
+        : 'The economy stagnated through the reform years, never delivering the prosperity that might have bought loyalty to the Union project.';
+      const sepNote = sep >= 80
+        ? 'The republics had been sovereign in everything but name for years. The formal declarations were paperwork confirming a departure that had already happened in the streets.'
+        : 'The republics dissolved the Union not in revolution but in bureaucratic exhaustion — sovereignty declarations, ignored directives, institutions that simply stopped functioning.';
+      return `<p>On the 25th of December 1991, Mikhail Gorbachev delivers a televised address to a country that, by the time he finishes speaking, will no longer exist.</p>
+<p>He resigns the presidency of the Union of Soviet Socialist Republics. The Soviet flag above the Kremlin is lowered for the last time. In its place rises the flag of the Russian Federation.</p>
+<p>${econNote} ${sepNote}</p>
+<p>Historians will spend decades arguing whether this was inevitable — whether no policy could have held eleven time zones and a hundred nations together, or whether different choices at different moments might have produced a different world. That argument will never be resolved.</p>
+<p>What can be said is this: the Union was not saved. The question of whether it could have been remains, permanently, open.</p>
+<p><em>Gorbachev walks out of the Kremlin for the last time as General Secretary. A guard, uncertain of the correct protocol, holds the door.</em></p>`;
+    })(),
+    coup: (() => {
+      const partyNote = Number(m.partyUnity || 0) < 20
+        ? 'The Party had fractured beyond repair. When the hardliners moved, they did so not in the name of communism but in the name of order — a distinction that fooled no one.'
+        : 'The Politburo\'s patience had limits. Gorbachev found them.';
+      return `<p>The tanks appear in Moscow before dawn.</p>
+<p>At 06:00, state television interrupts its programming to broadcast Swan Lake. The announcement follows: a State Committee on the State of Emergency has assumed authority. The General Secretary is indisposed. Order will be maintained.</p>
+<p>${partyNote} The committee believed that the party apparatus, the KGB, and the army would hold. They were mostly right.</p>
+<p>Gorbachev is placed under guard at his dacha in Foros. In Moscow, a small crowd gathers outside the White House. It is not enough to stop what has already been set in motion.</p>
+<p>Reform ends not with an argument but with a document — an emergency decree, signed by men who are frightened of what reform has already become, and more frightened still of where it is going.</p>
+<p><em>The Soviet Union will survive this coup. But what survives is not what Gorbachev built. It is something older, and harder, and very tired.</em></p>`;
+    })(),
+    revolution: (() => {
+      const suppNote = Number(m.popularSupport || 0) < 10
+        ? 'Legitimacy had not merely eroded — it had inverted. The state was not unpopular; it was invisible, a set of forms and stamps that no longer corresponded to any reality citizens recognised.'
+        : 'The promises of glasnost raised expectations that the system could not meet. When people realised this, the disappointment curdled into something harder.';
+      return `<p>It begins, as these things often do, not with a speech but with a refusal.</p>
+<p>Somewhere — a factory in Minsk, a square in Tbilisi, a railway junction in the Baltics — workers stop working. Crowds gather and do not disperse when the militia arrives. Officials issue orders that are simply ignored.</p>
+<p>${suppNote}</p>
+<p>The centre has tried everything: concessions that came too late, crackdowns that made things worse, negotiations that satisfied nobody. The Party's monopoly on political life was its only real power, and that monopoly is gone.</p>
+<p>What replaces it is not yet clear. That uncertainty — the open, terrifying space where a superpower used to be — is the revolution's most honest product.</p>
+<p><em>Gorbachev addresses the nation one last time. No one is watching the television. They are all outside.</em></p>`;
+    })(),
+    'civil-war': () => `<p>The moment stability collapsed, everyone who had been waiting began to move at once.</p>
+<p>In the Caucasus, disputes frozen for decades by Soviet authority thaw overnight into open fighting. In the Central Asian republics, local strongmen consolidate power behind the cover of emergency declarations. In Russia itself, the question of who commands the army — the Union, the republic, or no one — has no clear answer, and armed men are acting on their own interpretations.</p>
+<p>Gorbachev's reforms had loosened the structures of coercion without replacing them with legitimate authority. When the structures gave way entirely, there was nothing left to hold the pieces together.</p>
+<p>The Union does not end in a declaration or a vote. It ends in the specific, local, irreversible facts of armed men controlling territory.</p>
+<p><em>In Moscow, the lights are still on in the Kremlin. Whether anyone there is in charge of anything beyond its walls is a question no one can answer tonight.</em></p>`,
+    bankruptcy: () => `<p>The treasury is empty.</p>
+<p>It did not happen all at once. It happened the way Hemingway described bankruptcy — gradually, then suddenly. Oil revenues that once funded the Soviet state collapsed with the price of crude. Military expenditure continued at Cold War levels long after it could be sustained. Reform programmes required investment the budget could not provide. Each month the deficit grew; each month the remedies shrank.</p>
+<p>When the Union can no longer pay its soldiers, its administrators, or its pensioners, the question of whether it continues to exist becomes academic. Institutions that are not paid stop functioning. Officials who are not paid stop obeying.</p>
+<p>The Soviet Union was many things. In the end it was also a payroll — and the payroll ran out.</p>
+<p><em>The last act is not a coup or a revolution. It is a memo from the Finance Ministry, stamped and filed, noting that the accounts are overdrawn and no credit is forthcoming.</em></p>`,
+  };
+
+  const narrativeFn = narratives[type];
+  const narrative = narrativeFn
+    ? (typeof narrativeFn === 'function' ? narrativeFn() : narrativeFn)
+    : `<p>${escapeHtml(message)}</p>`;
+
   document.getElementById('event-title').textContent = '★ ' + (titles[type] || 'GAME OVER');
   document.getElementById('event-desc').innerHTML = `
-    <p>${escapeHtml(message)}</p>
+    <div class="ending-narrative">${narrative}</div>
+    <hr style="border:none;border-top:1px solid rgba(139,26,26,0.25);margin:1rem 0;">
     <div class="ending-summary">
       <div class="ending-stat"><span>Final Date</span><strong>${escapeHtml(formatMonthYear(gameState.month, gameState.year))}</strong></div>
       <div class="ending-stat"><span>Turn</span><strong>${gameState.turn}</strong></div>
-      <div class="ending-stat"><span>Separatism</span><strong>${Math.round(Number(gameState.separatism || 0))}%</strong></div>
+      <div class="ending-stat"><span>Separatism</span><strong>${sep}%</strong></div>
       <div class="ending-stat"><span>Budget</span><strong>${gameState.budget}</strong></div>
       ${metricsHtml}
     </div>
-    <p><strong>Reform record</strong></p>
+    <p style="margin-top:1rem;font-family:'Playfair Display',serif;font-weight:700;font-size:12px;letter-spacing:.06em;text-transform:uppercase;">Reform record</p>
     ${enactedHtml}
   `;
   document.getElementById('event-choices').innerHTML = '<button class="event-btn" onclick="saveGame(true)">Save Outcome</button><button class="event-btn" onclick="resetGame()">Start Over</button>';
@@ -4380,7 +4530,7 @@ function triggerGameOver(type, message) {
   animatePaperUnfurl(panel);
   renderPolicies();
   saveGame(false);
-  addLog('GAME OVER: ' + message);
+  addLog('GAME OVER: ' + (titles[type] || type));
 }
 
 function plannedSpend() {
@@ -4803,23 +4953,49 @@ function renderPolicyTree(){
   const el = document.getElementById('policy-tree');
   if (!el) return;
   const enacted = enactedPolicySet();
-  el.innerHTML = policies.map(p => {
+
+  // Build adjacency: prereq -> [children]
+  const children = {};
+  const hasParent = new Set();
+  policies.forEach(p => {
+    (p.prerequisites || []).forEach(prereqId => {
+      if (!children[prereqId]) children[prereqId] = [];
+      children[prereqId].push(p.id);
+      hasParent.add(p.id);
+    });
+  });
+  const roots = policies.filter(p => !hasParent.has(p.id));
+
+  function nodeHtml(p, depth) {
     const availability = getPolicyAvailability(p);
     const isDone = enacted.has(p.id);
-    const reqs = (p.prerequisites || []).length
-      ? (p.prerequisites || []).map(id => enacted.has(id) ? `✓ ${policyName(id)}` : `Requires ${policyName(id)}`).join('<br>')
-      : 'Root policy';
-    const advisor = p.advisorRequired ? `<br>Advisor: ${escapeHtml(advisorName(p.advisorRequired))}` : '';
-    const status = isDone ? 'done' : availability.available ? 'ready' : 'locked';
-    const label = isDone ? 'Enacted' : availability.available ? 'Ready' : 'Locked';
-    return `
-      <div class="tree-node ${status === 'done' ? 'enacted' : status}">
+    const status = isDone ? 'enacted' : availability.available ? 'ready' : 'locked';
+    const label = isDone ? '✓ Enacted' : availability.available ? 'Ready' : '🔒 Locked';
+    const kids = (children[p.id] || []).map(cid => policies.find(x => x.id === cid)).filter(Boolean);
+    const advisor = p.advisorRequired ? `<span class="tree-advisor-req">★ ${escapeHtml(advisorName(p.advisorRequired))}</span>` : '';
+    const opp = (p.advisorOpposition||[]).length ? `<span class="tree-advisor-opp">✕ ${p.advisorOpposition.map(a=>escapeHtml(advisorName(a))).join(', ')}</span>` : '';
+    const effectStr = Object.entries(p.effects||{}).map(([k,v])=>`${v>0?'+':''}${v} ${formatStatKey(k)}`).join(' · ');
+    return `<div class="tree-chain" style="margin-left:${depth*22}px;">
+      <div class="tree-node ${status}">
         <div class="tree-title">${escapeHtml(p.name)}</div>
-        <div class="tree-meta">${escapeHtml(p.category || 'Policy')} · Cost ${p.cost}${advisor}</div>
-        <div class="tree-req">${reqs}</div>
-        ${availability.reasons.length && !isDone ? `<div class="tree-req">${availability.reasons.map(escapeHtml).join('<br>')}</div>` : ''}
+        <div class="tree-meta">${escapeHtml(p.category||'Policy')} · Cost ${p.cost}</div>
+        ${effectStr ? `<div class="tree-effects">${escapeHtml(effectStr)}</div>` : ''}
+        <div class="tree-advisor-row">${advisor}${opp}</div>
         <span class="tree-status ${status}">${label}</span>
-      </div>`;
+        ${!isDone && availability.reasons.length ? `<div class="tree-lock-reason">${availability.reasons.map(escapeHtml).join(' · ')}</div>` : ''}
+      </div>
+      ${kids.length ? `<div class="tree-children">${kids.map(c => nodeHtml(c, 0)).join('')}</div>` : ''}
+    </div>`;
+  }
+
+  const cats = [...new Set(policies.map(p => p.category||'Other'))];
+  el.innerHTML = cats.map(cat => {
+    const catRoots = roots.filter(p => (p.category||'Other') === cat);
+    if (!catRoots.length) return '';
+    return `<div class="tree-category-group">
+      <div class="tree-category-label">${escapeHtml(cat)}</div>
+      ${catRoots.map(p => nodeHtml(p, 0)).join('')}
+    </div>`;
   }).join('');
 }
 
