@@ -406,30 +406,38 @@
   .card-corner.bl{ left:0; bottom:0; border-top-right-radius:10px; }
   .card-corner.br{ right:0; bottom:0; border-top-left-radius:10px; }
   .policy-card {
-    aspect-ratio:3/4;
+    aspect-ratio:5/7;
     width:100%;
     max-width:168px;
     min-height:0;
-    padding:12px 10px 10px;
+    padding:11px 10px 10px;
+    display:flex;
+    flex-direction:column;
   }
   .policy-card .card-body{
     position:relative;
     z-index:1;
-    padding:22px 6px 34px 6px;
+    flex:1 1 auto;
+    display:flex;
+    flex-direction:column;
+    min-height:0;
+    padding:20px 6px 32px 6px;
   }
   .policy-card .policy-name{
-    font-size:15px;
+    font-size:14px;
     font-weight:900;
-    margin:0 0 5px;
-    line-height:1.2;
-    display:-webkit-box;
-    -webkit-line-clamp:2;
-    -webkit-box-orient:vertical;
-    overflow:hidden;
+    margin:0 0 6px;
+    line-height:1.22;
+    overflow:visible;
+    overflow-wrap:break-word;
+    word-break:normal;
+    hyphens:auto;
   }
   .policy-card .policy-effect{
-    font-size:12px;
+    font-size:12.5px;
     line-height:1.4;
+    flex:1 1 auto;
+    min-height:0;
   }
   .policy-card .card-corner { font-size:8px; padding:5px 7px; }
   .advisor-name{ font-size:14px; margin:22px 0 8px; text-align:left; }
@@ -442,7 +450,7 @@
   .policy-card { max-width:152px; padding:11px 9px 9px; }
   .advisor-card { padding:14px 12px 12px; aspect-ratio:3/4; min-height:178px; }
   .policy-card .policy-name { font-size:13px; }
-  .policy-card .policy-effect { font-size:11px; }
+  .policy-card .policy-effect { font-size:12px; }
   .policy-name { font-size:14px; }
 }
 
@@ -1805,7 +1813,7 @@
       <div class="section-title panel-header">Available Policies</div>
   <div id="policy-selection" style="margin:10px 2px 10px; display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
   <span style="font-family:'IM Fell English',serif; font-size:13px; opacity:.85;">Selected this turn: <strong id="policy-selected-count">0</strong>/3</span>
-  <span style="font-family:'IM Fell English',serif; font-size:13px; opacity:.65; font-style:italic;">Showing 6 of available policies — redraw for more</span>
+  <span id="policy-hand-status" style="font-family:'IM Fell English',serif; font-size:13px; opacity:.65; font-style:italic;">Showing policies — redraw for more</span>
   <span class="budget-badge">Budget: <strong id="budget-inline">100</strong></span>
 </div>
       <div class="active-policy-list" id="active-policy-list"></div>
@@ -1814,7 +1822,7 @@
         <button class="filter-btn active" onclick="setPolicyFilter('All', this)">All</button>
         <button class="filter-btn" onclick="setPolicyFilter('Domestic', this)">Domestic</button>
         <button class="filter-btn" onclick="setPolicyFilter('Foreign', this)">Foreign</button>
-        <button class="filter-btn" onclick="dealPolicyHand(true);renderPolicies();" title="Draw a new set of 6 policies" style="margin-left:auto;">↺ Redraw Hand</button>
+        <button class="filter-btn" onclick="dealPolicyHand(true);renderPolicies();" title="Draw a new set of 8 policies" style="margin-left:auto;">↺ Redraw Hand</button>
       </div>
       <div class="policy-grid" id="policy-grid"></div>
 
@@ -2003,7 +2011,7 @@ const uiState = {
   policyHandTurn: -1,  // Turn on which the hand was last dealt
 };
 
-const POLICY_HAND_SIZE = 6; // Number of policy cards shown at once
+const POLICY_HAND_SIZE = 8; // Number of policy cards shown at once (up to eligible pool size)
 
 // ── POLICY VISIBILITY GATE (Option D: date + metric + advisor) ────────
 function checkPolicyVisible(policy) {
@@ -2026,17 +2034,20 @@ function checkPolicyVisible(policy) {
   return true;
 }
 
-function dealPolicyHand(forceRedraw) {
-  // Re-deal if: new turn, forced redraw, or hand is empty
-  if (!forceRedraw && uiState.policyHandTurn === gameState.turn && uiState.policyHandIds.length > 0) return;
+function eligiblePolicyPool() {
   const cat = uiState.policyCategory;
-  const pool = policies.filter(p => {
+  return policies.filter(p => {
     if (cat && cat !== 'All' && String(p.category || '').toLowerCase() !== String(cat).toLowerCase()) return false;
     if (!checkPolicyVisible(p)) return false;
     const a = getPolicyAvailability(p);
     return !a.alreadyEnacted && a.missingPrereqs.length === 0;
   });
-  // Shuffle and pick POLICY_HAND_SIZE
+}
+
+function dealPolicyHand(forceRedraw) {
+  // Re-deal if: new turn, forced redraw, or hand is empty
+  if (!forceRedraw && uiState.policyHandTurn === gameState.turn && uiState.policyHandIds.length > 0) return;
+  const pool = eligiblePolicyPool();
   const shuffled = pool.slice().sort(() => Math.random() - 0.5);
   uiState.policyHandIds = shuffled.slice(0, POLICY_HAND_SIZE).map(p => p.id);
   uiState.policyHandTurn = gameState.turn;
@@ -3641,6 +3652,7 @@ function checkAllTriggers() {
   if (es.socialParasitism >= 25 && fireTrigger('parasitism_25', 'Social parasitism crisis — public unrest event triggered.')) {
     displayTriggerEvent({
       name: 'Social Parasitism Crisis',
+    image: "images/social_parasitism.png",
       description: 'Widespread absenteeism, underground markets, and work avoidance have become impossible to ignore. The state\'s authority to compel economic participation is collapsing.',
       choices: [
         { text: 'Launch anti-parasitism campaign', effects: { stability: +5, popularSupport: -8, partyUnity: +3 } },
@@ -3662,6 +3674,7 @@ function checkAllTriggers() {
     pf.moderate  = clamp(pf.moderate  - 5, 0, 100);
     displayTriggerEvent({
       name: 'Mass Protests',
+    image: "images/Mass_Protests.jpg",
       description: 'Hundreds of thousands take to the streets in Moscow, Leningrad, and across the republics. Gorbachev\'s authority is openly challenged.',
       choices: [
         { text: 'Address the nation — promise reforms', effects: { popularSupport: +8, partyUnity: -5 } },
@@ -3724,6 +3737,7 @@ function checkAllTriggers() {
   if (pf.hardliner <= 20 && fireTrigger('hard_20', 'CRITICAL: Coup conspiracy forming.')) {
     displayTriggerEvent({
       name: 'Coup Conspiracy',
+    image: "images/coup_attempt.jpg",
       description: 'KGB chief Kryuchkov, Defence Minister Yazov, and Vice-President Yanayev have formed a secret committee. They plan to remove Gorbachev and restore order. The August Coup is imminent.',
       choices: [
         { text: 'Confront conspirators directly', effects: { partyUnity: -10, stability: -10, popularSupport: gameState.coupResistDisabled ? -5 : +10 } },
@@ -3742,6 +3756,7 @@ function checkAllTriggers() {
     applyMetricChange('popularSupport', -8);
     displayTriggerEvent({
       name: 'Republic Independence Movements',
+    image: "images/Republic_Independence_Movements.jpg",
       description: 'Lithuania, Estonia, Latvia, Georgia, and Armenia are all pressing for sovereignty or independence. The Union Treaty is under direct challenge.',
       choices: [
         { text: 'Offer genuine autonomy', effects: { stability: +5, partyUnity: -10, foreignRelations: +5 } },
@@ -3764,6 +3779,7 @@ function checkAllTriggers() {
   if (ir.us <= 0 && fireTrigger('us_0', 'CRISIS: US relations severed — World War III risk!')) {
     displayTriggerEvent({
       name: 'Superpower Crisis',
+    image: "images/Superpower_Crisis.jpg",
       description: 'Soviet-American relations have completely broken down. Both sides are on high alert. The world is closer to nuclear war than at any time since the Cuban Missile Crisis.',
       choices: [
         { text: 'Emergency diplomatic back-channel', effects: { foreignRelations: +15, partyUnity: -8, militaryReadiness: -5 } },
@@ -3782,6 +3798,7 @@ function checkAllTriggers() {
   if (ir.china <= 20 && fireTrigger('china_20', 'China tensions rising — border reinforcement required.')) {
     displayTriggerEvent({
       name: 'Sino-Soviet Border Tensions',
+    image: "images/Sino_Soviet_Border_Tensions.jpg",
       description: 'Chinese troop buildups along the Sino-Soviet border are forcing a Soviet military response. Diplomatic channels are strained.',
       choices: [
         { text: 'Deploy additional troops', effects: { militaryReadiness: +3, economy: -5, foreignRelations: -3 } },
@@ -3795,6 +3812,7 @@ function checkAllTriggers() {
   if (ir.eastEu <= 40 && fireTrigger('bloc_40', 'Bloc instability — emergency meeting with satellite leaders.')) {
     displayTriggerEvent({
       name: 'Warsaw Pact Summit',
+    image: "images/Warsaw_Pact_Summit.jpg",
       description: 'Leaders of Poland, East Germany, Hungary, Czechoslovakia, Romania, and Bulgaria demand clarity on whether the Brezhnev Doctrine still applies. Solidarity is spreading. Budapest is restless.',
       choices: [
         { text: 'Reaffirm Soviet commitment to intervene', effects: { ir: null, partyUnity: +5, foreignRelations: -8, popularSupport: -5 } },
@@ -3808,6 +3826,7 @@ function checkAllTriggers() {
     gameState.separatism = clamp(gameState.separatism + 10, 0, 100);
     displayTriggerEvent({
       name: 'Revolutions of 1989',
+    image: "images/Revolutions_of_1989.JPG",
       description: 'Poland\'s Solidarity movement sweeps elections. Hungary opens its border with Austria. Mass protests in East Germany. Romania is on the brink. The Soviet empire in Eastern Europe is collapsing.',
       choices: [
         { text: 'Accept the revolutions — non-intervention', effects: { partyUnity: -10, foreignRelations: +15, popularSupport: +5 } },
@@ -3819,6 +3838,7 @@ function checkAllTriggers() {
   if (ir.eastEu <= 10 && fireTrigger('bloc_10', 'Bloc dissolution — Warsaw Pact effectively dead.')) {
     displayTriggerEvent({
       name: 'End of the Warsaw Pact',
+    image: "images/End_of_the_Warsaw_Pact.jpg",
       description: 'The satellite states are openly seeking NATO membership. The Warsaw Pact exists only on paper. Soviet strategic depth in Europe is gone.',
       choices: [
         { text: 'Formally dissolve the Pact — negotiate NATO assurances', effects: { foreignRelations: +10, partyUnity: -10, militaryReadiness: -5 } },
@@ -4232,6 +4252,14 @@ function renderPolicies() {
       </div>`;
   }).join('') || '<div class="policy-empty">No available policies in this category.</div>';
   document.getElementById('policy-grid').innerHTML = html;
+  const handStatus = document.getElementById('policy-hand-status');
+  if (handStatus) {
+    const eligible = eligiblePolicyPool().length;
+    const shown = list.length;
+    handStatus.textContent = shown
+      ? `Showing ${shown} of ${eligible} eligible policies — redraw for more`
+      : 'No policies meet the current conditions in this category.';
+  }
   const cEl = document.getElementById('policy-selected-count');
   if (cEl) cEl.textContent = String(picks.length);
   const pcEl = document.getElementById('policy-predicted-cost');
