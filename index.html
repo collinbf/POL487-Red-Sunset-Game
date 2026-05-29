@@ -1801,19 +1801,22 @@
     </div>
 
     <div class="utility-panel" style="margin-top:10px;">
-  <div class="section-title" style="font-size:10px;">Campaign</div>
+  <div class="section-title" style="font-size:10px;">Options</div>
   <div class="utility-row">
     <button class="btn" onclick="saveGame(true)">Save</button>
     <button class="btn" onclick="loadGame()">Load</button>
     <button class="btn" onclick="clearSavedGame()">Clear Save</button>
   </div>
   <div class="volume-wrap">
-    <span>Audio</span>
-    <input id="audio-volume" type="range" min="0" max="100" value="70" oninput="setAudioVolume(this.value)" />
+    <span>SFX</span>
+    <input id="sfx-volume" type="range" min="0" max="100" value="70" oninput="setSfxVolume(this.value)" />
+  </div>
+  <div class="volume-wrap">
+    <span>Music</span>
+    <input id="music-volume" type="range" min="0" max="100" value="70" oninput="setMusicVolume(this.value)" />
   </div>
   <div class="utility-row">
     <button class="btn" id="audio-toggle" onclick="toggleAudioMute()">Mute</button>
-    <span class="save-chip" id="save-chip">No save loaded</span>
   </div>
   <div class="save-status" id="save-status"></div>
 </div>
@@ -2061,6 +2064,8 @@ const uiState = {
   advisorDetailId: null,
   audioMuted: false,
   audioVolume: 0.7,
+  sfxVolume: 0.7,
+  musicVolume: 0.7,
   policyHandIds: [],   // IDs of policies currently shown (the "hand")
   policyHandTurn: -1,  // Turn on which the hand was last dealt
 };
@@ -2577,6 +2582,86 @@ let policies = [
     advisorOpposition: ['yeltsin'],
     visibleIf: { minYear: 1989, minSeparatism: 45 },
   },
+
+  // ── FREE ECONOMIC ZONES ───────────────────────────────────────────
+  {
+    id: 'free_economic_zones',
+    name: 'Authorize Free Economic Zones',
+    category: 'Domestic',
+    cost: 8,
+    description: 'Industrial stagnation deepens and foreign currency reserves dwindle. Reformers within the Council of Ministers propose establishing designated Free Economic Zones permitting limited foreign investment and restricted market activity — modelled on experiments conducted beyond the eastern frontier. Hardliners denounce any such concession as ideological capitulation to international capital.',
+    image: 'images/iron_market.jpg',
+    effects: { economy: +8, foreignRelations: +6, partyUnity: -10, popularSupport: +3 },
+    duration: 'permanent',
+    prerequisites: ['perestroika'],
+    advisorOpposition: ['ligachev'],
+    visibleIf: { minYear: 1985, maxYear: 1991 },
+  },
+  {
+    id: 'shadow_market_experiments',
+    name: 'Shadow Market Experiments',
+    category: 'Domestic',
+    cost: 3,
+    description: 'Quietly signal to select regional party secretaries that limited market experiments shall be tolerated, provided they remain unofficial and deniable. Hardliners grow suspicious as rumours of unauthorised deviations circulate. Reformers resent the half-measure.',
+    image: 'images/iron_market.jpg',
+    effects: { economy: +3, partyUnity: -5, popularSupport: -3, stability: -2 },
+    duration: 'permanent',
+    prerequisites: ['uskoreniye'],
+    advisorOpposition: ['ligachev'],
+    visibleIf: { minYear: 1985, maxYear: 1991 },
+  },
+  {
+    id: 'cooperative_law_full',
+    name: 'Law on Cooperatives — Full Implementation',
+    category: 'Domestic',
+    cost: 6,
+    description: "The Law on Cooperatives permits small enterprises to operate with legal recognition, breaking decades of ideological prohibition on private profit. Reformers hail the measure as overdue. Hardliners warn of speculative capitalism spreading beneath the Party's eyes.",
+    image: 'images/Law on Cooperatives.jpg',
+    effects: { economy: +10, popularSupport: +6, partyUnity: -12, stability: -3 },
+    duration: 'permanent',
+    prerequisites: ['perestroika'],
+    advisorOpposition: ['ligachev'],
+    visibleIf: { minYear: 1988, maxYear: 1991 },
+  },
+  {
+    id: 'cooperative_law_partial',
+    name: 'Law on Cooperatives — Partial Implementation',
+    category: 'Domestic',
+    cost: 3,
+    description: 'Cooperatives may operate, but are subject to the same pricing controls and audit requirements as state enterprises. The half-measure satisfies neither reformers nor ideological conservatives — but buys time.',
+    image: 'images/Law on Cooperatives.jpg',
+    effects: { economy: +4, popularSupport: +2, partyUnity: -4, stability: +1 },
+    duration: 'permanent',
+    prerequisites: ['uskoreniye'],
+    advisorOpposition: ['ligachev'],
+    visibleIf: { minYear: 1988, maxYear: 1991 },
+  },
+  {
+    id: 'freedom_of_conscience',
+    name: 'Law on Freedom of Conscience',
+    category: 'Domestic',
+    cost: 4,
+    description: 'For decades, religious institutions were suppressed as instruments of ideological subversion. This law grants legal recognition to religious organisations and permits freedom of worship. Reformers celebrate it as a cornerstone of genuine glasnost. Hardliners warn it will fracture the ideological unity of the Union.',
+    image: 'images/Freedom_of_Conscience.jpg',
+    effects: { popularSupport: +10, partyUnity: -10, stability: -5, foreignRelations: +5 },
+    duration: 'permanent',
+    prerequisites: ['glasnost'],
+    advisorRequired: 'yakovlev',
+    advisorOpposition: ['ligachev'],
+    visibleIf: { minYear: 1990, maxYear: 1991 },
+  },
+  {
+    id: 'controlled_religious_opening',
+    name: 'Regulated Religious Concessions',
+    category: 'Domestic',
+    cost: 2,
+    description: 'Religious observance shall be permitted within strictly defined limits. Public religious expression and clerical dress remain prohibited. The Party retains authority over the scope and presentation of all religious activity. Reformers condemn the measure as a sham. Hardliners accept it as the least damaging concession.',
+    image: 'images/Freedom_of_Conscience.jpg',
+    effects: { popularSupport: +4, partyUnity: -3, stability: +2 },
+    duration: 'permanent',
+    prerequisites: ['glasnost'],
+    visibleIf: { minYear: 1990, maxYear: 1991 },
+  },
 ];
 
 let events = [
@@ -2723,6 +2808,69 @@ The Council of Ministers and the Supreme Soviet await your directive. Each path 
       { text: 'Impose emergency price controls and centralise distribution', effects: { economy: -8, stability: +3, foreignRelations: -2 } },
       { text: 'Accelerate market liberalisation — allow prices to find their level', effects: { economy: +5, stability: -10, popularSupport: -15 } },
       { text: 'Identify and prosecute speculators and hoarders as enemies of socialist order', effects: { stability: 0, popularSupport: -5, partyUnity: +2 } },
+    ],
+  },
+
+  // ── OUTLOOK: FREE TALK SHOW ────────────────────────────────────────
+  {
+    id: 'free_talk_show',
+    name: 'Vzglyad — Soviet Central Television Requests Authorisation',
+    image: 'images/free_talk_show.jpg',
+    caption: 'Центральное телевидение СССР, Главная редакция программ, август 1987',
+    trigger: { month: 8, year: 1987 },
+    description: `Comrade General Secretary — editors of Soviet Central Television have submitted a proposal for a programme entitled Vzglyad ("Outlook"), to be produced by young presenters without prior editorial review of broadcast content.
+
+In the spirit of glasnost, its proponents argue that scripted news bulletins have eroded public trust in state media and that an unfiltered, spontaneous programme is necessary to demonstrate the Party's confidence in the Soviet people. Reformers within the Information Ministry endorse the proposal as a necessary modernisation of socialist communications.
+
+Hardliners within the Central Committee's Ideological Commission have registered their opposition in unambiguous terms: material that cannot be reviewed before broadcast cannot be controlled after broadcast. The political costs of an undisciplined transmission, they warn, may not be recoverable.
+
+Your decision will define the operative limits of glasnost in the sphere of information.`,
+    choices: [
+      { text: 'Authorise the broadcast of Vzglyad — unscripted, unreviewed, as proposed', effects: { popularSupport: +8, partyUnity: -8, stability: -4, foreignRelations: +5 } },
+      { text: 'Deny authorisation — Soviet television shall remain a disciplined instrument of Party communication', effects: { popularSupport: -6, partyUnity: +5, stability: +2, foreignRelations: -3 } },
+    ],
+  },
+
+  // ── LAW ON COOPERATIVES ────────────────────────────────────────────
+  {
+    id: 'law_on_cooperatives',
+    name: 'Law on Cooperatives — The General Secretary Must Decide',
+    image: 'images/Law on Cooperatives.jpg',
+    caption: 'Совет Министров СССР, май 1988 г.',
+    trigger: { month: 5, year: 1988 },
+    description: `Comrade General Secretary — the Council of Ministers has placed before you a draft decree on the legalisation of small cooperative enterprises. The proposal draws upon a reading of Leninist New Economic Policy precedent, and its proponents argue that it represents not a departure from socialist principles but their creative application to present conditions.
+
+For decades, private profit has been treated under Soviet law as a criminal offence. A substantial underground economy — producers and consumers circumventing state price controls through unofficial exchange — operates beyond Party supervision and generates no revenue for the state.
+
+Enactment of this law would bring that activity into the open, subject it to regulation and taxation, and provide legal recognition to small-scale enterprise. It would also, its opponents warn, introduce the logic of the market into the institutional fabric of socialist society. The ideological consequences may prove irreversible.
+
+The vote is yours.`,
+    choices: [
+      { text: 'Enact the Law in full — profit is permitted, cooperatives operate freely under their own terms', effects: { economy: +10, popularSupport: +6, partyUnity: -12, stability: -3 } },
+      { text: 'Enact a restricted version — cooperatives permitted, but subject to state pricing and audit requirements', effects: { economy: +4, popularSupport: +2, partyUnity: -4, stability: +1 } },
+      { text: 'Reject the Law — the planned economy remains the sole legitimate organising principle of Soviet production', effects: { economy: -5, popularSupport: -5, partyUnity: +8, stability: +3 } },
+    ],
+  },
+
+  // ── FREEDOM OF CONSCIENCE ──────────────────────────────────────────
+  {
+    id: 'freedom_of_conscience_event',
+    name: 'Law on Freedom of Conscience and Religious Organisations',
+    image: 'images/Freedom_of_Conscience.jpg',
+    caption: 'Верховный Совет СССР, 1990 г.',
+    trigger: { month: 10, year: 1990 },
+    description: `Comrade General Secretary — the Supreme Soviet has placed before you a draft law on freedom of conscience and religious organisations, representing the most significant proposed departure from socialist governance of ideological life since the founding of the Soviet state.
+
+The Party's position on religion has been consistent and unambiguous for seven decades: religious institutions are instruments of pre-revolutionary ideology, incompatible with scientific socialism and inimical to the unity of the Soviet people. The KGB's Fifth Directorate has maintained surveillance of all religious activity. Clergy of all confessions have been subject to registration, restriction, and in many periods, imprisonment.
+
+Glasnost has opened spaces that were previously sealed. Religious communities — Orthodox, Catholic, Muslim, Baptist, Jewish — have grown visible. Their demands for legal recognition grow louder. International observers and Western governments have made religious freedom a recurring subject in diplomatic communications.
+
+The question before the General Secretary is not only one of rights. It is a question of whether the ideological sovereignty of the Party over the inner life of Soviet citizens shall be formally surrendered — and what will follow from that surrender.`,
+    choices: [
+      { text: 'Pass the law in full — freedom of religious conscience and unrestricted religious organisation is guaranteed by the state', effects: { popularSupport: +12, partyUnity: -14, stability: -8, foreignRelations: +8 } },
+      { text: 'Pass a restricted version — religious practice permitted within state-defined limits; clerical dress and public proselytisation prohibited', effects: { popularSupport: +5, partyUnity: -5, stability: -2, foreignRelations: +4 } },
+      { text: 'Reject the law — religion remains a matter for state supervision, not individual conscience', effects: { popularSupport: -10, partyUnity: +6, stability: +3, foreignRelations: -5 } },
+      { text: 'Reject the law and authorise a public ideological counter-campaign — religion is the enemy of socialist progress', effects: { popularSupport: -15, partyUnity: +10, stability: -5, foreignRelations: -8 } },
     ],
   },
 ];
@@ -4577,14 +4725,12 @@ function renderDebugPanel(){
 }
 
 function renderUtility(){
-  const chip = document.getElementById('save-chip');
-  if (!chip) return;
-  const saved = getSavedGameMeta();
-  chip.textContent = saved ? `Saved: ${saved.date}` : 'No save found';
   const toggle = document.getElementById('audio-toggle');
   if (toggle) toggle.textContent = uiState.audioMuted ? 'Unmute' : 'Mute';
-  const volume = document.getElementById('audio-volume');
-  if (volume) volume.value = Math.round(uiState.audioVolume * 100);
+  const sfxSlider = document.getElementById('sfx-volume');
+  if (sfxSlider) sfxSlider.value = Math.round(uiState.sfxVolume * 100);
+  const musicSlider = document.getElementById('music-volume');
+  if (musicSlider) musicSlider.value = Math.round(uiState.musicVolume * 100);
 }
 
 function renderLibrary() {
@@ -4706,7 +4852,7 @@ function unlockAllAudio(){
     // Prime teletype audio
     if (!ttyAudio) {
       ttyAudio = makeAudio('sounds/teletype_sound.mp3');
-      ttyAudio.volume = Math.min(0.75, uiState.audioMuted ? 0 : uiState.audioVolume);
+      ttyAudio.volume = Math.min(0.75, uiState.audioMuted ? 0 : uiState.sfxVolume);
       ttyAudio.muted = uiState.audioMuted;
       ttyAudio.loop = true;
     }
@@ -4724,7 +4870,7 @@ function startTtySound() {
   try {
     if (!ttyAudio) {
       ttyAudio = makeAudio('sounds/teletype_sound.mp3');
-      ttyAudio.volume = Math.min(0.75, uiState.audioMuted ? 0 : uiState.audioVolume);
+      ttyAudio.volume = Math.min(0.75, uiState.audioMuted ? 0 : uiState.sfxVolume);
       ttyAudio.muted = uiState.audioMuted;
       ttyAudio.loop = true;
     }
@@ -4850,6 +4996,8 @@ function saveGame(manual=false){
       uiState: {
         audioMuted: uiState.audioMuted,
         audioVolume: uiState.audioVolume,
+        sfxVolume: uiState.sfxVolume,
+        musicVolume: uiState.musicVolume,
       },
       gameStarted,
     };
@@ -4887,6 +5035,8 @@ function loadGame(){
     if (payload.uiState) {
       uiState.audioMuted = Boolean(payload.uiState.audioMuted);
       uiState.audioVolume = Number(payload.uiState.audioVolume ?? uiState.audioVolume);
+      uiState.sfxVolume = Number(payload.uiState.sfxVolume ?? uiState.audioVolume);
+      uiState.musicVolume = Number(payload.uiState.musicVolume ?? uiState.musicVolume);
     }
     gameStarted = Boolean(payload.gameStarted);
     activeEvent = null;
@@ -4915,11 +5065,23 @@ function clearSavedGame(){
   renderUtility();
 }
 
-function setAudioVolume(value){
-  uiState.audioVolume = clamp(Number(value) / 100, 0, 1);
-  if (uiState.audioVolume > 0) uiState.audioMuted = false;
+function setSfxVolume(value){
+  uiState.sfxVolume = clamp(Number(value) / 100, 0, 1);
+  uiState.audioVolume = uiState.sfxVolume; // keep legacy compat
+  if (uiState.sfxVolume > 0) uiState.audioMuted = false;
   applyAudioSettings();
   renderUtility();
+}
+
+function setMusicVolume(value){
+  uiState.musicVolume = clamp(Number(value) / 100, 0, 1);
+  if (uiState.musicVolume > 0) uiState.audioMuted = false;
+  applyAudioSettings();
+  renderUtility();
+}
+
+function setAudioVolume(value){
+  setSfxVolume(value);
 }
 
 function toggleAudioMute(){
@@ -4930,9 +5092,18 @@ function toggleAudioMute(){
 
 function applyAudioSettings(){
   const muted = uiState.audioMuted;
-  const volume = muted ? 0 : uiState.audioVolume;
-  try { if (typeof projectorAudio !== 'undefined' && projectorAudio) { projectorAudio.muted = muted; projectorAudio.volume = volume; } } catch(e){}
-  try { if (ttyAudio) { ttyAudio.muted = muted; ttyAudio.volume = Math.min(0.75, volume); } } catch(e){}
+  const sfxVol = muted ? 0 : uiState.sfxVolume;
+  const musicVol = muted ? 0 : uiState.musicVolume;
+  // SFX audio (projector, teletype, paper crackle etc.)
+  try { if (typeof projectorAudio !== 'undefined' && projectorAudio) { projectorAudio.muted = muted; projectorAudio.volume = sfxVol; } } catch(e){}
+  try { if (ttyAudio) { ttyAudio.muted = muted; ttyAudio.volume = Math.min(0.75, sfxVol); } } catch(e){}
+  // Music audio — wire to any audio elements in the music/ folder when ready
+  try {
+    document.querySelectorAll('audio[data-music]').forEach(el => {
+      el.muted = muted;
+      el.volume = musicVol;
+    });
+  } catch(e){}
 }
 
 function debugSetValue(group, key, value){
@@ -4998,7 +5169,7 @@ function startGame() {
 
 // ── SLIDE PROJECTOR SOUND ────────────────────────────────────────────────────
 const projectorAudio = makeAudio('sounds/slideprojector_sounds.wav');
-projectorAudio.volume = uiState.audioVolume;
+projectorAudio.volume = uiState.sfxVolume;
 
 // Loop only between 0:03 and 0:11
 const PROJ_LOOP_START = 3.0;
@@ -5118,4 +5289,3 @@ document.addEventListener('DOMContentLoaded', () => {
 
 </body>
 </html>
- 
