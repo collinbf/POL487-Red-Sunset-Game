@@ -821,8 +821,24 @@
     .action-bar { gap: 8px; }
   }
 
+  .policy-advisor-req { font-size:9px; color:var(--green); margin-top:3px; font-family:'IM Fell English',serif; font-style:italic; }
+  .policy-advisor-opp { font-size:9px; color:var(--red); margin-top:1px; font-family:'IM Fell English',serif; font-style:italic; }
+
   /* RESPONSIVE */
   @media(max-width:780px){ .game-layout { grid-template-columns:1fr; } .sidebar { padding-right:0; border-right:none; border-bottom:1.5px solid var(--rule); padding-bottom:1rem; margin-bottom:1rem; position:static; max-height:none; } .main { padding-left:0; } .advisor-grid { grid-template-columns:repeat(2,1fr); } }
+  @media(max-width:600px) {
+    .policy-grid { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; gap: 8px !important; }
+    .pravda-grid { grid-template-columns: 1fr !important; }
+    .pravda-photo { display: none !important; }
+    .advisor-grid { grid-template-columns: repeat(2, 1fr) !important; }
+    .masthead-title { font-size: 1.8rem; }
+    .main-tabs { flex-wrap: wrap; gap: 4px; }
+    .main-tab { font-size: 9px; padding: 5px 8px; }
+    .action-bar { flex-direction: column; align-items: stretch; }
+    .action-btn-primary, .action-btn-secondary, .action-btn-ghost { width: 100%; text-align: center; }
+    .filter-row { flex-wrap: wrap; }
+    .game-layout { padding: 0 0.5rem; }
+  }
 
 /* OVERRIDES: advisor cards */
 .advisor-name{ font-family:'Playfair Display',serif; font-weight:900; font-size:16px; font-style:normal; margin:20px 0 8px; text-align:left; }
@@ -1568,7 +1584,7 @@
       <div class="launcher-desc">
         <p>A turn-based strategy simulation built for <em>POL487: Soviet Collapse</em>. You play as Mikhail Gorbachev, taking office in March 1985 with a crumbling economy, a restless empire, and a party resistant to change.</p>
         <p>Each turn is one month. Policies are chosen. Events unfold. Advisors shift their loyalties. The question is not whether you can save the USSR — it is whether you can understand why it fell.</p>
-        <p>Designed and built collaboratively using AI-assisted coding tools. All content — events, policies, advisors, and encyclopedia entries — was researched and written by students.</p>
+        <p>Designed and built collaboratively as part of an experimental project in digital history pedagogy. All content — events, policies, advisors, and encyclopedia entries — was researched and written by students.</p>
       </div>
       <div class="launcher-rule"></div>
       <div class="launcher-meta">
@@ -1603,7 +1619,7 @@
           <strong>Events</strong> — Team 3<br/>
           <strong>Advisors</strong> — Team 4<br/>
           <strong>Library &amp; Narrative</strong> — Team 6<br/><br/>
-          Built with AI-assisted coding tools as part of an experimental project in digital history pedagogy. Original game design by POL487, Summer 2026.
+          Built as part of an experimental project in digital history pedagogy. Original game design by POL487, Summer 2026.
         </div>
       </div>
     </div>
@@ -1733,6 +1749,12 @@
     </div>
 <!-- HISTORY LOG -->
 <div class="tty-assembly">
+  <!-- Search bar above the log -->
+  <div style="display:flex;gap:6px;margin-bottom:6px;align-items:center;">
+    <input id="log-search" type="text" placeholder="Filter log…" oninput="filterHistoryLog(this.value)"
+      style="flex:1;background:rgba(242,234,216,0.85);border:1px solid rgba(139,26,26,0.35);color:var(--ink);font-family:'Cormorant Garamond',serif;font-size:11px;padding:4px 7px;border-radius:2px;outline:none;" />
+    <button class="btn" style="font-size:9px;padding:4px 7px;" onclick="clearLogFilter()">✕</button>
+  </div>
   <!-- PAPER / LOG (scroll area) — emerges upward from the paper slot -->
   <div class="history-log tty-paper" id="history-log">
   </div>
@@ -2593,6 +2615,7 @@ let policies = [
     image: 'images/iron_market.jpg',
     effects: { economy: +8, foreignRelations: +6, partyUnity: -10, popularSupport: +3 },
     duration: 'permanent',
+    recurring: true,
     prerequisites: ['perestroika'],
     advisorOpposition: ['ligachev'],
     visibleIf: { minYear: 1985, maxYear: 1991 },
@@ -2619,7 +2642,7 @@ let policies = [
     image: 'images/Law on Cooperatives.jpg',
     effects: { economy: +10, popularSupport: +6, partyUnity: -12, stability: -3 },
     duration: 'permanent',
-    prerequisites: ['perestroika'],
+    prerequisites: ['perestroika', 'cooperative_law_partial'],
     advisorOpposition: ['ligachev'],
     visibleIf: { minYear: 1988, maxYear: 1991 },
   },
@@ -2688,6 +2711,7 @@ The eulogy is a political instrument. Choose your emphasis carefully.`,
     image: 'images/Chernobyl.jpg',
     caption: 'Чернобыльская АЭС имени В. И. Ленина, апрель 1986',
     trigger: { month: 4, year: 1986 },
+    budgetCost: 20,
     description: `Comrade General Secretary — at 01:23 on the 26th of April, Reactor No. 4 of the V. I. Lenin Nuclear Power Station at Chernobyl sustained a catastrophic failure during a scheduled safety test. Two sequential explosions destroyed the reactor housing and ignited a graphite fire. Radioactive material has been dispersed across extensive areas of the Ukrainian SSR, the Byelorussian SSR, and neighbouring socialist and capitalist states alike.
 
 Abnormal radiation readings have now been detected by Swedish monitoring stations, and Western governments are pressing Moscow for an accounting. The full scope of contamination remains under assessment. The Ministry of Medium Machine Building, the KGB, and the Council of Ministers await your directive.
@@ -2846,13 +2870,41 @@ Enactment of this law would bring that activity into the open, subject it to reg
 
 The vote is yours.`,
     choices: [
-      { text: 'Enact the Law in full — profit is permitted, cooperatives operate freely under their own terms', effects: { economy: +10, popularSupport: +6, partyUnity: -12, stability: -3 } },
-      { text: 'Enact a restricted version — cooperatives permitted, but subject to state pricing and audit requirements', effects: { economy: +4, popularSupport: +2, partyUnity: -4, stability: +1 } },
+      { text: 'Enact the Law in full — profit is permitted, cooperatives operate freely under their own terms', effects: { economy: +10, popularSupport: +6, partyUnity: -12, stability: -3 }, enactPolicy: 'cooperative_law_full' },
+      { text: 'Enact a restricted version — cooperatives permitted, but subject to state pricing and audit requirements', effects: { economy: +4, popularSupport: +2, partyUnity: -4, stability: +1 }, enactPolicy: 'cooperative_law_partial' },
       { text: 'Reject the Law — the planned economy remains the sole legitimate organising principle of Soviet production', effects: { economy: -5, popularSupport: -5, partyUnity: +8, stability: +3 } },
     ],
   },
 
-  // ── FREEDOM OF CONSCIENCE ──────────────────────────────────────────
+  // ── AUGUST 1991 COUP ──────────────────────────────────────────────
+  {
+    id: 'august_coup_1991',
+    name: 'State Committee on the State of Emergency — The Coup',
+    image: 'images/Chernobyl.jpg',
+    caption: 'Москва, 19–21 августа 1991 — Государственный комитет по чрезвычайному положению',
+    trigger: { month: 8, year: 1991 },
+    description: `Comrade General Secretary — at 06:00 this morning, a self-proclaimed State Committee on the State of Emergency (GKChP) broadcast a declaration over Soviet state television announcing that you had been removed from office for reasons of health. Tanks are moving in Moscow. The ringleaders are Vice President Yanayev, KGB Chairman Kryuchkov, Defence Minister Yazov, and Prime Minister Pavlov.
+
+You are currently at your dacha in Foros, Crimea. Communications are severed. The plotters have presented an ultimatum: sign emergency decrees endorsing their authority, or face formal deposition.
+
+Outside the White House in Moscow, Boris Yeltsin has climbed onto a tank to address the crowds. Russia is watching. The world is watching.
+
+This is the moment everything has been building toward.`,
+    choices: [
+      {
+        text: 'Refuse to sign — hold firm and call the coup illegal',
+        effects: { popularSupport: +15, partyUnity: -20, stability: -10, foreignRelations: +10, militaryReadiness: -5 }
+      },
+      {
+        text: 'Negotiate — seek a compromise that preserves your position',
+        effects: { popularSupport: -5, partyUnity: -10, stability: -5, foreignRelations: -3 }
+      },
+      {
+        text: 'Capitulate — sign the emergency decrees to avoid bloodshed',
+        effects: { popularSupport: -25, partyUnity: +10, stability: +5, foreignRelations: -15 }
+      },
+    ],
+  },
   {
     id: 'freedom_of_conscience_event',
     name: 'Law on Freedom of Conscience and Religious Organisations',
@@ -3385,12 +3437,21 @@ function getPolicyAvailability(policy){
   const requiredAdvisor = policy.advisorRequired || null;
   const advisorLoyalty = requiredAdvisor ? Number(gameState.advisorLoyalty[requiredAdvisor] ?? 0) : 100;
   const advisorLocked = Boolean(requiredAdvisor && (advisorLoyalty < 20 || isAdvisorResigned(requiredAdvisor)));
-  const alreadyEnacted = enacted.has(policy.id);
-  const reasons = [];
+  const alreadyEnacted = enacted.has(policy.id) && !policy.recurring;
 
+  // Opposing advisors with very high loyalty (≥80) can block policies
+  const opposingAdvisors = policy.advisorOpposition || [];
+  const hardBlockingAdvisor = opposingAdvisors.find(aid => {
+    if (isAdvisorResigned(aid)) return false;
+    const loy = Number(gameState.advisorLoyalty[aid] ?? 0);
+    return loy >= 80;
+  });
+
+  const reasons = [];
   if (alreadyEnacted) reasons.push('Already enacted');
   if (missingPrereqs.length) reasons.push('Requires ' + missingPrereqs.map(policyName).join(', '));
   if (advisorLocked) reasons.push('Requires ' + advisorName(requiredAdvisor) + ' to remain loyal');
+  if (hardBlockingAdvisor) reasons.push(advisorName(hardBlockingAdvisor) + ' is blocking this policy (loyalty ≥80)');
 
   return {
     available: reasons.length === 0,
@@ -3398,6 +3459,7 @@ function getPolicyAvailability(policy){
     alreadyEnacted,
     missingPrereqs,
     advisorLocked,
+    hardBlockingAdvisor: hardBlockingAdvisor || null,
   };
 }
 
@@ -3624,8 +3686,42 @@ function resolveEventChoice(choiceIdx) {
     if (val === null) return;
     applyMetricChange(key, val);
   });
+  // Deduct event budget cost if specified
+  if (event.budgetCost && Number(event.budgetCost) > 0) {
+    const cost = Number(event.budgetCost);
+    gameState.budget = clamp(gameState.budget - cost, 0, 9999);
+    addLog(`Crisis expenditure: -${cost} budget`);
+  }
+  if (choice.budgetCost && Number(choice.budgetCost) > 0) {
+    const cost = Number(choice.budgetCost);
+    gameState.budget = clamp(gameState.budget - cost, 0, 9999);
+    addLog(`Response expenditure: -${cost} budget`);
+  }
+  // Directly enact a policy card if the event choice specifies one
+  if (choice.enactPolicy) {
+    if (!gameState.enactedPolicies) gameState.enactedPolicies = [];
+    if (!gameState.enactedPolicies.includes(choice.enactPolicy)) {
+      gameState.enactedPolicies.push(choice.enactPolicy);
+      addLog(`Policy enacted via event: ${policyName(choice.enactPolicy)}`);
+    }
+  }
   // Log
   addLog(`Event: ${event.name} — chose "${choice.text}"`);
+
+  // ── COUP OUTCOME HOOK ────────────────────────────────────────────
+  if (event.id === 'august_coup_1991') {
+    const choiceText = choice.text.toLowerCase();
+    if (choiceText.includes('capitulate') || choiceText.includes('sign the emergency')) {
+      activeEvent = null;
+      document.getElementById('event-panel').classList.remove('active', 'paper-unfurl');
+      triggerGameOver('coup', 'Gorbachev signed the emergency decrees. The GKChP consolidated power. The reform era is over — the Soviet Union will survive a few more years, but the experiment is finished.');
+      render(); renderPolicies(); saveGame(false);
+      return;
+    }
+    if (choiceText.includes('refuse') || choiceText.includes('hold firm')) {
+      addLog('The coup plotters hesitate. Yeltsin\'s resistance and military defections weaken the GKChP. The outcome now depends on public support.');
+    }
+  }
   activeEvent = null;
   const panel = document.getElementById('event-panel');
   panel.classList.remove('active', 'paper-unfurl');
@@ -3797,7 +3893,29 @@ function endTurn() {
     applyMetricChange('stability', -Math.floor((sep - 10) / 20));
   }
 
-  // ── FIX 3: PASSIVE SEPARATISM GROWTH ─────────────────────────────
+  // ── MILITARY READINESS PASSIVE DECAY ─────────────────────────────
+  // Without active investment, military readiness erodes. Afghanistan
+  // drains combat readiness; budget pressure erodes equipment upkeep.
+  (function applyMilitaryDecay() {
+    const enacted = new Set(gameState.enactedPolicies || []);
+    const budgetBal = Number(gameState.economySub.budgetBalance || 0);
+    const ms = gameState.militarySub;
+    // Afghanistan drain (if still active pre-1989)
+    if (gameState.year < 1989 && !enacted.has('afghanistan-pullout')) {
+      ms.combatReadiness = clamp(ms.combatReadiness - 1, 0, 100);
+    }
+    // Budget pressure: severe deficit hurts maintenance
+    if (budgetBal < -30) {
+      ms.combatReadiness = clamp(ms.combatReadiness - 1, 0, 100);
+    }
+    // Baseline equipment decay without military investment
+    const hasMilPolicy = enacted.has('akhromeyev_weapons_development') || enacted.has('varennikov_military_industrial');
+    if (!hasMilPolicy) {
+      ms.combatReadiness = clamp(ms.combatReadiness - 0.5, 0, 100);
+    }
+    // Sync to dashboard metric
+    gameState.metrics.militaryReadiness = Math.round((ms.combatReadiness + ms.loyalty) / 2);
+  })();
   // Separatism grows each turn as a slow-burn background pressure.
   // Sources:
   //   • Baseline creep: +0.5/turn (very slow, just enough to register)
@@ -3965,8 +4083,8 @@ function checkAllTriggers() {
       description: 'Hundreds of thousands take to the streets in Moscow, Leningrad, and across the republics. Gorbachev\'s authority is openly challenged.',
       choices: [
         { text: 'Address the nation — promise reforms', effects: { popularSupport: +8, partyUnity: -5 } },
-        { text: 'Deploy security forces', effects: { stability: +5, popularSupport: -15, foreignRelations: -8 } },
-        { text: 'Declare a state of emergency', effects: { stability: +8, popularSupport: -20, partyUnity: -10 } },
+        { text: 'Deploy security forces', budgetCost: 10, effects: { stability: +5, popularSupport: -15, foreignRelations: -8 } },
+        { text: 'Declare a state of emergency', budgetCost: 15, effects: { stability: +8, popularSupport: -20, partyUnity: -10 } },
       ]
     });
   }
@@ -4589,6 +4707,11 @@ function renderPolicies() {
     const availability = getPolicyAvailability(p);
     const lockHtml = availability.available ? '' : `<div class="policy-lock">${availability.reasons.map(escapeHtml).join('<br>')}</div>`;
     const click = availability.available ? `onclick="togglePolicySelection('${p.id}')"` : `onclick="togglePolicySelection('${p.id}')"`;
+    // Advisor info line — shown on card face
+    const reqAdvisor = p.advisorRequired ? `<div class="policy-advisor-req" title="Required">★ ${escapeHtml(advisorName(p.advisorRequired))}</div>` : '';
+    const oppAdvisors = (p.advisorOpposition || []).length
+      ? `<div class="policy-advisor-opp" title="Opposes">✕ ${p.advisorOpposition.map(aid => escapeHtml(advisorName(aid))).join(', ')}</div>`
+      : '';
     return `
       <div class="policy-card${isSel ? ' selected' : ''}${availability.available ? '' : ' locked'}" data-cat="${p.category || ''}" ${click}>
         <div class="card-corner tl">${p.category || 'Policy'}</div>
@@ -4596,6 +4719,7 @@ function renderPolicies() {
         <div class="card-body">
           <div class="policy-name">${p.name}</div>
           <div class="policy-effect">${formatEffects(p.effects)}</div>
+          ${reqAdvisor}${oppAdvisors}
           ${lockHtml}
         </div>
       </div>`;
@@ -4807,6 +4931,7 @@ function render() {
   renderDebugPanel();
   renderUtility();
   renderEventQueueStatus();
+  renderUpcomingEvents();
 }
 
 function sanitizeLogEntry(s){
@@ -5118,7 +5243,53 @@ function debugSetValue(group, key, value){
   render();
 }
 
-function debugAdvanceMonths(count){
+function renderUpcomingEvents() {
+  const el = document.getElementById('upcoming-events');
+  if (!el) return;
+  // Find next 3 unfired timed events sorted by date
+  const upcoming = events
+    .filter(e => e.trigger && e.trigger.month && e.trigger.year && !gameState.firedTriggers['event_' + e.id])
+    .sort((a, b) => {
+      const ad = a.trigger.year * 12 + a.trigger.month;
+      const bd = b.trigger.year * 12 + b.trigger.month;
+      return ad - bd;
+    })
+    .slice(0, 3);
+
+  if (!upcoming.length) { el.innerHTML = '<span style="font-family:\'IM Fell English\',serif;font-size:11px;font-style:italic;opacity:.65;">No further scheduled events.</span>'; return; }
+
+  const monthNames = ['', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  const now = gameState.year * 12 + gameState.month;
+
+  el.innerHTML = upcoming.map(e => {
+    const eDate = e.trigger.year * 12 + e.trigger.month;
+    const monthsAway = eDate - now;
+    const dateStr = `${monthNames[e.trigger.month]} ${e.trigger.year}`;
+    const urgency = monthsAway <= 2 ? 'var(--red)' : monthsAway <= 6 ? 'var(--amber)' : 'var(--gold)';
+    return `<div style="display:flex;justify-content:space-between;align-items:center;padding:3px 6px;border:1px solid rgba(139,26,26,0.20);background:rgba(242,234,216,0.55);border-radius:2px;">
+      <span style="font-family:'IM Fell English',serif;font-size:10px;color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:150px;" title="${escapeHtml(e.name)}">${escapeHtml(e.name.length > 26 ? e.name.slice(0,24)+'…' : e.name)}</span>
+      <span style="font-family:'Playfair Display',serif;font-size:9px;font-weight:700;color:${urgency};white-space:nowrap;margin-left:6px;">${dateStr}</span>
+    </div>`;
+  }).join('');
+}
+
+function filterHistoryLog(query) {
+  const log = document.getElementById('history-log');
+  if (!log) return;
+  const q = (query || '').trim().toLowerCase();
+  log.querySelectorAll('.log-entry').forEach(el => {
+    if (!q) { el.style.display = ''; return; }
+    const text = (el.textContent || '').toLowerCase();
+    el.style.display = text.includes(q) ? '' : 'none';
+  });
+}
+
+function clearLogFilter() {
+  const input = document.getElementById('log-search');
+  if (input) { input.value = ''; filterHistoryLog(''); }
+}
+
+function debugAdvanceMonths(count) {
   for (let i = 0; i < count; i++) advanceDate();
   gameState.turn += count;
   addLog(`Debug: advanced ${count} months.`);
