@@ -1939,12 +1939,48 @@ let policies = [
     advisorRequired: 'shevardnadze',
     advisorOpposition: ['akhromeyev'],
   },
+  {
+    id: 'geneva_summit',
+    name: 'Geneva Summit — Meet with Reagan',
+    category: 'Foreign',
+    cost: 8,
+    description: 'Travel to Geneva for a direct bilateral meeting with President Reagan. The first Soviet–American summit since 1979. Pursue arms reduction, reject engagement, or seek a bold nuclear concession.',
+    effects: { foreignRelations: +8, partyUnity: -5, economy: +3 },
+    duration: 'permanent',
+    advisorRequired: 'shevardnadze',
+    advisorOpposition: ['ligachev', 'akhromeyev'],
+  },
+  {
+    id: 'reykjavik_summit',
+    name: 'Reykjavik Summit — Nuclear Ultimatum',
+    category: 'Foreign',
+    cost: 10,
+    description: 'Convene with Reagan in Iceland with a dramatic proposal: the total elimination of all strategic nuclear weapons within ten years. The talks will hinge on the American SDI programme.',
+    effects: { foreignRelations: +3, partyUnity: +3, militaryReadiness: +3 },
+    duration: 'permanent',
+    prerequisites: ['geneva_summit'],
+    advisorRequired: 'shevardnadze',
+    advisorOpposition: ['akhromeyev'],
+  },
+  {
+    id: 'sino_soviet_summit',
+    name: 'Sino-Soviet Summit — Normalise with Beijing',
+    category: 'Foreign',
+    cost: 8,
+    description: 'Accept Deng Xiaoping\'s invitation to Beijing — the first Soviet–Chinese summit since 1959. Pursue demilitarisation of the border, resolve the Cambodia question, or decline entirely amid the Tiananmen crisis.',
+    effects: { foreignRelations: +10, economy: +5, militaryReadiness: -5 },
+    duration: 'permanent',
+    advisorRequired: 'shevardnadze',
+    advisorOpposition: ['akhromeyev'],
+  },
 ];
 
 let events = [
   {
     id: 'chernenko_funeral',
     name: 'State Funeral: Comrade Chernenko',
+    image: 'images/Konstantin_Chernenko.jpg',
+    caption: 'К. У. Черненко, Генеральный секретарь ЦК КПСС (1984–1985)',
     trigger: { month: 3, year: 1985 },
     description: `Comrade Konstantin Ustinovich Chernenko, General Secretary of the Central Committee of the Communist Party of the Soviet Union, has been laid to rest in the Kremlin Wall Necropolis beside Red Square, in accordance with the solemn rites befitting a servant of the Soviet people.
 
@@ -1960,6 +1996,8 @@ The eulogy is a political instrument. Choose your emphasis carefully.`,
   {
     id: 'chernobyl',
     name: 'Reactor No. 4: Chernobyl',
+    image: 'images/Chernobyl.jpg',
+    caption: 'Чернобыльская АЭС имени В. И. Ленина, апрель 1986',
     trigger: { month: 4, year: 1986 },
     description: `Comrade General Secretary — at 01:23 on the 26th of April, Reactor No. 4 of the V. I. Lenin Nuclear Power Station at Chernobyl sustained a catastrophic failure during a scheduled safety test. Two sequential explosions destroyed the reactor housing and ignited a graphite fire. Radioactive material has been dispersed across extensive areas of the Ukrainian SSR, the Byelorussian SSR, and neighbouring socialist and capitalist states alike.
 
@@ -1975,6 +2013,8 @@ The situation demands a response. The world is watching.`,
   {
     id: 'rust_landing',
     name: 'Violation of Sovereign Airspace: West German Aircraft',
+    image: 'images/Mathias_Rust_Flight.jpg',
+    caption: 'Самолёт М. Руста на Большом Москворецком мосту, 28 мая 1987',
     trigger: { month: 5, year: 1987 },
     description: `Comrade General Secretary — at approximately 18:30 on the 28th of May, a Cessna 172 light aircraft registered in the Federal Republic of Germany penetrated Soviet airspace along the Finnish border and proceeded, without interception, along a corridor of nearly 800 kilometres before landing on the Bolshoy Moskvoretsky Bridge adjacent to Red Square. The pilot has been identified as Mathias Rust, 18 years of age, a civilian claiming to seek dialogue for world peace.
 
@@ -1990,6 +2030,8 @@ Two Western journalists have already filed reports framing the incident favourab
   {
     id: 'october_revolution_70',
     name: '70th Anniversary of the Great October Revolution',
+    image: 'images/October_Revolution_Celebrations.jpg',
+    caption: 'Торжественное заседание в Кремлёвском Дворце съездов, ноябрь 1987',
     trigger: { month: 11, year: 1987 },
     description: `Comrade General Secretary — the Union of Soviet Socialist Republics prepares to mark the seventieth anniversary of the Great October Socialist Revolution of 1917. You are to deliver the ceremonial address at the Kremlin Palace of Congresses before the Central Committee, the Supreme Soviet, and assembled delegations of fraternal socialist parties from across the globe.
 
@@ -2006,6 +2048,8 @@ What do you say at the podium?`,
   {
     id: 'yeltsin_incident',
     name: 'The Yeltsin Affair',
+    image: 'images/Yeltsin_Suicide.jpg',
+    caption: 'Б. Н. Ельцин на заседании Верховного Совета, октябрь 1987',
     trigger: { month: 11, year: 1987 },
     description: `Comrade General Secretary — following his denunciation at the October Plenum of the Central Committee and your personal rebuke, Boris Nikolayevich Yeltsin, First Secretary of the Moscow City Party Committee, has been found in his office incapacitated and bleeding. He has been conveyed to hospital under medical escort.
 
@@ -2022,6 +2066,8 @@ The Western press is already speculating. Your handling of this matter will sign
   {
     id: 'oil_crash',
     name: 'Collapse of Oil Revenue',
+    image: 'images/oil_tanker.jpg',
+    caption: 'Советский нефтяной танкер в Персидском заливе, 1985',
     trigger: { month: 7, year: 1986 },
     description: `Comrade General Secretary — a communication from the Ministry of Finance and Gosplan requires your urgent attention.
 
@@ -2454,7 +2500,7 @@ function policiesUsingAdvisor(advisorId){
 }
 
 
-function setupPravdaMasthead(){
+function setupPravdaMasthead(eventImage, eventCaption){
   const setText = (id, txt) => { const el = document.getElementById(id); if (el) el.textContent = txt; };
   setText('pravda-mast-top', '\u0415\u0416\u0415\u0414\u041d\u0415\u0412\u041d\u0410\u042f \u0420\u0410\u0411\u041e\u0427\u0410\u042f \u0413\u0410\u0417\u0415\u0422\u0410.');
   setText('pravda-price-label', '\u0426\u0415\u041d\u0410 2 \u043a\u043e\u043f.');
@@ -2466,18 +2512,21 @@ function setupPravdaMasthead(){
   const cd = document.getElementById('current-date');
   if (cd) setText('pravda-date', cd.textContent);
 
-  setText('pravda-caption', '\u0410\u0440\u0445\u0438\u0432\u043d\u043e\u0435 \u0444\u043e\u0442\u043e (1973)');
+  setText('pravda-caption', eventCaption || '\u0410\u0440\u0445\u0438\u0432\u043d\u043e\u0435 \u0444\u043e\u0442\u043e');
 
   const img = document.getElementById('pravda-img');
   const photo = document.getElementById('pravda-photo');
   const fb = document.getElementById('pravda-photo-fallback');
   if (!img || !photo) return;
 
-  const local = new URL('images/pravda-placeholder.jpg', document.baseURI).href;
+  const src = eventImage
+    ? new URL(eventImage, document.baseURI).href
+    : new URL('images/pravda-placeholder.jpg', document.baseURI).href;
   const succeed = () => { photo.classList.add('loaded'); if (fb) fb.style.display = 'none'; };
+  const fallbackSvg = 'data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%22800%22%20height%3D%22500%22%20viewBox%3D%220%200%20800%20500%22%3E%3Crect%20width%3D%22800%22%20height%3D%22500%22%20fill%3D%22%23e8dcc0%22/%3E%3Ctext%20x%3D%22400%22%20y%3D%22250%22%20text-anchor%3D%22middle%22%20font-family%3D%22Georgia%2Cserif%22%20font-size%3D%2226%22%20fill%3D%22%232b1f10%22%20opacity%3D%220.7%22%3EARCHIVAL%20PHOTOGRAPH%3C/text%3E%3C/svg%3E';
   img.onload = succeed;
-  img.onerror = () => { img.src = 'data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%22800%22%20height%3D%22500%22%20viewBox%3D%220%200%20800%20500%22%3E%3Crect%20width%3D%22800%22%20height%3D%22500%22%20fill%3D%22%23e8dcc0%22/%3E%3Ctext%20x%3D%22400%22%20y%3D%22250%22%20text-anchor%3D%22middle%22%20font-family%3D%22Georgia%2Cserif%22%20font-size%3D%2226%22%20fill%3D%22%232b1f10%22%20opacity%3D%220.7%22%3EARCHIVAL%20PHOTOGRAPH%3C/text%3E%3C/svg%3E'; succeed(); };
-  img.src = local + '?v=' + Date.now();
+  img.onerror = () => { img.src = fallbackSvg; succeed(); };
+  img.src = src + '?v=' + Date.now();
 }
 
 function playPaperCrackle() {
@@ -2501,7 +2550,7 @@ function animatePaperUnfurl(panel) {
 
 function displayEvent(event) {
   activeEvent = event;
-  setupPravdaMasthead();
+  setupPravdaMasthead(event.image || null, event.caption || null);
   renderEventQueueStatus();
   const panel = document.getElementById('event-panel');
   document.getElementById('event-title').textContent = event.name;
