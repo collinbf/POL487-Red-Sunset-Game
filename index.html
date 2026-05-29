@@ -102,6 +102,45 @@
   .intl-fill { height:100%; transition:width .8s cubic-bezier(.4,0,.2,1), background .4s; }
   .intl-val { font-size:12px; font-weight:600; text-align:right; }
 
+  
+  /* SOVIET NEWSPAPER EVENT HEADER */
+  .event-news-banner{
+    border:2px solid rgba(92,17,17,0.75);
+    background:linear-gradient(180deg, rgba(242,234,216,0.96), rgba(232,220,192,0.92));
+    padding:10px 12px;
+    margin-bottom:10px;
+    position:relative;
+    box-shadow:4px 4px 0 rgba(92,17,17,0.25);
+  }
+  .event-news-banner::before{
+    content:'ПРАВДА • INTERNAL BULLETIN';
+    display:block;
+    font-size:10px;
+    letter-spacing:.18em;
+    color:rgba(92,17,17,0.82);
+    margin-bottom:4px;
+    font-family:'Playfair Display',serif;
+    font-weight:700;
+  }
+  .event-headline{
+    font-family:'Playfair Display',serif;
+    font-size:22px;
+    line-height:1.05;
+    text-transform:uppercase;
+    color:var(--red-dark);
+    font-weight:900;
+    margin-bottom:6px;
+  }
+  .event-dateline{
+    font-family:'Courier New',monospace;
+    font-size:11px;
+    letter-spacing:.08em;
+    color:rgba(43,31,16,0.72);
+    border-top:1px solid rgba(139,26,26,0.25);
+    padding-top:4px;
+  }
+
+
   /* EVENT PANEL */
   .event-panel { background:rgba(139,26,26,.08); border:1px solid var(--rule); border-radius:3px; padding:12px; margin-bottom:1rem; display:none; }
   .event-panel.active { display:block; }
@@ -4886,5 +4925,22 @@ if (_importInput) {
 .newsreel-projector-top, .newsreel-projector-bottom { display:none !important; }
 .newsreel-flicker, .newsreel-scratches { display:none !important; }
 </style>
+
+<div id="collapse-monitor" style="
+position:fixed;
+bottom:10px;
+right:10px;
+background:rgba(0,0,0,0.75);
+color:#d4c4a8;
+padding:8px;
+font-family:'Courier New',monospace;
+font-size:11px;
+border:1px solid rgba(139,26,26,0.5);
+z-index:9999;
+opacity:0.35;
+">
+SYSTEM BREAKDOWN ACTIVE
+</div>
+
 </body>
 </html>
