@@ -1543,6 +1543,17 @@
 
 
 
+
+<style id="hide-save-ui">
+  #save-btn,
+  #load-btn,
+  #clear-save-btn,
+  .save-controls,
+  .save-buttons {
+    display: none !important;
+  }
+</style>
+
 </head>
 <body>
 
@@ -1986,6 +1997,7 @@ const gameState = {
     economy:            35, // Industrial output, consumer goods
     stability:          65, // Internal order, absence of unrest
     popularSupport:     60, // Public opinion of Gorbachev (GDD: 60)
+    military: 70,
     partyUnity:         60, // CPSU cohesion
     foreignRelations:   40, // Standing with the West
     militaryReadiness:  70, // Armed forces strength & loyalty
@@ -3161,9 +3173,7 @@ window.RedSunset = {
 
 function advanceDate() {
   gameState.month++;
-  // Monthly state revenue scales with economic performance.
-  const monthlyIncome = Math.max(2, Math.floor(gameState.metrics.economy / 8));
-  gameState.budget += monthlyIncome;
+  processMonthlyEconomy();
 
   if (gameState.month > 12) {
     gameState.month = 1;
@@ -4797,6 +4807,18 @@ function addTassDateline() {
   flushTtyQueue();
 }
 
+
+// Expanded economic pressure system
+const ECONOMIC_SYSTEM = {
+  militaryMaintenanceFactor: 0.08,
+  republicSubsidyFactor: 0.05,
+  corruptionFactor: 0.04,
+  unrestPenaltyThreshold: 35,
+  unrestPenaltyCost: 4,
+  debtThreshold: -25,
+  debtInflationFactor: 0.12
+};
+
 const SAVE_KEY = 'red-sunset-save-v1';
 
 function setSaveStatus(msg){
@@ -5078,6 +5100,20 @@ if (_importInput) {
 </style>
 
 
+
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const labels = ['Save', 'Load', 'Clear Save'];
+
+  document.querySelectorAll('button').forEach(btn => {
+    const txt = btn.textContent.trim();
+    if (labels.includes(txt)) {
+      btn.style.display = 'none';
+    }
+  });
+});
+</script>
 
 </body>
 </html>
