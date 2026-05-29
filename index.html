@@ -1540,6 +1540,17 @@
   opacity: .6;
 }
 </style>
+
+<style id="final-build-dev-hide">
+  #test-event-btn,
+  #debug-panel,
+  .debug-panel,
+  [data-tab="dev"],
+  #dev-tab {
+    display:none !important;
+  }
+</style>
+
 </head>
 <body>
 
@@ -1958,7 +1969,7 @@ const gameState = {
   turn: 1,
   month: 3, // March = 3
   year: 1985,
-  budget: 100,
+  budget: 45,
 
   turnSpend: 0,
  selectedPolicies: [],
@@ -2673,6 +2684,12 @@ Gosplan has prepared three courses of action for your consideration.`,
     id: 'moscow-coup',
     name: 'Hardliner Faction Demands Action',
     trigger: { month: 8, year: 1990 },
+    condition: (gs) => (
+      gs.year >= 1990 &&
+      gs.metrics.partyUnity <= 40 &&
+      gs.metrics.stability <= 45 &&
+      gs.partyFactions.hardliner < 60
+    ),
     description: `Comrade General Secretary — representatives of the conservative wing of the Central Committee, elements within the Ministry of Defence, and senior officers of the Committee for State Security have communicated their position in terms that admit no ambiguity.
 
 The course of reform has produced economic disorder, national separatism, ideological confusion, and the erosion of party authority. The Union is bleeding. They demand a return to order. The language in circulation among certain senior figures — "state of emergency," "temporary stabilisation measures," "constitutional protection of socialist gains" — is not unfamiliar to students of Soviet history.
@@ -2688,6 +2705,11 @@ You must respond. Silence is itself a choice, and they will interpret it accordi
     id: 'economics-collapse',
     name: 'Deepening Economic Crisis',
     trigger: { month: 6, year: 1991 },
+    condition: (gs) => (
+      gs.metrics.economy <= 28 ||
+      gs.economySub.inflation >= 70 ||
+      gs.economySub.budgetBalance <= -55
+    ),
     description: `Comrade General Secretary — the economic situation in the Union has passed beyond the threshold of administrative difficulty into a condition that may appropriately be called crisis.
 
 Queues for basic foodstuffs now extend several hours in Moscow, Leningrad, and the majority of provincial centres. Consumer goods have vanished from state retail channels and reappeared at speculative prices in unofficial markets. Real wages continue to fall against measured and unmeasured price increases. Gosbank estimates that budget deficit financing through monetary emission has reached levels inconsistent with price stability.
@@ -3147,6 +3169,10 @@ window.RedSunset = {
 
 function advanceDate() {
   gameState.month++;
+  // Monthly state revenue scales with economic performance.
+  const monthlyIncome = Math.max(2, Math.floor(gameState.metrics.economy / 8));
+  gameState.budget += monthlyIncome;
+
   if (gameState.month > 12) {
     gameState.month = 1;
     gameState.year++;
@@ -3154,11 +3180,26 @@ function advanceDate() {
 }
 
 function checkEvents() {
-  // Find all triggered events
+  // Supports both date triggers and conditional trigger functions.
   const triggered = events.filter(e => {
-    if (!e.trigger || !e.trigger.month || !e.trigger.year) return false;
     if (gameState.firedTriggers['event_' + e.id]) return false;
-    return e.trigger.month === gameState.month && e.trigger.year === gameState.year;
+
+    let matched = false;
+
+    // Traditional date trigger
+    if (e.trigger && e.trigger.month && e.trigger.year) {
+      matched = (
+        e.trigger.month === gameState.month &&
+        e.trigger.year === gameState.year
+      );
+    }
+
+    // Optional conditional trigger
+    if (typeof e.condition === 'function') {
+      matched = matched || Boolean(e.condition(gameState));
+    }
+
+    return matched;
   });
 
   if (triggered.length > 0) {
@@ -3166,6 +3207,7 @@ function checkEvents() {
     displayEvent(triggered[0]);
     return true;
   }
+
   return false;
 }
 
@@ -3565,6 +3607,7 @@ function checkEndConditions(){
 }
 
 function endTurn() {
+  redrawsThisTurn = 0;
   if (gameState.gameOver || activeEvent) return;
   // Auto-commit selected policies at end of turn (revisable until now)
   if (gameState.selectedPolicies && gameState.selectedPolicies.length > 0) {
@@ -3576,6 +3619,25 @@ function endTurn() {
 
   applyActivePolicyEffects();
   computeBudgetBalanceForTurn();
+
+  // ── FIX 2: PER-TURN BUDGET INCOME ────────────────────────────────
+  // Base income: 15 budget/turn, scaled by economy (0–100).
+  // At economy=35 (start): 15 * (35/100) ≈ 5   → modest early income
+  // At economy=60:         15 * (60/100) = 9
+  // At economy=80:         15 * (80/100) = 12
+  // A positive budget balance (good oil / low deficit) adds a bonus of
+  // up to +5; a negative balance subtracts up to -5.
+  // This keeps the budget alive mid-game without making it trivially large.
+  (function applyBudgetIncome() {
+    const econ = Number(gameState.metrics.economy || 0);
+    const bal  = Number(gameState.economySub.budgetBalance || 0);
+    const baseIncome = Math.round(15 * (econ / 100));
+    const balBonus   = Math.round(clamp(bal / 20, -5, 5));
+    const income     = Math.max(0, baseIncome + balBonus);
+    gameState.budget = clamp(gameState.budget + income, 0, 9999);
+    if (income > 0) addLog(`Budget income this month: +${income} (total: ${gameState.budget})`);
+  })();
+
   gameState.turn++;
   advanceDate();
 
@@ -3584,6 +3646,42 @@ function endTurn() {
     const sep = gameState.separatism;
     applyMetricChange('stability', -Math.floor((sep - 10) / 20));
   }
+
+  // ── FIX 3: PASSIVE SEPARATISM GROWTH ─────────────────────────────
+  // Separatism grows each turn as a slow-burn background pressure.
+  // Sources:
+  //   • Baseline creep: +0.5/turn (very slow, just enough to register)
+  //   • Low stability:  +1 per turn for every 15pts stability is below 65
+  //   • Year pressure:  grows faster after 1988 (historical acceleration)
+  //   • Glasnost effect: +1/turn if glasnost is enacted (information openness
+  //                      fuels national consciousness — historically accurate)
+  //   • Perestroika:    +0.5/turn (decentralisation encourages republic agency)
+  //   • High separatism self-reinforcement: once >50, grows faster
+  // Capped so it can't grow more than +5 in a single turn (no instant spiral).
+  (function growSeparatism() {
+    const stability = Number(gameState.metrics.stability || 0);
+    const enacted   = new Set(gameState.enactedPolicies || []);
+    let delta = 0.5; // baseline creep
+
+    // Low stability pressure
+    if (stability < 65) delta += Math.floor((65 - stability) / 15);
+
+    // Historical year acceleration (independence movements radicalize post-1988)
+    if (gameState.year >= 1989) delta += 1.0;
+    if (gameState.year >= 1990) delta += 1.0;
+    if (gameState.year >= 1991) delta += 1.5;
+
+    // Glasnost and Perestroika fuel national consciousness
+    if (enacted.has('glasnost'))     delta += 1.0;
+    if (enacted.has('perestroika'))  delta += 0.5;
+
+    // Self-reinforcing acceleration above 50
+    if (gameState.separatism >= 50) delta += 1.0;
+
+    delta = clamp(delta, 0, 5); // cap per-turn growth
+    const rounded = Math.round(delta * 10) / 10; // one decimal
+    if (rounded > 0) applyMetricChange('separatism', rounded);
+  })();
 
   // Run all conditional triggers first
   checkAllTriggers();
@@ -4089,6 +4187,66 @@ function applyPolicyImmediate(policyId) {
       }
     });
   }
+  // ── FIX 1: reactionLiberal / reactionConservative ─────────────────
+  // Determine whether this policy leans liberal or conservative.
+  // A policy is "liberal" if it boosts popularSupport or foreignRelations,
+  // or belongs to a set of known reformist ids. It's "conservative" if it
+  // boosts partyUnity or militaryReadiness without popularSupport gains,
+  // or belongs to a known conservative id set. Policies can also carry an
+  // explicit `alignment` field ('liberal'|'conservative'|'neutral') set by
+  // content authors, which always takes precedence.
+  (function applyAdvisorReactions() {
+    const eff = policy.effects || {};
+    let alignment = policy.alignment || null; // explicit tag wins
+    if (!alignment) {
+      const liberalSignals  = ['popularSupport', 'foreignRelations', 'glasnost', 'openness'];
+      const conservativeSignals = ['partyUnity', 'militaryReadiness', 'stability'];
+      // Score by effect keys
+      let libScore  = 0;
+      let conScore  = 0;
+      Object.entries(eff).forEach(([k, v]) => {
+        const n = Number(v);
+        if (liberalSignals.includes(k)  && n > 0) libScore  += n;
+        if (conservativeSignals.includes(k) && n > 0) conScore += n;
+        // Negative impacts on conservative goods are liberal-leaning
+        if (conservativeSignals.includes(k) && n < 0) libScore  += Math.abs(n) * 0.5;
+        if (liberalSignals.includes(k)  && n < 0) conScore += Math.abs(n) * 0.5;
+      });
+      // Known liberal policy ids
+      const knownLiberal = ['glasnost','perestroika','demokratizatsiya','freedom_of_press',
+        'release_dissidents','inf_treaty','sinatra_doctrine','afghan_withdrawal',
+        'market_reform','cooperative_law','multi_party_elections'];
+      const knownConservative = ['anti_alcohol','law_and_order','martial_law',
+        'price_controls','central_planning','military_buildup','military_tech_modernisation',
+        'kgb_expansion','iron_curtain_reinforcement'];
+      if (knownLiberal.includes(policy.id))      libScore  += 20;
+      if (knownConservative.includes(policy.id)) conScore  += 20;
+      if (libScore > conScore)       alignment = 'liberal';
+      else if (conScore > libScore)  alignment = 'conservative';
+      else                           alignment = 'neutral';
+    }
+    advisors.forEach(a => {
+      if (gameState.advisorLoyalty[a.id] == null) return;
+      let delta = 0;
+      if (alignment === 'liberal'       && a.reactionLiberal   != null) delta = Number(a.reactionLiberal);
+      if (alignment === 'conservative'  && a.reactionConservative != null) delta = Number(a.reactionConservative);
+      if (delta === 0) return;
+      const before = Number(gameState.advisorLoyalty[a.id]);
+      gameState.advisorLoyalty[a.id] = clamp(before + delta, 0, 100);
+      // Loyalty still changes internally, but we no longer spam the history log
+      // with per-turn advisor loyalty updates.
+    });
+  })();
+
+  // Advisors gain loyalty when the player actively relies on them.
+  // This implements the GDD requirement that advisors be rewarded for use.
+  if (policy.advisorRequired) {
+    const advisorId = policy.advisorRequired;
+    const current = Number(gameState.advisorLoyalty[advisorId] ?? 50);
+    const reward = 4;
+    gameState.advisorLoyalty[advisorId] = clamp(current + reward, 0, 100);
+  }
+
   if (!gameState.enactedPolicies) gameState.enactedPolicies = [];
   if (!gameState.enactedPolicies.includes(policy.id)) gameState.enactedPolicies.push(policy.id);
   const durationTurns = getPolicyDurationTurns(policy);
