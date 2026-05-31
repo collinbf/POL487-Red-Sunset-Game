@@ -38,7 +38,27 @@
 .status-badge { font-size: 13px; font-style:italic; padding:2px 8px; border:1px solid currentColor; border-radius:2px; }
 
     .budget-badge { font-size:13px; font-style:italic; padding:2px 8px; border:1px solid rgba(154,122,46,.9); border-radius:2px; color:#8b5a0a; cursor:help; position:relative; }
-    .budget-badge[title]:hover::after { content:attr(title); position:absolute; bottom:calc(100% + 4px); left:50%; transform:translateX(-50%); background:#2a1a0a; color:#f2ead8; font-size:10px; font-style:normal; padding:5px 8px; border-radius:3px; white-space:nowrap; max-width:240px; white-space:normal; text-align:center; z-index:999; pointer-events:none; }
+    .budget-tooltip {
+      display: none;
+      position: absolute;
+      bottom: calc(100% + 8px);
+      left: 50%;
+      transform: translateX(-50%);
+      background: #2a1a0a;
+      color: #f2ead8;
+      font-size: 11px;
+      font-style: normal;
+      font-family: 'IM Fell English', serif;
+      line-height: 1.5;
+      padding: 8px 12px;
+      border-radius: 3px;
+      width: 260px;
+      text-align: center;
+      z-index: 9999;
+      pointer-events: none;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+    }
+    .budget-badge:hover .budget-tooltip { display: block; }
 /* METRICS */
   .metrics { display:flex; flex-direction:column; gap:7px; margin-bottom:1rem; }
   .metric-row { display:grid; grid-template-columns:1fr 70px 28px; align-items:center; gap:6px; }
@@ -1905,7 +1925,7 @@
   <div id="policy-selection" style="margin:10px 2px 10px; display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
   <span style="font-family:'IM Fell English',serif; font-size:13px; opacity:.85;">Selected this turn: <strong id="policy-selected-count">0</strong>/3</span>
   <span id="policy-hand-status" style="font-family:'IM Fell English',serif; font-size:13px; opacity:.65; font-style:italic;">Showing policies — redraw for more</span>
-  <span class="budget-badge" title="Political Capital — your capacity to push reforms through the Politburo. Replenishes each month based on Popular Support and Party Unity. Spent when you enact policies.">Political Capital: <strong id="budget-inline">100</strong></span>
+  <span class="budget-badge">Political Capital: <strong id="budget-inline">100</strong><span class="budget-tooltip">Political Capital — your capacity to push reforms through the Politburo. Replenishes each month based on Popular Support and Party Unity. Spent when you enact policies.</span></span>
 </div>
       <div class="active-policy-list" id="active-policy-list"></div>
 
@@ -2014,8 +2034,9 @@ const gameState = {
   budget: 80,
 
   turnSpend: 0,
- selectedPolicies: [],
-  policiesCommittedTurn: null, // up to 3 policies chosen this turn
+  selectedPolicies: [],
+  policiesCommittedTurn: null, // turn number on which policies were last committed
+  turnPoliciesCommittedCount: 0, // how many policies were committed this turn (persists until end of turn)
   enactedPolicies: [],
   activePolicies: [],
   advisorStatus: {},
@@ -2108,6 +2129,10 @@ const uiState = {
 
 const POLICY_HAND_SIZE = 8; // Number of policy cards shown at once (up to eligible pool size)
 
+// Current event being displayed (null when no event is active).
+// Must be declared at module level so all functions can read/write it safely.
+let activeEvent = null;
+
 // ── POLICY VISIBILITY GATE (Option D: date + metric + advisor) ────────
 function checkPolicyVisible(policy) {
   const v = policy.visibleIf;
@@ -2148,8 +2173,30 @@ function dealPolicyHand(forceRedraw) {
   uiState.policyHandTurn = gameState.turn;
 }
 
-// Active event currently displayed (simplifies button handlers)
-let activeEvent = null;
+// ── SHARED POLICY CARD BUILDER ────────────────────────────────────
+// Used by both the hand (renderPolicies) and the tree (renderPolicyTree)
+// so both views always render identically.
+function buildPolicyCardHtml(p, { selectable = true, selected = false } = {}) {
+  const availability = getPolicyAvailability(p);
+  const isSel = selected;
+  const lockHtml = availability.available ? '' : `<div class="policy-lock">${availability.reasons.map(escapeHtml).join('<br>')}</div>`;
+  const click = selectable ? `onclick="togglePolicySelection('${p.id}')"` : '';
+  const reqAdvisor = p.advisorRequired
+    ? `<div class="policy-advisor-req" title="Required">★ ${escapeHtml(advisorName(p.advisorRequired))}</div>` : '';
+  const oppAdvisors = (p.advisorOpposition || []).length
+    ? `<div class="policy-advisor-opp" title="Opposes">✕ ${p.advisorOpposition.map(aid => escapeHtml(advisorName(aid))).join(', ')}</div>` : '';
+  return `
+    <div class="policy-card${isSel ? ' selected' : ''}${availability.available ? '' : ' locked'}" data-cat="${p.category || ''}" ${click}>
+      <div class="card-corner tl">${p.category || 'Policy'}</div>
+      <div class="card-corner br">Cost ${p.cost} <span style="font-size:8px;opacity:.75;">capital</span></div>
+      <div class="card-body">
+        <div class="policy-name">${p.name}</div>
+        <div class="policy-effect">${formatEffects(p.effects)}</div>
+        ${reqAdvisor}${oppAdvisors}
+        ${lockHtml}
+      </div>
+    </div>`;
+}
 
 
 function setActiveFilter(containerId, btnEl) {
@@ -3984,17 +4031,40 @@ function checkEndConditions(){
 function commitPolicies() {
   if (gameState.gameOver) return;
   if (activeEvent) { addLog('⚠ Resolve the current event first.'); return; }
+  if (gameState.policiesCommittedTurn === gameState.turn) {
+    addLog('Policies already committed this turn.');
+    return;
+  }
   if (!gameState.selectedPolicies || gameState.selectedPolicies.length === 0) {
     addLog('No policies selected.');
     return;
   }
+  const count = gameState.selectedPolicies.length;
   gameState.selectedPolicies.slice().forEach(id => applyPolicyImmediate(id));
   gameState.selectedPolicies = [];
-  gameState.turnSpend = 0; // reset so plannedSpend() calculates fresh for next selection
+  gameState.turnSpend = 0;
+  gameState.policiesCommittedTurn = gameState.turn;
+  gameState.turnPoliciesCommittedCount = count;
   dealPolicyHand(true);
+  checkEndConditions();
   renderPolicies();
   render();
   saveGame(false);
+  // Visual confirmation on the button
+  const btn = document.getElementById('btn-commit-policies');
+  if (btn) {
+    const original = btn.textContent;
+    btn.textContent = `\u2713 ${count} polic${count === 1 ? 'y' : 'ies'} enacted`;
+    btn.style.background = 'var(--green, #2d6e44)';
+    btn.style.color = '#fff';
+    btn.style.borderColor = 'var(--green, #2d6e44)';
+    setTimeout(() => {
+      btn.textContent = original;
+      btn.style.background = '';
+      btn.style.color = '';
+      btn.style.borderColor = '';
+    }, 1800);
+  }
 }
 
 function endTurn() {
@@ -4004,6 +4074,8 @@ function endTurn() {
     addLog('⚠ Resolve the current event before advancing.');
     return;
   }
+  // Reset the committed-count display for the new turn
+  gameState.turnPoliciesCommittedCount = 0;
   // If player forgot to commit, silently apply any remaining selection
   if (gameState.selectedPolicies && gameState.selectedPolicies.length > 0) {
     gameState.selectedPolicies.slice().forEach(id => applyPolicyImmediate(id));
@@ -4026,7 +4098,17 @@ function endTurn() {
     const avg     = (support + unity) / 2;
     const income  = Math.round(8 + (avg / 100) * 12);
     gameState.budget = clamp(gameState.budget + income, 0, 9999);
-    addLog(`Political capital +${income} this month (support ${Math.round(support)}, unity ${Math.round(unity)}) — total: ${gameState.budget}`);
+    // Only log capital replenishment when the rate shifts meaningfully (≥5 pts)
+    // and no more than once every 6 turns — avoids flooding the log on routine turns.
+    const lastIncome = gameState._lastCapitalIncome || 0;
+    const lastLoggedTurn = gameState._lastCapitalLogTurn || 0;
+    const rateShift = Math.abs(income - lastIncome) >= 5;
+    const cooldownExpired = (gameState.turn - lastLoggedTurn) >= 6;
+    if (rateShift && cooldownExpired) {
+      addLog(`Political capital rate: +${income}/month`);
+      gameState._lastCapitalIncome = income;
+      gameState._lastCapitalLogTurn = gameState.turn;
+    }
 
     // Track exhaustion streak for paralysis end condition
     if (gameState.budget <= 0) {
@@ -4768,24 +4850,7 @@ function applyPolicyImmediate(policyId) {
   addLog(`Policy: ${policy.name} (-${policy.cost} capital)`);
 }
 
-function commitPolicies() {
-  if (gameState.policiesCommittedTurn === gameState.turn) {
-    addLog('Policies already committed this turn.');
-    return;
-  }
-  const picks = gameState.selectedPolicies || [];
-  if (!picks.length) {
-    addLog('No policies selected.');
-    return;
-  }
-  picks.slice().forEach(id => applyPolicyImmediate(id));
-  gameState.selectedPolicies = [];
-  gameState.policiesCommittedTurn = gameState.turn;
-  checkEndConditions();
-  render();
-  renderPolicies();
-  saveGame(false);
-}
+// NOTE: commitPolicies is defined above — this duplicate was removed.
 
 
 
@@ -4946,25 +5011,7 @@ function renderPolicies() {
   const picks = gameState.selectedPolicies || [];
   const html = list.map(p => {
     const isSel = picks.includes(p.id);
-    const availability = getPolicyAvailability(p);
-    const lockHtml = availability.available ? '' : `<div class="policy-lock">${availability.reasons.map(escapeHtml).join('<br>')}</div>`;
-    const click = availability.available ? `onclick="togglePolicySelection('${p.id}')"` : `onclick="togglePolicySelection('${p.id}')"`;
-    // Advisor info line — shown on card face
-    const reqAdvisor = p.advisorRequired ? `<div class="policy-advisor-req" title="Required">★ ${escapeHtml(advisorName(p.advisorRequired))}</div>` : '';
-    const oppAdvisors = (p.advisorOpposition || []).length
-      ? `<div class="policy-advisor-opp" title="Opposes">✕ ${p.advisorOpposition.map(aid => escapeHtml(advisorName(aid))).join(', ')}</div>`
-      : '';
-    return `
-      <div class="policy-card${isSel ? ' selected' : ''}${availability.available ? '' : ' locked'}" data-cat="${p.category || ''}" ${click}>
-        <div class="card-corner tl">${p.category || 'Policy'}</div>
-        <div class="card-corner br">Cost ${p.cost} <span style="font-size:8px;opacity:.75;">capital</span></div>
-        <div class="card-body">
-          <div class="policy-name">${p.name}</div>
-          <div class="policy-effect">${formatEffects(p.effects)}</div>
-          ${reqAdvisor}${oppAdvisors}
-          ${lockHtml}
-        </div>
-      </div>`;
+    return buildPolicyCardHtml(p, { selectable: true, selected: isSel });
   }).join('') || '<div class="policy-empty">No available policies in this category.</div>';
   document.getElementById('policy-grid').innerHTML = html;
   const handStatus = document.getElementById('policy-hand-status');
@@ -4976,7 +5023,12 @@ function renderPolicies() {
       : 'No policies meet the current conditions in this category.';
   }
   const cEl = document.getElementById('policy-selected-count');
-  if (cEl) cEl.textContent = String(picks.length);
+  if (cEl) {
+    const committed = gameState.policiesCommittedTurn === gameState.turn;
+    cEl.textContent = committed
+      ? String(gameState.turnPoliciesCommittedCount || 0)
+      : String(picks.length);
+  }
   const pcEl = document.getElementById('policy-predicted-cost');
   if (pcEl) pcEl.textContent = String(plannedSpend());
   const commitBtn = document.getElementById('policy-commit-btn');
@@ -5044,7 +5096,6 @@ function renderActivePolicies(){
 function renderPolicyTree(){
   const el = document.getElementById('policy-tree');
   if (!el) return;
-  const enacted = enactedPolicySet();
 
   // Build adjacency: prereq -> [children]
   const children = {};
@@ -5058,24 +5109,29 @@ function renderPolicyTree(){
   });
   const roots = policies.filter(p => !hasParent.has(p.id) && checkPolicyVisible(p));
 
+  // Use the same enacted/selected state as the hand so both views stay in sync.
+  const enacted = enactedPolicySet();
+  const selected = new Set(gameState.selectedPolicies || []);
+
   function nodeHtml(p, depth) {
-    const availability = getPolicyAvailability(p);
-    const isDone = enacted.has(p.id);
-    const status = isDone ? 'enacted' : availability.available ? 'ready' : 'locked';
-    const label = isDone ? '✓ Enacted' : availability.available ? 'Ready' : '🔒 Locked';
     const kids = (children[p.id] || []).map(cid => policies.find(x => x.id === cid)).filter(c => c && checkPolicyVisible(c));
-    const advisor = p.advisorRequired ? `<span class="tree-advisor-req">★ ${escapeHtml(advisorName(p.advisorRequired))}</span>` : '';
-    const opp = (p.advisorOpposition||[]).length ? `<span class="tree-advisor-opp">✕ ${p.advisorOpposition.map(a=>escapeHtml(advisorName(a))).join(', ')}</span>` : '';
-    const effectStr = Object.entries(p.effects||{}).map(([k,v])=>`${v>0?'+':''}${v} ${formatStatKey(k)}`).join(' · ');
-    return `<div class="tree-chain" style="margin-left:${depth*22}px;">
-      <div class="tree-node ${status}">
-        <div class="tree-title">${escapeHtml(p.name)}</div>
-        <div class="tree-meta">${escapeHtml(p.category||'Policy')} · Cost ${p.cost}</div>
-        ${effectStr ? `<div class="tree-effects">${escapeHtml(effectStr)}</div>` : ''}
-        <div class="tree-advisor-row">${advisor}${opp}</div>
-        <span class="tree-status ${status}">${label}</span>
-        ${!isDone && availability.reasons.length ? `<div class="tree-lock-reason">${availability.reasons.map(escapeHtml).join(' · ')}</div>` : ''}
-      </div>
+    let cardHtml;
+    if (enacted.has(p.id) && !p.recurring) {
+      // Enacted policies: show a lightweight "done" badge instead of a full card
+      // to avoid confusing players into thinking they can re-select them.
+      cardHtml = `<div class="policy-card locked" style="opacity:.45;filter:grayscale(.5);cursor:default;" title="Already enacted">
+        <div class="card-corner tl">${p.category || 'Policy'}</div>
+        <div class="card-corner br" style="background:var(--green,#2d6e44);">Enacted</div>
+        <div class="card-body"><div class="policy-name">${escapeHtml(p.name)}</div>
+        <div class="policy-effect" style="font-size:10px;opacity:.6;">Already in effect</div></div>
+      </div>`;
+    } else {
+      // Live card — same builder as the hand, with selection state reflected.
+      const isSel = selected.has(p.id);
+      cardHtml = buildPolicyCardHtml(p, { selectable: true, selected: isSel });
+    }
+    return `<div class="tree-chain" style="margin-left:${depth * 22}px;">
+      ${cardHtml}
       ${kids.length ? `<div class="tree-children">${kids.map(c => nodeHtml(c, 0)).join('')}</div>` : ''}
     </div>`;
   }
@@ -5425,6 +5481,10 @@ function loadGame(){
     }
     const payload = JSON.parse(raw);
     restoreGameState(payload.gameState);
+    // ── SAVE MIGRATION ───────────────────────────────────────────────
+    // If save was made before political capital rebalance (old default 45),
+    // bump to the new starting value so players aren't stuck with stale state.
+    if (gameState.budget === 45) gameState.budget = 80;
     if (payload.uiState) {
       uiState.audioMuted = Boolean(payload.uiState.audioMuted);
       uiState.audioVolume = Number(payload.uiState.audioVolume ?? uiState.audioVolume);
@@ -5728,4 +5788,3 @@ document.addEventListener('DOMContentLoaded', () => {
 
 </body>
 </html>
- 
