@@ -2011,7 +2011,7 @@ const gameState = {
   turn: 1,
   month: 3, // March = 3
   year: 1985,
-  budget: 45,
+  budget: 80,
 
   turnSpend: 0,
  selectedPolicies: [],
@@ -3460,7 +3460,12 @@ function getPolicyAvailability(policy){
   const enacted = enactedPolicySet();
   const missingPrereqs = (policy.prerequisites || []).filter(id => !enacted.has(id));
   const requiredAdvisor = policy.advisorRequired || null;
-  const advisorLoyalty = requiredAdvisor ? Number(gameState.advisorLoyalty[requiredAdvisor] ?? 0) : 100;
+  const advisorLoyaltyDefault = requiredAdvisor
+    ? (advisors.find(a => a.id === requiredAdvisor)?.loyalty ?? 50)
+    : 100;
+  const advisorLoyalty = requiredAdvisor
+    ? Number(gameState.advisorLoyalty[requiredAdvisor] ?? advisorLoyaltyDefault)
+    : 100;
   const advisorLocked = Boolean(requiredAdvisor && (advisorLoyalty < 20 || isAdvisorResigned(requiredAdvisor)));
   const alreadyEnacted = enacted.has(policy.id) && !policy.recurring;
 
@@ -3522,6 +3527,34 @@ function advisorOpposedPolicies(advisorId){
 
 function getAdvisorById(advisorId){
   return advisors.find(a => a.id === advisorId);
+}
+
+function fireAdvisor(advisorId) {
+  const a = advisors.find(x => x.id === advisorId);
+  if (!a) return;
+  const status = gameState.advisorStatus[advisorId] || {};
+  if (status.resigned || status.fired) return;
+  // Firing costs political capital and has consequences
+  const cost = 15;
+  if (gameState.budget < cost) {
+    addLog(`⚠ Not enough political capital to dismiss ${a.name} (costs ${cost}).`);
+    return;
+  }
+  gameState.budget -= cost;
+  status.fired = true;
+  status.resigned = true; // treated as resigned for policy gating
+  gameState.advisorStatus[advisorId] = status;
+  // Faction and stability consequences
+  applyMetricChange('stability', -3);
+  if (a.faction === 'Reformist') applyMetricChange('partyUnity', -5);
+  if (a.faction === 'Conservative') applyMetricChange('partyUnity', +3);
+  const lockedPolicies = policies.filter(p => p.advisorRequired === advisorId && !(gameState.enactedPolicies||[]).includes(p.id));
+  const lockedNames = lockedPolicies.map(p => p.name).join(', ');
+  addLog(`${a.name} dismissed. -${cost} political capital, Stability −3. ${lockedNames ? 'Policies lost: ' + lockedNames + '.' : ''}`);
+  closeAdvisorDetail();
+  render();
+  renderPolicies();
+  saveGame(false);
 }
 
 function buildAdvisorDetailContent(a){
@@ -3593,6 +3626,12 @@ function buildAdvisorDetailContent(a){
         ${opposeHtml}
       </div>
       ${threshold}
+      ${!status.resigned && !status.fired ? `
+      <div class="advisor-detail-section" style="border-top:1px solid rgba(139,26,26,0.2);padding-top:1rem;margin-top:.5rem;">
+        <h4 style="color:var(--red);">Dismiss advisor</h4>
+        <p style="font-size:12px;margin-bottom:.6rem;">Removing ${escapeHtml(a.name)} from the inner circle costs <strong>15 political capital</strong> and carries consequences for stability and party cohesion. This cannot be undone.</p>
+        <button class="action-btn-secondary" style="font-size:11px;padding:6px 14px;" onclick="fireAdvisor('${escapeHtml(a.id)}')">Dismiss ${escapeHtml(a.name)}</button>
+      </div>` : status.fired ? `<p style="color:var(--red);font-style:italic;margin-top:1rem;">This advisor was dismissed.</p>` : ''}
     </div>`;
 }
 
@@ -3830,7 +3869,37 @@ function updateAdvisorLoyaltyForTurn(){
     const factionDelta = factionTilt[a.faction] ?? 0;
     const reformHeat = a.faction === 'Reformist' && m.partyUnity < 45 ? -1 : 0;
     const stabilityHeat = a.faction === 'Conservative' && m.stability < 45 ? -1 : 0;
-    const next = clamp(before + factionDelta - Math.max(0, pressure) + reformHeat + stabilityHeat, 0, 100);
+    let next = clamp(before + factionDelta - Math.max(0, pressure) + reformHeat + stabilityHeat, 0, 100);
+
+    // ── YELTSIN SPECIAL TRAJECTORY ──────────────────────────────────
+    // Before the 1987 Plenum (Oct 1987): co-optable — loyalty drifts
+    // toward popular support. After: irreversible drift downward as his
+    // independent base grows. Post-1990: locked opposition.
+    if (a.id === 'yeltsin') {
+      const yState = gameState.advisorStatus['yeltsin'] || {};
+      if (!yState.resigned && !yState.fired) {
+        if (gameState.year < 1987 || (gameState.year === 1987 && gameState.month < 10)) {
+          // Early phase: loyalty tracks popular support — high reform momentum can keep him onside
+          const supportPull = Math.round((Number(m.popularSupport || 0) - 50) / 15);
+          next = clamp(next + supportPull, 0, 100);
+        } else if (gameState.year < 1990) {
+          // Post-plenum: steady drift down regardless of policy
+          next = clamp(next - 2, 0, 100);
+          if (!yState.plenumFired) {
+            yState.plenumFired = true;
+            addLog('Yeltsin\'s denunciation at the October Plenum has opened an irreparable breach. His loyalty will continue to erode.');
+          }
+        } else {
+          // 1990+: locked in opposition — floor of 5 so he stays in play but never helpful
+          next = clamp(next - 3, 5, 40);
+          if (!yState.oppositionLocked) {
+            yState.oppositionLocked = true;
+            addLog('Yeltsin is now leading the democratic opposition. Co-optation is no longer possible.');
+          }
+        }
+        gameState.advisorStatus['yeltsin'] = yState;
+      }
+    }
     gameState.advisorLoyalty[a.id] = next;
 
     const status = gameState.advisorStatus[a.id] || {};
@@ -3859,7 +3928,22 @@ function checkEndConditions(){
   if (gameState.gameOver) return true;
   const m = gameState.metrics;
 
-  // Budget bankruptcy — sustained insolvency
+  // ── END DATE: DECEMBER 1991 ───────────────────────────────────────
+  if (gameState.year > 1991 || (gameState.year === 1991 && gameState.month >= 12)) {
+    const score = (
+      Number(m.economy || 0) +
+      Number(m.stability || 0) +
+      Number(m.popularSupport || 0) +
+      Number(m.partyUnity || 0) +
+      Number(m.foreignRelations || 0)
+    ) / 5;
+    if (score >= 50 && Number(m.stability || 0) >= 40 && Number(m.popularSupport || 0) >= 40) {
+      triggerGameOver('success', 'The Union survived the reform era.');
+    } else {
+      triggerGameOver('dissolution', 'The Union reached December 1991 but could not hold together.');
+    }
+    return true;
+  }
   if (gameState.budget <= 0 && (gameState.budgetCrisisTurns || 0) >= 3) {
     triggerGameOver('bankruptcy', 'Political capital has been exhausted for three consecutive months. The apparatus has stopped responding to Gorbachev\'s directives.');
     return true;
@@ -3906,7 +3990,7 @@ function commitPolicies() {
   }
   gameState.selectedPolicies.slice().forEach(id => applyPolicyImmediate(id));
   gameState.selectedPolicies = [];
-  gameState.policiesCommittedTurn = gameState.turn;
+  gameState.turnSpend = 0; // reset so plannedSpend() calculates fresh for next selection
   dealPolicyHand(true);
   renderPolicies();
   render();
@@ -4554,10 +4638,6 @@ function plannedSpend() {
 
 function togglePolicySelection(policyId) {
   if (gameState.gameOver) return;
-  if (gameState.policiesCommittedTurn === gameState.turn) {
-    addLog('Policies already committed this turn.');
-    return;
-  }
   const max = 3;
   if (!gameState.selectedPolicies) gameState.selectedPolicies = [];
   const idx = gameState.selectedPolicies.indexOf(policyId);
@@ -4976,14 +5056,14 @@ function renderPolicyTree(){
       hasParent.add(p.id);
     });
   });
-  const roots = policies.filter(p => !hasParent.has(p.id));
+  const roots = policies.filter(p => !hasParent.has(p.id) && checkPolicyVisible(p));
 
   function nodeHtml(p, depth) {
     const availability = getPolicyAvailability(p);
     const isDone = enacted.has(p.id);
     const status = isDone ? 'enacted' : availability.available ? 'ready' : 'locked';
     const label = isDone ? '✓ Enacted' : availability.available ? 'Ready' : '🔒 Locked';
-    const kids = (children[p.id] || []).map(cid => policies.find(x => x.id === cid)).filter(Boolean);
+    const kids = (children[p.id] || []).map(cid => policies.find(x => x.id === cid)).filter(c => c && checkPolicyVisible(c));
     const advisor = p.advisorRequired ? `<span class="tree-advisor-req">★ ${escapeHtml(advisorName(p.advisorRequired))}</span>` : '';
     const opp = (p.advisorOpposition||[]).length ? `<span class="tree-advisor-opp">✕ ${p.advisorOpposition.map(a=>escapeHtml(advisorName(a))).join(', ')}</span>` : '';
     const effectStr = Object.entries(p.effects||{}).map(([k,v])=>`${v>0?'+':''}${v} ${formatStatKey(k)}`).join(' · ');
