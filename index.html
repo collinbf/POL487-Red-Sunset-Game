@@ -37,7 +37,8 @@
     #current-date { font-weight:700; }
 .status-badge { font-size: 13px; font-style:italic; padding:2px 8px; border:1px solid currentColor; border-radius:2px; }
 
-    .budget-badge { font-size:13px; font-style:italic; padding:2px 8px; border:1px solid rgba(154,122,46,.9); border-radius:2px; color:#8b5a0a; }
+    .budget-badge { font-size:13px; font-style:italic; padding:2px 8px; border:1px solid rgba(154,122,46,.9); border-radius:2px; color:#8b5a0a; cursor:help; position:relative; }
+    .budget-badge[title]:hover::after { content:attr(title); position:absolute; bottom:calc(100% + 4px); left:50%; transform:translateX(-50%); background:#2a1a0a; color:#f2ead8; font-size:10px; font-style:normal; padding:5px 8px; border-radius:3px; white-space:nowrap; max-width:240px; white-space:normal; text-align:center; z-index:999; pointer-events:none; }
 /* METRICS */
   .metrics { display:flex; flex-direction:column; gap:7px; margin-bottom:1rem; }
   .metric-row { display:grid; grid-template-columns:1fr 70px 28px; align-items:center; gap:6px; }
@@ -1904,7 +1905,7 @@
   <div id="policy-selection" style="margin:10px 2px 10px; display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
   <span style="font-family:'IM Fell English',serif; font-size:13px; opacity:.85;">Selected this turn: <strong id="policy-selected-count">0</strong>/3</span>
   <span id="policy-hand-status" style="font-family:'IM Fell English',serif; font-size:13px; opacity:.65; font-style:italic;">Showing policies — redraw for more</span>
-  <span class="budget-badge">Budget: <strong id="budget-inline">100</strong></span>
+  <span class="budget-badge" title="Political Capital — your capacity to push reforms through the Politburo. Replenishes each month based on Popular Support and Party Unity. Spent when you enact policies.">Political Capital: <strong id="budget-inline">100</strong></span>
 </div>
       <div class="active-policy-list" id="active-policy-list"></div>
 
@@ -1918,8 +1919,9 @@
 
       <!-- ACTION BAR -->
       <div class="action-bar">
+        <button class="action-btn-primary" onclick="commitPolicies()" id="btn-commit-policies">Enact Selected Policies ✓</button>
         <button class="action-btn-primary" onclick="endTurn()">Advance to Next Month ⟶</button>
-        <button class="action-btn-secondary" onclick="clearPolicySelection()">Clear Selection</button>
+        <button class="action-btn-ghost" onclick="clearPolicySelection()">Clear Selection</button>
         <button class="action-btn-ghost" onclick="resetGame()">↺ Reset</button>
       </div>
     </div>
@@ -3713,17 +3715,17 @@ function resolveEventChoice(choiceIdx) {
   if (event.budgetCost && Number(event.budgetCost) > 0) {
     const cost = Number(event.budgetCost);
     gameState.budget = clamp(gameState.budget - cost, 0, 9999);
-    addLog(`Crisis expenditure: -${cost} budget`);
+    addLog(`Crisis expenditure: -${cost} political capital`);
   }
   if (choice.budgetCost && Number(choice.budgetCost) > 0) {
     const cost = Number(choice.budgetCost);
     gameState.budget = clamp(gameState.budget - cost, 0, 9999);
-    addLog(`Response expenditure: -${cost} budget`);
+    addLog(`Response expenditure: -${cost} political capital`);
   }
   if (choice.budgetGain && Number(choice.budgetGain) > 0) {
     const gain = Number(choice.budgetGain);
     gameState.budget = clamp(gameState.budget + gain, 0, 9999);
-    addLog(`Emergency funds secured: +${gain} budget`);
+    addLog(`Emergency mandate secured: +${gain} political capital`);
   }
   // Directly enact a policy card if the event choice specifies one
   if (choice.enactPolicy) {
@@ -3859,7 +3861,7 @@ function checkEndConditions(){
 
   // Budget bankruptcy — sustained insolvency
   if (gameState.budget <= 0 && (gameState.budgetCrisisTurns || 0) >= 3) {
-    triggerGameOver('bankruptcy', 'The treasury is empty and has been for months. The Union can no longer pay its obligations.');
+    triggerGameOver('bankruptcy', 'Political capital has been exhausted for three consecutive months. The apparatus has stopped responding to Gorbachev\'s directives.');
     return true;
   }
 
@@ -3895,6 +3897,22 @@ function checkEndConditions(){
   return false;
 }
 
+function commitPolicies() {
+  if (gameState.gameOver) return;
+  if (activeEvent) { addLog('⚠ Resolve the current event first.'); return; }
+  if (!gameState.selectedPolicies || gameState.selectedPolicies.length === 0) {
+    addLog('No policies selected.');
+    return;
+  }
+  gameState.selectedPolicies.slice().forEach(id => applyPolicyImmediate(id));
+  gameState.selectedPolicies = [];
+  gameState.policiesCommittedTurn = gameState.turn;
+  dealPolicyHand(true);
+  renderPolicies();
+  render();
+  saveGame(false);
+}
+
 function endTurn() {
   redrawsThisTurn = 0;
   if (gameState.gameOver) return;
@@ -3902,7 +3920,7 @@ function endTurn() {
     addLog('⚠ Resolve the current event before advancing.');
     return;
   }
-  // Commit any selected policies before advancing
+  // If player forgot to commit, silently apply any remaining selection
   if (gameState.selectedPolicies && gameState.selectedPolicies.length > 0) {
     gameState.selectedPolicies.slice().forEach(id => applyPolicyImmediate(id));
     gameState.selectedPolicies = [];
@@ -3914,38 +3932,32 @@ function endTurn() {
   applyActivePolicyEffects();
   computeBudgetBalanceForTurn();
 
-  // ── FIX 2: PER-TURN BUDGET INCOME ────────────────────────────────
-  // Base income: 15 budget/turn, scaled by economy (0–100).
-  // At economy=35 (start): 15 * (35/100) ≈ 5   → modest early income
-  // At economy=60:         15 * (60/100) = 9
-  // At economy=80:         15 * (80/100) = 12
-  // A positive budget balance (good oil / low deficit) adds a bonus of
-  // up to +5; a negative balance subtracts up to -5.
-  // This keeps the budget alive mid-game without making it trivially large.
+  // ── POLITICAL CAPITAL REPLENISHMENT ──────────────────────────────
+  // Capital regenerates based on Popular Support and Party Unity —
+  // the two metrics that represent Gorbachev's real mandate to act.
+  // High support + unity → 20/month. Low both → 8/month (floor).
   (function applyBudgetIncome() {
-    const econ = Number(gameState.metrics.economy || 0);
-    const bal  = Number(gameState.economySub.budgetBalance || 0);
-    const baseIncome = Math.round(15 * (econ / 100));
-    const balBonus   = Math.round(clamp(bal / 20, -5, 5));
-    const income     = Math.max(0, baseIncome + balBonus);
+    const support = Number(gameState.metrics.popularSupport || 0);
+    const unity   = Number(gameState.metrics.partyUnity || 0);
+    const avg     = (support + unity) / 2;
+    const income  = Math.round(8 + (avg / 100) * 12);
     gameState.budget = clamp(gameState.budget + income, 0, 9999);
-    if (income > 0) addLog(`Budget income this month: +${income} (total: ${gameState.budget})`);
+    addLog(`Political capital +${income} this month (support ${Math.round(support)}, unity ${Math.round(unity)}) — total: ${gameState.budget}`);
 
-    // Track insolvency streak for bankruptcy end condition
+    // Track exhaustion streak for paralysis end condition
     if (gameState.budget <= 0) {
       gameState.budgetCrisisTurns = (gameState.budgetCrisisTurns || 0) + 1;
-      addLog(`⚠ Budget depleted — month ${gameState.budgetCrisisTurns} of insolvency.`);
-      // Fire a crisis event on first insolvency
+      addLog(`⚠ Political capital exhausted — month ${gameState.budgetCrisisTurns} of paralysis.`);
       if (gameState.budgetCrisisTurns === 1 && !gameState.firedTriggers['budget_crisis_1']) {
         gameState.firedTriggers['budget_crisis_1'] = true;
         displayTriggerEvent({
-          name: 'Treasury Crisis',
+          name: 'Political Paralysis',
           image: 'images/iron_market.jpg',
-          description: 'The Finance Ministry reports that the central budget has been exhausted. Wage arrears are accumulating across state enterprises, the military, and the civil service. Foreign creditors are refusing new lines of credit. Without immediate measures, the state faces insolvency within months.',
+          description: 'Gorbachev\'s political capital is exhausted. Reformers are demoralised, conservatives are emboldened, and the Politburo is deadlocked. Without a decisive gesture to rebuild his mandate, nothing will move through the apparatus.',
           choices: [
-            { text: 'Emergency austerity — cut military and social spending', budgetCost: 0, effects: { economy: -8, popularSupport: -10, militaryReadiness: -5, stability: -3 }, budgetGain: 20 },
-            { text: 'Seek Western emergency credit line', effects: { foreignRelations: +5, economy: -3, partyUnity: -8 }, budgetGain: 15 },
-            { text: 'Print money — suppress the figures', effects: { economy: -5, popularSupport: -5, partyUnity: +3 }, budgetGain: 10 },
+            { text: 'Address the nation directly — appeal over the Party\'s head to the public', effects: { popularSupport: +12, partyUnity: -8 }, budgetGain: 20 },
+            { text: 'Make concessions to the conservatives to restore Politburo consensus', effects: { partyUnity: +10, popularSupport: -8 }, budgetGain: 15 },
+            { text: 'Push through a single high-profile reform to demonstrate authority', effects: { popularSupport: +6, stability: -5 }, budgetGain: 10 },
           ],
         });
       }
@@ -4519,7 +4531,7 @@ function triggerGameOver(type, message) {
       <div class="ending-stat"><span>Final Date</span><strong>${escapeHtml(formatMonthYear(gameState.month, gameState.year))}</strong></div>
       <div class="ending-stat"><span>Turn</span><strong>${gameState.turn}</strong></div>
       <div class="ending-stat"><span>Separatism</span><strong>${sep}%</strong></div>
-      <div class="ending-stat"><span>Budget</span><strong>${gameState.budget}</strong></div>
+      <div class="ending-stat"><span>Political Capital</span><strong>${gameState.budget}</strong></div>
       ${metricsHtml}
     </div>
     <p style="margin-top:1rem;font-family:'Playfair Display',serif;font-weight:700;font-size:12px;letter-spacing:.06em;text-transform:uppercase;">Reform record</p>
@@ -4568,7 +4580,7 @@ function togglePolicySelection(policyId) {
   }
   const spend = plannedSpend();
   if (gameState.budget < spend + policy.cost) {
-    addLog('⚠ Not enough budget for that policy selection.');
+    addLog('⚠ Not enough political capital for that policy selection.');
     return;
   }
   gameState.selectedPolicies.push(policyId);
@@ -4589,7 +4601,7 @@ function applyPolicyImmediate(policyId) {
     return;
   }
   if (gameState.budget < policy.cost) {
-    addLog('⚠ Not enough budget.');
+    addLog('⚠ Not enough political capital.');
     return;
   }
   gameState.budget -= policy.cost;
@@ -4673,7 +4685,7 @@ function applyPolicyImmediate(policyId) {
     gameState.activePolicies = gameState.activePolicies.filter(x => x.id !== policy.id);
     gameState.activePolicies.push({ id: policy.id, remainingTurns: durationTurns, startedTurn: gameState.turn });
   }
-  addLog(`Policy: ${policy.name} (-${policy.cost} budget)`);
+  addLog(`Policy: ${policy.name} (-${policy.cost} capital)`);
 }
 
 function commitPolicies() {
@@ -4865,7 +4877,7 @@ function renderPolicies() {
     return `
       <div class="policy-card${isSel ? ' selected' : ''}${availability.available ? '' : ' locked'}" data-cat="${p.category || ''}" ${click}>
         <div class="card-corner tl">${p.category || 'Policy'}</div>
-        <div class="card-corner br">Cost ${p.cost}</div>
+        <div class="card-corner br">Cost ${p.cost} <span style="font-size:8px;opacity:.75;">capital</span></div>
         <div class="card-body">
           <div class="policy-name">${p.name}</div>
           <div class="policy-effect">${formatEffects(p.effects)}</div>
@@ -5002,7 +5014,7 @@ function renderPolicyTree(){
 function debugMetricRows(){
   const rows = [
     ...Object.keys(gameState.metrics).map(key => ({ group:'metrics', key, label:formatStatKey(key), value:gameState.metrics[key], min:0, max:100 })),
-    { group:'state', key:'budget', label:'Budget', value:gameState.budget, min:0, max:500 },
+    { group:'state', key:'budget', label:'Political Capital', value:gameState.budget, min:0, max:500 },
     { group:'state', key:'separatism', label:'Separatism', value:gameState.separatism, min:0, max:100 },
     { group:'economySub', key:'inflation', label:'Inflation', value:gameState.economySub.inflation, min:0, max:100 },
     { group:'economySub', key:'budgetBalance', label:'Budget Balance', value:gameState.economySub.budgetBalance, min:-100, max:100 },
