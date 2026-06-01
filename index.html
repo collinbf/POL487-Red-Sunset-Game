@@ -1064,10 +1064,10 @@
   .pravda-choices .event-btn{ flex:0 0 auto !important; max-height:none !important; }
 }
 
-/* === FACTION APPROVAL (centered around zero) === */
+/* === FACTION STRENGTH (0–100 left-anchored bars) === */
 .faction-bar{ position:relative; overflow:hidden; }
-.faction-fill{ position:absolute; top:0; left:50%; height:100%; }
-.zero-line{ position:absolute; left:50%; top:-2px; bottom:-2px; width:1px; background:rgba(0,0,0,0.35); }
+.faction-fill{ position:absolute; top:0; left:0; height:100%; }
+.zero-line{ display:none; } /* no longer used — bars are 0-100, not centered */
 
 /* ── LAUNCHER SCREEN ─────────────────────────────────────────── */
 .launcher-overlay {
@@ -1752,21 +1752,41 @@
     
 <!-- INTERNAL FACTIONS -->
     <div style="margin-top:1rem;">
-      <div class="section-title" style="font-size:10px;">Faction Approval</div>
+      <div class="section-title" style="font-size:10px;">Faction Strength</div>
       <div class="faction-row">
         <span class="faction-name reform">Reformers</span>
-        <div class="faction-bar"><div class="faction-fill reform" id="fb-reform" style="width:50%"></div><div class="zero-line"></div></div>
-        <span class="approval-val neu" id="fv-reform">0</span>
+        <div class="faction-bar"><div class="faction-fill reform" id="fb-reform" style="width:70%"></div></div>
+        <span class="approval-val pos" id="fv-reform">70</span>
       </div>
       <div class="faction-row">
         <span class="faction-name moderate">Moderates</span>
-        <div class="faction-bar"><div class="faction-fill moderate" id="fb-moderate" style="width:50%"></div><div class="zero-line"></div></div>
-        <span class="approval-val neu" id="fv-moderate">0</span>
+        <div class="faction-bar"><div class="faction-fill moderate" id="fb-moderate" style="width:50%"></div></div>
+        <span class="approval-val neu" id="fv-moderate">50</span>
       </div>
       <div class="faction-row">
         <span class="faction-name hard">Hardliners</span>
-        <div class="faction-bar"><div class="faction-fill hard" id="fb-hard" style="width:50%"></div><div class="zero-line"></div></div>
-        <span class="approval-val neu" id="fv-hard">0</span>
+        <div class="faction-bar"><div class="faction-fill hard" id="fb-hard" style="width:40%"></div></div>
+        <span class="approval-val neu" id="fv-hard">40</span>
+      </div>
+    </div>
+
+<!-- PRESSURES -->
+    <div style="margin-top:1rem;">
+      <div class="section-title" style="font-size:10px;">Pressures</div>
+      <div class="intl-row">
+        <span class="intl-name">Separatism</span>
+        <div class="intl-bar"><div class="intl-fill" id="sep-bar" style="width:10%;background:var(--red);"></div></div>
+        <span class="intl-val neg" id="sep-val">10</span>
+      </div>
+      <div class="intl-row">
+        <span class="intl-name">Combat Readiness</span>
+        <div class="intl-bar"><div class="intl-fill" id="combat-bar" style="width:70%;background:var(--green);"></div></div>
+        <span class="intl-val pos" id="combat-val">70</span>
+      </div>
+      <div class="intl-row">
+        <span class="intl-name">Military Loyalty</span>
+        <div class="intl-bar"><div class="intl-fill" id="mloyalty-bar" style="width:65%;background:var(--green);"></div></div>
+        <span class="intl-val pos" id="mloyalty-val">65</span>
       </div>
     </div>
 
@@ -1780,6 +1800,15 @@
       <div class="intl-row"><span class="intl-name">Western Europe</span><div class="intl-bar"><div class="intl-fill" id="if-we" style="width:50%;background:var(--gold);"></div></div><span class="intl-val neu" id="iv-we">0</span></div>
       <div class="intl-row"><span class="intl-name">Non-Aligned</span><div class="intl-bar"><div class="intl-fill" id="if-na" style="width:50%;background:var(--gold);"></div></div><span class="intl-val neu" id="iv-na">0</span></div>
     </div>
+
+<!-- UPCOMING EVENTS -->
+    <div style="margin-top:1rem;">
+      <div class="section-title" style="font-size:10px;">Upcoming Events</div>
+      <div id="upcoming-events" style="display:flex;flex-direction:column;gap:4px;">
+        <span style="font-family:'IM Fell English',serif;font-size:11px;font-style:italic;opacity:.65;">Loading…</span>
+      </div>
+    </div>
+
 <!-- HISTORY LOG -->
 <div class="tty-assembly">
   <!-- Search bar above the log -->
@@ -1925,7 +1954,8 @@
   <div id="policy-selection" style="margin:10px 2px 10px; display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
   <span style="font-family:'IM Fell English',serif; font-size:13px; opacity:.85;">Selected this turn: <strong id="policy-selected-count">0</strong>/3</span>
   <span id="policy-hand-status" style="font-family:'IM Fell English',serif; font-size:13px; opacity:.65; font-style:italic;">Showing policies — redraw for more</span>
-  <span class="budget-badge">Political Capital: <strong id="budget-inline">100</strong><span class="budget-tooltip">Political Capital — your capacity to push reforms through the Politburo. Replenishes each month based on Popular Support and Party Unity. Spent when you enact policies.</span></span>
+  <span id="policy-predicted-cost-wrap" style="font-family:'IM Fell English',serif; font-size:13px; opacity:.85;">Cost: <strong id="policy-predicted-cost">0</strong> capital</span>
+  <span class="budget-badge">Political Capital: <strong id="budget-inline">80</strong><span class="budget-tooltip">Political Capital — your capacity to push reforms through the Politburo. Replenishes each month based on Popular Support and Party Unity. Spent when you enact policies.</span></span>
 </div>
       <div class="active-policy-list" id="active-policy-list"></div>
 
@@ -4016,15 +4046,6 @@ function checkEndConditions(){
     triggerGameOver('dissolution', 'Diplomatic isolation and economic pressure leave Moscow without room to manoeuvre. Reform collapses into a disorderly dissolution of the Union.');
     return true;
   }
-  if (gameState.year > 1991 || (gameState.year === 1991 && gameState.month > 12)) {
-    const avg = Object.values(m).reduce((a,b) => a + Number(b || 0), 0) / 6;
-    if (avg >= 55 && m.stability >= 45 && m.partyUnity >= 35 && gameState.separatism < 70) {
-      triggerGameOver('success', 'Against the odds, reform survives the Soviet crisis. The Union emerges battered but intact, with enough legitimacy to continue restructuring into 1992.');
-    } else {
-      triggerGameOver('dissolution', 'Reform runs out of time. By the end of 1991, the republics and rival institutions have drained the Union of effective power.');
-    }
-    return true;
-  }
   return false;
 }
 
@@ -4257,6 +4278,19 @@ function applyMetricChange(metricKey, delta) {
   if (metricKey === 'moderateFaction') { gameState.partyFactions.moderate = clamp(Number(gameState.partyFactions.moderate||0)+Number(delta||0),0,100); return; }
   if (metricKey === 'hardlinerFaction') { gameState.partyFactions.hardliner = clamp(Number(gameState.partyFactions.hardliner||0)+Number(delta||0),0,100); return; }
   gameState.metrics[key] = Math.min(100, Math.max(0, gameState.metrics[key] + delta));
+
+  // When the headline foreignRelations metric moves, propagate the same delta to all
+  // per-region intlRelations values. This keeps the sidebar bars and the trigger
+  // thresholds in sync with what policies actually do.
+  if (key === 'foreignRelations') {
+    const ir = gameState.intlRelations;
+    const d  = Number(delta || 0);
+    ir.us       = clamp(ir.us       + d, 0, 100);
+    ir.china    = clamp(ir.china    + d, 0, 100);
+    ir.eastEu   = clamp(ir.eastEu   + d, 0, 100);
+    ir.westEu   = clamp(ir.westEu   + d, 0, 100);
+    ir.nonAlign = clamp(ir.nonAlign + d, 0, 100);
+  }
 
   // Check for crisis
   if (gameState.metrics[key] === 0) {
@@ -4720,6 +4754,10 @@ function plannedSpend() {
 
 function togglePolicySelection(policyId) {
   if (gameState.gameOver) return;
+  // Block new selections once this turn's commit has already been submitted.
+  // Without this guard, clicking cards after committing re-populates selectedPolicies
+  // and endTurn silently applies them for free as a second commit.
+  if (gameState.policiesCommittedTurn === gameState.turn) return;
   const max = 3;
   if (!gameState.selectedPolicies) gameState.selectedPolicies = [];
   const idx = gameState.selectedPolicies.indexOf(policyId);
@@ -4959,31 +4997,25 @@ function renderDate() {
   if (pDate) pDate.textContent = document.getElementById('current-date')?.textContent || '';
   const pIssue = document.getElementById('pravda-issue');
   if (pIssue) pIssue.textContent = '\u2116 ' + String(gameState.turn) + '.';
-  const _bEl = document.getElementById('budget');
-  if (_bEl) _bEl.textContent = gameState.budget;
 }
 
 function renderFactions() {
- const map = {
-  reformers: 'reform',
-  moderates: 'moderate',
-  hardliners: 'hard',
- };
-
- Object.keys(map).forEach(f => {
-  const approval = gameState.factionApproval[f];
-  const magnitude = Math.min(50, Math.abs(approval) * 4); // cap to half-bar
-  const left = approval >= 0 ? 50 : (50 - magnitude);
-  const cls = approval > 0 ? 'pos' : approval < 0 ? 'neg' : 'neu';
-  const val = approval > 0 ? '+' + approval : approval < 0 ? '-' + Math.abs(approval) : '0';
-
-  const id = map[f];
-  const fillEl = document.getElementById(`fb-${id}`);
-  fillEl.style.width = magnitude + '%';
-  fillEl.style.left = left + '%';
-  document.getElementById(`fv-${id}`).textContent = val;
-  document.getElementById(`fv-${id}`).className = 'approval-val ' + cls;
- });
+  // partyFactions is the live 0-100 data that drives triggers and advisor logic.
+  const pf = gameState.partyFactions;
+  const rows = [
+    { id: 'reform',   val: clamp(Math.round(pf.reform    || 0), 0, 100) },
+    { id: 'moderate', val: clamp(Math.round(pf.moderate  || 0), 0, 100) },
+    { id: 'hard',     val: clamp(Math.round(pf.hardliner || 0), 0, 100) },
+  ];
+  rows.forEach(({ id, val }) => {
+    const fillEl = document.getElementById(`fb-${id}`);
+    const valEl  = document.getElementById(`fv-${id}`);
+    if (!fillEl || !valEl) return;
+    fillEl.style.width = val + '%';
+    const cls = val >= 60 ? 'pos' : val >= 35 ? 'neu' : 'neg';
+    valEl.textContent = val;
+    valEl.className   = 'approval-val ' + cls;
+  });
 }
 
 function renderIntl() {
@@ -5031,7 +5063,7 @@ function renderPolicies() {
   }
   const pcEl = document.getElementById('policy-predicted-cost');
   if (pcEl) pcEl.textContent = String(plannedSpend());
-  const commitBtn = document.getElementById('policy-commit-btn');
+  const commitBtn = document.getElementById('btn-commit-policies');
   if (commitBtn) commitBtn.disabled = picks.length === 0 || (gameState.policiesCommittedTurn === gameState.turn);
   renderActivePolicies();
 }
@@ -5201,22 +5233,50 @@ function renderLibrary() {
 
 function renderPolitburoVisual(){
   const el = document.getElementById('pb-visual');
+  const pf = gameState.partyFactions;
+
+  // Derive seat counts (total = 25) from 0-100 strength scores.
+  // Proportional: each faction's seats = round(strength / totalStrength * 25),
+  // with remainders distributed to the largest fractions first.
+  const TOTAL_SEATS = 25;
+  const strengths = [
+    { key: 'reform',    val: clamp(pf.reform    || 0, 0, 100) },
+    { key: 'moderate',  val: clamp(pf.moderate  || 0, 0, 100) },
+    { key: 'hard',      val: clamp(pf.hardliner || 0, 0, 100) },
+  ];
+  const total = strengths.reduce((s, f) => s + f.val, 0) || 1;
+  const exact = strengths.map(f => ({ ...f, exact: f.val / total * TOTAL_SEATS }));
+  const floored = exact.map(f => ({ ...f, seats: Math.floor(f.exact) }));
+  let remaining = TOTAL_SEATS - floored.reduce((s, f) => s + f.seats, 0);
+  floored
+    .map((f, i) => ({ i, frac: exact[i].exact - f.seats }))
+    .sort((a, b) => b.frac - a.frac)
+    .slice(0, remaining)
+    .forEach(({ i }) => { floored[i].seats++; });
+  const seats = {};
+  floored.forEach(f => { seats[f.key] = f.seats; });
+
+  // Update the chip counts in the masthead
+  const pbR = document.getElementById('pb-reform');
+  const pbM = document.getElementById('pb-moderate');
+  const pbH = document.getElementById('pb-hard');
+  if (pbR) pbR.textContent = seats.reform;
+  if (pbM) pbM.textContent = seats.moderate;
+  if (pbH) pbH.textContent = seats.hard;
+
+  // Redraw the dot grid
   if (!el) return;
-  const r = Number(document.getElementById('pb-reform')?.textContent || 0);
-  const m = Number(document.getElementById('pb-moderate')?.textContent || 0);
-  const h = Number(document.getElementById('pb-hard')?.textContent || 0);
   let out = '';
-  for (let i=0;i<r;i++) out += '<span class="pb-dot reform" aria-hidden="true"></span>';
-  for (let i=0;i<m;i++) out += '<span class="pb-dot moderate" aria-hidden="true"></span>';
-  for (let i=0;i<h;i++) out += '<span class="pb-dot hard" aria-hidden="true"></span>';
+  for (let i = 0; i < seats.reform;   i++) out += '<span class="pb-dot reform"   aria-hidden="true"></span>';
+  for (let i = 0; i < seats.moderate; i++) out += '<span class="pb-dot moderate" aria-hidden="true"></span>';
+  for (let i = 0; i < seats.hard;     i++) out += '<span class="pb-dot hard"     aria-hidden="true"></span>';
   el.innerHTML = out;
 }
 
 function renderPressures() {
-  const sep  = clamp(gameState.separatism || 0, 0, 100);
-  const cr   = clamp(gameState.militarySub.combatReadiness || 0, 0, 100);
-  const ml   = clamp(gameState.militarySub.loyalty || 0, 0, 100);
-  const pf   = gameState.partyFactions;
+  const sep = clamp(gameState.separatism || 0, 0, 100);
+  const cr  = clamp(gameState.militarySub.combatReadiness || 0, 0, 100);
+  const ml  = clamp(gameState.militarySub.loyalty || 0, 0, 100);
 
   const setBar = (barId, valId, val, invert) => {
     const el = document.getElementById(barId);
@@ -5232,12 +5292,9 @@ function renderPressures() {
     vl.className = 'intl-val ' + cls;
   };
 
-  setBar('sep-bar',      'sep-val',      sep,        true);   // high sep = bad
-  setBar('combat-bar',   'combat-val',   cr,         false);
-  setBar('mloyalty-bar', 'mloyalty-val', ml,         false);
-  setBar('pf-reform-bar','pf-reform-val', clamp(pf.reform||0,0,100),   false);
-  setBar('pf-mod-bar',   'pf-mod-val',   clamp(pf.moderate||0,0,100),  false);
-  setBar('pf-hard-bar',  'pf-hard-val',  clamp(pf.hardliner||0,0,100), false);
+  setBar('sep-bar',      'sep-val',      sep, true);  // high = bad
+  setBar('combat-bar',   'combat-val',   cr,  false);
+  setBar('mloyalty-bar', 'mloyalty-val', ml,  false);
 }
 
 function render() {
@@ -5788,4 +5845,3 @@ document.addEventListener('DOMContentLoaded', () => {
 
 </body>
 </html>
- 
