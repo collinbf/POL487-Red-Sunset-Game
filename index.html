@@ -187,6 +187,19 @@
   .policy-name { font-family:'Playfair Display',serif; font-weight:700; font-size:12px; margin-bottom:3px; color:var(--red-dark); }
   .policy-cost { font-size:9px; color:var(--gold); margin-bottom:2px; }
   .policy-effect { font-size:10px; line-height:1.4; color:var(--ink); opacity:.75; }
+  .policy-desc {
+    font-family: 'IM Fell English', serif;
+    font-style: italic;
+    font-size: 10.5px;
+    line-height: 1.38;
+    color: var(--ink);
+    opacity: .72;
+    margin-bottom: 5px;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
   .policy-empty { grid-column:1/-1; padding:18px; font-family:'IM Fell English',serif; font-style:italic; color:rgba(43,31,16,.7); }
   .active-policy-list { display:flex; gap:6px; flex-wrap:wrap; margin:8px 2px 10px; }
   .active-policy-chip, .save-chip, .advisor-status-chip { border:1px solid rgba(139,26,26,.35); background:rgba(242,234,216,.7); color:var(--red-dark); border-radius:2px; padding:3px 7px; font-family:'IM Fell English',serif; font-size:12px; }
@@ -1958,7 +1971,7 @@
         <button class="filter-btn active" onclick="setPolicyFilter('All', this)">All</button>
         <button class="filter-btn" onclick="setPolicyFilter('Domestic', this)">Domestic</button>
         <button class="filter-btn" onclick="setPolicyFilter('Foreign', this)">Foreign</button>
-        <button class="filter-btn" onclick="dealPolicyHand(true);renderPolicies();" title="Draw a new set of 8 policies" style="margin-left:auto;">↺ Redraw Hand</button>
+        <button id="redraw-hand-btn" class="filter-btn" onclick="requestRedraw();" title="Draw a new set of 8 policies — first redraw each turn is free" style="margin-left:auto;">↺ Redraw Hand</button>
       </div>
       <div class="policy-grid" id="policy-grid"></div>
 
@@ -2135,6 +2148,7 @@ const gameState = {
 
   // History log
   history: [],
+  idleTurns: 0, // consecutive turns on which no policies were enacted
 };
 
 
@@ -2150,6 +2164,7 @@ const uiState = {
   musicVolume: 0.7,
   policyHandIds: [],   // IDs of policies currently shown (the "hand")
   policyHandTurn: -1,  // Turn on which the hand was last dealt
+  redrawsThisTurn: 0,  // Number of redraws used this turn (first is free; subsequent cost 5 capital)
 };
 
 const POLICY_HAND_SIZE = 8; // Number of policy cards shown at once (up to eligible pool size)
@@ -2216,6 +2231,45 @@ function dealPolicyHand(forceRedraw) {
   uiState.policyHandTurn = gameState.turn;
 }
 
+// Called by the ↺ Redraw Hand button. First redraw each turn is free;
+// each subsequent redraw costs 5 political capital.
+const REDRAW_COST = 5;
+function requestRedraw() {
+  if (uiState.redrawsThisTurn === 0) {
+    // First redraw — free
+    uiState.redrawsThisTurn++;
+    dealPolicyHand(true);
+    renderPolicies();
+  } else {
+    // Subsequent redraws cost political capital
+    if (gameState.budget < REDRAW_COST) {
+      addLog(`⚠ Not enough political capital to redraw (costs ${REDRAW_COST}).`);
+      return;
+    }
+    gameState.budget -= REDRAW_COST;
+    uiState.redrawsThisTurn++;
+    addLog(`Redraw — spent ${REDRAW_COST} political capital to survey additional policy options.`);
+    dealPolicyHand(true);
+    renderPolicies();
+    render(); // refresh capital display
+  }
+  updateRedrawButton();
+}
+
+function updateRedrawButton() {
+  const btn = document.getElementById('redraw-hand-btn');
+  if (!btn) return;
+  if (uiState.redrawsThisTurn === 0) {
+    btn.title = 'Draw a new set of 8 policies — first redraw each turn is free';
+    btn.textContent = '↺ Redraw Hand';
+  } else {
+    const canAfford = gameState.budget >= REDRAW_COST;
+    btn.title = `Each additional redraw costs ${REDRAW_COST} political capital${canAfford ? '' : ' — not enough capital'}`;
+    btn.textContent = `↺ Redraw (${REDRAW_COST} capital)`;
+    btn.style.opacity = canAfford ? '' : '0.5';
+  }
+}
+
 // ── SHARED POLICY CARD BUILDER ────────────────────────────────────
 // Used by both the hand (renderPolicies) and the tree (renderPolicyTree)
 // so both views always render identically.
@@ -2234,6 +2288,7 @@ function buildPolicyCardHtml(p, { selectable = true, selected = false } = {}) {
       <div class="card-corner br">Cost ${p.cost} <span style="font-size:8px;opacity:.75;">capital</span></div>
       <div class="card-body">
         <div class="policy-name">${p.name}</div>
+        ${p.description ? `<div class="policy-desc">${escapeHtml(p.description)}</div>` : ''}
         <div class="policy-effect">${formatEffects(p.effects)}</div>
         ${reqAdvisor}${oppAdvisors}
         ${lockHtml}
@@ -4155,7 +4210,7 @@ function commitPolicies() {
 }
 
 function endTurn() {
-  redrawsThisTurn = 0;
+  uiState.redrawsThisTurn = 0;
   if (gameState.gameOver) return;
   if (activeEvent) {
     addLog('⚠ Resolve the current event before advancing.');
@@ -4173,6 +4228,31 @@ function endTurn() {
   if (checkEndConditions()) return;
 
   applyActivePolicyEffects();
+
+  // ── INACTION PENALTY ──────────────────────────────────────────────
+  // Gorbachev could not simply do nothing. The Politburo interpreted
+  // passivity as weakness; factions hardened. A mild cumulative penalty
+  // on Party Unity (and Stability after a prolonged streak) reflects this.
+  (function applyIdlePenalty() {
+    const didEnact = gameState.policiesCommittedTurn === gameState.turn;
+    if (!didEnact) {
+      gameState.idleTurns = (gameState.idleTurns || 0) + 1;
+      const streak = gameState.idleTurns;
+      if (streak === 1) {
+        addLog('The Politburo grows restless — no directives issued this month.');
+        applyMetricChange('partyUnity', -1);
+      } else if (streak === 2) {
+        addLog('⚠ A second month of inaction — conservative factions read the silence as an opportunity.');
+        applyMetricChange('partyUnity', -2);
+      } else if (streak >= 3) {
+        addLog(`⚠ Month ${streak} of paralysis — Party Unity and Stability erode as the apparatus loses direction.`);
+        applyMetricChange('partyUnity', -2);
+        applyMetricChange('stability', -1);
+      }
+    } else {
+      gameState.idleTurns = 0;
+    }
+  })();
   computeBudgetBalanceForTurn();
 
   // ── POLITICAL CAPITAL REPLENISHMENT ──────────────────────────────
@@ -5190,9 +5270,10 @@ function renderPolicies() {
     }
   }
   renderActivePolicies();
+  updateRedrawButton();
 }
 
-function renderAdvisors() {
+function renderAdvisors(){
   const f = uiState.advisorFaction;
   const list = (f && f !== 'All')
     ? advisors.filter(a => String(a.faction || '').toLowerCase() === String(f).toLowerCase())
