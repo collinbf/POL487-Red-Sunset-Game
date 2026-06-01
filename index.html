@@ -459,6 +459,27 @@
     color: var(--red-dark);
   }
 
+/* When the 3-policy limit is reached, unselected cards are dimmed */
+.policy-grid.limit-reached .policy-card:not(.selected) {
+  opacity: 0.45;
+  filter: grayscale(0.4);
+  cursor: not-allowed;
+  transform: none !important;
+  box-shadow: 8px 8px 0 rgba(92,17,17,0.28), 0 10px 16px rgba(0,0,0,0.10) !important;
+}
+.policy-limit-banner {
+  grid-column: 1 / -1;
+  text-align: center;
+  font-family: 'Playfair Display', serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .10em;
+  text-transform: uppercase;
+  color: var(--gold);
+  padding: 6px 0 2px;
+  opacity: 0.9;
+}
+
 /* Persistent selected policy highlight (stays visible even on hover) */
 .policy-card.selected{
   outline: 3px solid rgba(154,122,46,0.78);
@@ -1770,25 +1791,6 @@
       </div>
     </div>
 
-<!-- PRESSURES -->
-    <div style="margin-top:1rem;">
-      <div class="section-title" style="font-size:10px;">Pressures</div>
-      <div class="intl-row">
-        <span class="intl-name">Separatism</span>
-        <div class="intl-bar"><div class="intl-fill" id="sep-bar" style="width:10%;background:var(--red);"></div></div>
-        <span class="intl-val neg" id="sep-val">10</span>
-      </div>
-      <div class="intl-row">
-        <span class="intl-name">Combat Readiness</span>
-        <div class="intl-bar"><div class="intl-fill" id="combat-bar" style="width:70%;background:var(--green);"></div></div>
-        <span class="intl-val pos" id="combat-val">70</span>
-      </div>
-      <div class="intl-row">
-        <span class="intl-name">Military Loyalty</span>
-        <div class="intl-bar"><div class="intl-fill" id="mloyalty-bar" style="width:65%;background:var(--green);"></div></div>
-        <span class="intl-val pos" id="mloyalty-val">65</span>
-      </div>
-    </div>
 
     
 <!-- INTERNATIONAL RELATIONS -->
@@ -1801,13 +1803,6 @@
       <div class="intl-row"><span class="intl-name">Non-Aligned</span><div class="intl-bar"><div class="intl-fill" id="if-na" style="width:50%;background:var(--gold);"></div></div><span class="intl-val neu" id="iv-na">0</span></div>
     </div>
 
-<!-- UPCOMING EVENTS -->
-    <div style="margin-top:1rem;">
-      <div class="section-title" style="font-size:10px;">Upcoming Events</div>
-      <div id="upcoming-events" style="display:flex;flex-direction:column;gap:4px;">
-        <span style="font-family:'IM Fell English',serif;font-size:11px;font-style:italic;opacity:.65;">Loading…</span>
-      </div>
-    </div>
 
 <!-- HISTORY LOG -->
 <div class="tty-assembly">
@@ -2194,12 +2189,30 @@ function eligiblePolicyPool() {
   });
 }
 
+// Milestone policies that must appear as soon as they become eligible,
+// guaranteed in the first slot of the hand until enacted.
+const MILESTONE_POLICY_IDS = [
+  'uskoreniye', 'glasnost', 'perestroika',
+  'inf-treaty', 'afghanistan-pullout',
+  'nazarbayev_union_treaty',
+];
+
 function dealPolicyHand(forceRedraw) {
   // Re-deal if: new turn, forced redraw, or hand is empty
   if (!forceRedraw && uiState.policyHandTurn === gameState.turn && uiState.policyHandIds.length > 0) return;
+
   const pool = eligiblePolicyPool();
-  const shuffled = pool.slice().sort(() => Math.random() - 0.5);
-  uiState.policyHandIds = shuffled.slice(0, POLICY_HAND_SIZE).map(p => p.id);
+
+  // Split pool into milestone policies (guaranteed slots) and the rest
+  const milestones = pool.filter(p => MILESTONE_POLICY_IDS.includes(p.id));
+  const rest       = pool.filter(p => !MILESTONE_POLICY_IDS.includes(p.id));
+
+  // Shuffle the non-milestone pool
+  const shuffledRest = rest.slice().sort(() => Math.random() - 0.5);
+
+  // Milestones always lead the hand; fill remaining slots from the shuffled pool
+  const hand = [...milestones, ...shuffledRest].slice(0, POLICY_HAND_SIZE);
+  uiState.policyHandIds = hand.map(p => p.id);
   uiState.policyHandTurn = gameState.turn;
 }
 
@@ -2694,6 +2707,45 @@ let policies = [
     advisorRequired: 'karimov',
     advisorOpposition: ['yeltsin'],
     visibleIf: { minYear: 1989, minSeparatism: 45 },
+  },
+
+  // ── SEPARATISM MANAGEMENT ────────────────────────────────────────
+  {
+    id: 'republic_autonomy_pact',
+    name: 'Republic Autonomy Pact',
+    category: 'Domestic',
+    cost: 12,
+    description: 'Negotiate a formal power-sharing agreement with restive republic leaderships, granting meaningful cultural and economic self-governance within the Union framework. Reformers endorse it; hardliners see capitulation.',
+    effects: { separatism: -12, stability: +5, partyUnity: -8, popularSupport: +6 },
+    duration: 'permanent',
+    prerequisites: ['glasnost'],
+    advisorRequired: 'nazarbayev',
+    advisorOpposition: ['ligachev', 'akhromeyev'],
+    visibleIf: { minSeparatism: 20 },
+  },
+  {
+    id: 'economic_incentive_republics',
+    name: 'Economic Incentives for the Republics',
+    category: 'Domestic',
+    cost: 15,
+    description: 'Channel federal investment into the most restive republics — infrastructure, factories, consumer goods. Expensive, but loyalty can sometimes be purchased where it cannot be commanded.',
+    effects: { separatism: -8, economy: -5, popularSupport: +5, stability: +3 },
+    duration: 'permanent',
+    advisorOpposition: ['ligachev'],
+    visibleIf: { minSeparatism: 15 },
+  },
+  {
+    id: 'cultural_autonomy_programme',
+    name: 'Cultural Autonomy Programme',
+    category: 'Domestic',
+    cost: 5,
+    description: 'Permit instruction in local languages, state media in minority languages, and revival of suppressed cultural traditions. Nationalists are partly mollified; hardline cadres are furious.',
+    effects: { separatism: -6, popularSupport: +8, partyUnity: -6, stability: -2 },
+    duration: 'permanent',
+    prerequisites: ['glasnost'],
+    advisorRequired: 'yakovlev',
+    advisorOpposition: ['ligachev'],
+    visibleIf: { minSeparatism: 10 },
   },
 
   // ── FREE ECONOMIC ZONES ───────────────────────────────────────────
@@ -3485,30 +3537,45 @@ function advanceDate() {
 
 function checkEvents() {
   // Supports both date triggers and conditional trigger functions.
+  // Rules:
+  //   • Date-only event (no condition):       fires when month+year match.
+  //   • Conditional-only event (no trigger):  fires when condition() is true.
+  //   • Event with BOTH trigger AND condition: fires only when month+year match
+  //     AND condition() is true. Prevents conditional events firing on the right
+  //     date but wrong game state (bug #3 fix — was using || instead of &&).
   const triggered = events.filter(e => {
     if (gameState.firedTriggers['event_' + e.id]) return false;
 
-    let matched = false;
+    const hasDateTrigger = e.trigger && e.trigger.month && e.trigger.year;
+    const hasCondition   = typeof e.condition === 'function';
 
-    // Traditional date trigger
-    if (e.trigger && e.trigger.month && e.trigger.year) {
-      matched = (
+    if (hasDateTrigger && hasCondition) {
+      // Both must be satisfied
+      return (
         e.trigger.month === gameState.month &&
-        e.trigger.year === gameState.year
+        e.trigger.year  === gameState.year  &&
+        Boolean(e.condition(gameState))
       );
     }
-
-    // Optional conditional trigger
-    if (typeof e.condition === 'function') {
-      matched = matched || Boolean(e.condition(gameState));
+    if (hasDateTrigger) {
+      return e.trigger.month === gameState.month && e.trigger.year === gameState.year;
     }
-
-    return matched;
+    if (hasCondition) {
+      return Boolean(e.condition(gameState));
+    }
+    return false;
   });
 
   if (triggered.length > 0) {
-    gameState.firedTriggers['event_' + triggered[0].id] = true;
+    // Mark all triggered events as fired immediately so none can re-trigger
+    // next turn while waiting in the queue (bug #8 fix).
+    triggered.forEach(e => { gameState.firedTriggers['event_' + e.id] = true; });
+    // Display the first event now; queue the rest so the player sees each one.
     displayEvent(triggered[0]);
+    for (let i = 1; i < triggered.length; i++) {
+      triggerEventQueue.push(triggered[i]);
+    }
+    renderEventQueueStatus();
     return true;
   }
 
@@ -3933,19 +4000,27 @@ function applyActivePolicyEffects(){
 function updateAdvisorLoyaltyForTurn(){
   const m = gameState.metrics;
   const pf = gameState.partyFactions;
-  const pressure = Math.round(((50 - Number(m.stability || 0)) + (50 - Number(m.partyUnity || 0))) / 28);
+  // Pressure: how destabilised the regime is. Divisor lowered 28→18 so
+  // a collapsing state (stability=20, partyUnity=20) yields pressure≈3
+  // rather than ≈2 — advisors feel the heat more acutely.
+  const pressure = Math.round(((50 - Number(m.stability || 0)) + (50 - Number(m.partyUnity || 0))) / 18);
+  // Faction tilt: divisors halved so a dominant faction moves advisors
+  // by ±2–4/turn rather than ±1–2. Advisors should respond to the
+  // political climate within a realistic number of turns.
   const factionTilt = {
-    Reformist: Math.round((Number(pf.reform || 0) - 50) / 18),
-    Conservative: Math.round((Number(pf.hardliner || 0) - 50) / 18),
-    Centrist: Math.round((Number(pf.moderate || 0) - 50) / 20),
-    Military: Math.round((Number(gameState.militarySub.loyalty || 0) - 50) / 18),
+    Reformist: Math.round((Number(pf.reform || 0) - 50) / 9),
+    Conservative: Math.round((Number(pf.hardliner || 0) - 50) / 9),
+    Centrist: Math.round((Number(pf.moderate || 0) - 50) / 10),
+    Military: Math.round((Number(gameState.militarySub.loyalty || 0) - 50) / 9),
   };
 
   advisors.forEach(a => {
     const before = Number(gameState.advisorLoyalty[a.id] ?? a.defaultLoyalty ?? a.loyalty ?? 50);
     const factionDelta = factionTilt[a.faction] ?? 0;
-    const reformHeat = a.faction === 'Reformist' && m.partyUnity < 45 ? -1 : 0;
-    const stabilityHeat = a.faction === 'Conservative' && m.stability < 45 ? -1 : 0;
+    // Heat bonuses doubled: being on the losing side of the political
+    // climate now stings more than a single point per turn.
+    const reformHeat = a.faction === 'Reformist' && m.partyUnity < 45 ? -2 : 0;
+    const stabilityHeat = a.faction === 'Conservative' && m.stability < 45 ? -2 : 0;
     let next = clamp(before + factionDelta - Math.max(0, pressure) + reformHeat + stabilityHeat, 0, 100);
 
     // ── YELTSIN SPECIAL TRAJECTORY ──────────────────────────────────
@@ -4063,7 +4138,10 @@ function commitPolicies() {
   const count = gameState.selectedPolicies.length;
   gameState.selectedPolicies.slice().forEach(id => applyPolicyImmediate(id));
   gameState.selectedPolicies = [];
-  gameState.turnSpend = 0;
+  // NOTE: turnSpend is intentionally NOT reset here — computeBudgetBalanceForTurn()
+  // reads it at End Turn to factor policy costs into the budget balance calculation,
+  // then resets it there. Clearing it early was causing spend to be invisible to
+  // the budget model (bug #2 fix).
   gameState.policiesCommittedTurn = gameState.turn;
   gameState.turnPoliciesCommittedCount = count;
   dealPolicyHand(true);
@@ -4071,21 +4149,9 @@ function commitPolicies() {
   renderPolicies();
   render();
   saveGame(false);
-  // Visual confirmation on the button
-  const btn = document.getElementById('btn-commit-policies');
-  if (btn) {
-    const original = btn.textContent;
-    btn.textContent = `\u2713 ${count} polic${count === 1 ? 'y' : 'ies'} enacted`;
-    btn.style.background = 'var(--green, #2d6e44)';
-    btn.style.color = '#fff';
-    btn.style.borderColor = 'var(--green, #2d6e44)';
-    setTimeout(() => {
-      btn.textContent = original;
-      btn.style.background = '';
-      btn.style.color = '';
-      btn.style.borderColor = '';
-    }, 1800);
-  }
+  // Green committed state is applied and maintained by renderPolicies,
+  // which checks policiesCommittedTurn === gameState.turn each render.
+  // endTurn() resets turnPoliciesCommittedCount to 0, which clears it.
 }
 
 function endTurn() {
@@ -4110,24 +4176,41 @@ function endTurn() {
   computeBudgetBalanceForTurn();
 
   // ── POLITICAL CAPITAL REPLENISHMENT ──────────────────────────────
-  // Capital regenerates based on Popular Support and Party Unity —
-  // the two metrics that represent Gorbachev's real mandate to act.
-  // High support + unity → 20/month. Low both → 8/month (floor).
+  // Income: 3–20/month based on Popular Support + Party Unity average.
+  // Floor lowered from 8→3 so a collapsing regime genuinely runs dry.
+  // Mandatory upkeep costs are deducted before income is applied:
+  //   • Politburo maintenance: 3/month always (the apparatus must be fed)
+  //   • Afghanistan drain: 4/month while war continues pre-1989
+  //   • Separatism overhead: 1/month per 25pts of separatism above 25
+  // Net result: doing nothing is now costly, not free.
   (function applyBudgetIncome() {
     const support = Number(gameState.metrics.popularSupport || 0);
     const unity   = Number(gameState.metrics.partyUnity || 0);
     const avg     = (support + unity) / 2;
-    const income  = Math.round(8 + (avg / 100) * 12);
-    gameState.budget = clamp(gameState.budget + income, 0, 9999);
-    // Only log capital replenishment when the rate shifts meaningfully (≥5 pts)
-    // and no more than once every 6 turns — avoids flooding the log on routine turns.
+    const income  = Math.round(3 + (avg / 100) * 17); // 3–20/month
+
+    // Mandatory upkeep — deducted regardless of player action
+    const enacted = new Set(gameState.enactedPolicies || []);
+    let upkeep = 3; // Politburo maintenance — always
+    if (gameState.year < 1989 && !enacted.has('afghanistan-pullout')) {
+      upkeep += 4; // Afghanistan war drain
+    }
+    const sep = Number(gameState.separatism || 0);
+    if (sep > 25) {
+      upkeep += Math.floor((sep - 25) / 25); // +1 per 25pts above 25 (max +3)
+    }
+
+    const net = income - upkeep;
+    gameState.budget = clamp(gameState.budget + net, 0, 9999);
+
+    // Log when income rate shifts meaningfully (≥5 pts) — at most every 6 turns
     const lastIncome = gameState._lastCapitalIncome || 0;
     const lastLoggedTurn = gameState._lastCapitalLogTurn || 0;
-    const rateShift = Math.abs(income - lastIncome) >= 5;
+    const rateShift = Math.abs(net - lastIncome) >= 5;
     const cooldownExpired = (gameState.turn - lastLoggedTurn) >= 6;
     if (rateShift && cooldownExpired) {
-      addLog(`Political capital rate: +${income}/month`);
-      gameState._lastCapitalIncome = income;
+      addLog(`Political capital: +${income} income, −${upkeep} upkeep = ${net > 0 ? '+' : ''}${net}/month`);
+      gameState._lastCapitalIncome = net;
       gameState._lastCapitalLogTurn = gameState.turn;
     }
 
@@ -4224,9 +4307,12 @@ function endTurn() {
   checkAllTriggers();
   updateAdvisorLoyaltyForTurn();
 
+  // Render the updated state BEFORE checking end conditions so the player
+  // can see which metric hit zero before the game-over screen fires (bug #9 fix).
+  render();
+  renderPolicies();
+
   if (checkEndConditions()) {
-    render();
-    renderPolicies();
     addTassDateline();
     saveGame(false);
     return;
@@ -4279,17 +4365,22 @@ function applyMetricChange(metricKey, delta) {
   if (metricKey === 'hardlinerFaction') { gameState.partyFactions.hardliner = clamp(Number(gameState.partyFactions.hardliner||0)+Number(delta||0),0,100); return; }
   gameState.metrics[key] = Math.min(100, Math.max(0, gameState.metrics[key] + delta));
 
-  // When the headline foreignRelations metric moves, propagate the same delta to all
-  // per-region intlRelations values. This keeps the sidebar bars and the trigger
-  // thresholds in sync with what policies actually do.
+  // When the headline foreignRelations metric moves, apply a soft proportional
+  // nudge to each region rather than the full delta uniformly. Each region is
+  // pulled 30% of the way toward the new headline value — enough to keep them
+  // roughly in sync without overriding regional differences caused by specific
+  // policies or event choices (bug #7 fix — was applying full delta to all regions).
+  // Policies targeting a specific region should use direct effect keys
+  // (e.g. eastEu: +10) rather than foreignRelations.
   if (key === 'foreignRelations') {
-    const ir = gameState.intlRelations;
-    const d  = Number(delta || 0);
-    ir.us       = clamp(ir.us       + d, 0, 100);
-    ir.china    = clamp(ir.china    + d, 0, 100);
-    ir.eastEu   = clamp(ir.eastEu   + d, 0, 100);
-    ir.westEu   = clamp(ir.westEu   + d, 0, 100);
-    ir.nonAlign = clamp(ir.nonAlign + d, 0, 100);
+    const ir       = gameState.intlRelations;
+    const headline = Number(gameState.metrics.foreignRelations || 0);
+    const PULL     = 0.30; // fraction to nudge each region toward headline
+    ['us', 'china', 'eastEu', 'westEu', 'nonAlign'].forEach(region => {
+      const current = Number(ir[region] || 0);
+      const nudge   = Math.round((headline - current) * PULL);
+      ir[region]    = clamp(current + nudge, 0, 100);
+    });
   }
 
   // Check for crisis
@@ -5041,11 +5132,26 @@ function renderPolicies() {
     .map(id => policies.find(p => p.id === id))
     .filter(p => p && !getPolicyAvailability(p).alreadyEnacted);
   const picks = gameState.selectedPolicies || [];
-  const html = list.map(p => {
-    const isSel = picks.includes(p.id);
-    return buildPolicyCardHtml(p, { selectable: true, selected: isSel });
-  }).join('') || '<div class="policy-empty">No available policies in this category.</div>';
-  document.getElementById('policy-grid').innerHTML = html;
+  const gridEl = document.getElementById('policy-grid');
+  if (gridEl) {
+    const limitReached = picks.length >= 3 && gameState.policiesCommittedTurn !== gameState.turn;
+    if (limitReached) {
+      gridEl.classList.add('limit-reached');
+    } else {
+      gridEl.classList.remove('limit-reached');
+    }
+    if (list.length) {
+      const banner = limitReached
+        ? '<div class="policy-limit-banner">✦ Policy limit reached — commit or deselect to change ✦</div>'
+        : '';
+      gridEl.innerHTML = banner + list.map(p =>
+        buildPolicyCardHtml(p, { selectable: true, selected: picks.includes(p.id) })
+      ).join('');
+    } else {
+      gridEl.innerHTML = '<div class="policy-empty">No available policies in this category.</div>';
+      gridEl.classList.remove('limit-reached');
+    }
+  }
   const handStatus = document.getElementById('policy-hand-status');
   if (handStatus) {
     const eligible = eligiblePolicyPool().length;
@@ -5064,7 +5170,25 @@ function renderPolicies() {
   const pcEl = document.getElementById('policy-predicted-cost');
   if (pcEl) pcEl.textContent = String(plannedSpend());
   const commitBtn = document.getElementById('btn-commit-policies');
-  if (commitBtn) commitBtn.disabled = picks.length === 0 || (gameState.policiesCommittedTurn === gameState.turn);
+  if (commitBtn) {
+    const committed = gameState.policiesCommittedTurn === gameState.turn;
+    const committedCount = gameState.turnPoliciesCommittedCount || 0;
+    if (committed && committedCount > 0) {
+      // Hold green state until end of turn
+      commitBtn.textContent = `✓ ${committedCount} polic${committedCount === 1 ? 'y' : 'ies'} enacted`;
+      commitBtn.style.background = 'var(--green, #2d6e44)';
+      commitBtn.style.color = '#fff';
+      commitBtn.style.borderColor = 'var(--green, #2d6e44)';
+      commitBtn.disabled = true;
+    } else {
+      // Reset to default state for new turn
+      commitBtn.textContent = 'Enact Selected Policies ✓';
+      commitBtn.style.background = '';
+      commitBtn.style.color = '';
+      commitBtn.style.borderColor = '';
+      commitBtn.disabled = picks.length === 0;
+    }
+  }
   renderActivePolicies();
 }
 
