@@ -245,11 +245,65 @@
   .volume-wrap { display:grid; grid-template-columns:auto 1fr; gap:8px; align-items:center; width:100%; margin-top:7px; font-family:'IM Fell English',serif; font-size:12px; }
   .volume-wrap input { width:100%; accent-color:var(--red); }
 
-  .policy-tree { display:flex; flex-direction:column; gap:20px; }
-  .tree-category-group { display:flex; flex-direction:column; gap:8px; }
+  .policy-tree {
+    display:flex;
+    flex-direction:column;
+    gap:20px;
+    overflow-x:auto;
+    padding-bottom:6px;
+  }
+  .tree-category-group {
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+    min-width:max-content;
+  }
   .tree-category-label { font-family:'Playfair Display',serif; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.1em; color:var(--red); border-bottom:1px solid rgba(139,26,26,0.25); padding-bottom:4px; margin-bottom:4px; }
-  .tree-chain { display:flex; flex-direction:column; gap:0; }
-  .tree-children { display:flex; flex-direction:column; gap:4px; margin-top:4px; padding-left:20px; border-left:2px solid rgba(139,26,26,0.20); margin-left:10px; }
+  .tree-chain {
+    display:flex;
+    flex-direction:row;
+    align-items:flex-start;
+    gap:10px;
+  }
+  .tree-node-shell{
+    position:relative;
+    flex:0 0 auto;
+    width:168px;
+    min-width:168px;
+  }
+  .tree-node-shell .policy-card{
+    width:168px;
+    max-width:none;
+  }
+  .tree-children {
+    display:flex;
+    flex-direction:row;
+    flex-wrap:wrap;
+    gap:10px;
+    margin-top:0;
+    padding-left:18px;
+    border-left:2px solid rgba(139,26,26,0.20);
+    margin-left:4px;
+    align-items:flex-start;
+  }
+  .tree-link {
+    position:absolute;
+    right:-10px;
+    top:50%;
+    width:10px;
+    height:2px;
+    transform:translateY(-50%);
+    background:rgba(139,26,26,0.40);
+  }
+  .tree-link::after{
+    content:'';
+    position:absolute;
+    right:0;
+    top:-6px;
+    width:2px;
+    height:14px;
+    background:rgba(139,26,26,0.20);
+  }
   .tree-node { border:1px solid rgba(139,26,26,.28); background:rgba(242,234,216,.72); border-radius:3px; padding:9px 11px; position:relative; }
   .tree-node.enacted { border-color:rgba(45,110,68,.6); background:rgba(45,110,68,.07); }
   .tree-node.locked { opacity:.75; }
@@ -684,6 +738,13 @@
   .policy-grid { grid-template-columns:repeat(2, minmax(0, 1fr)); gap:10px; }
   .advisor-grid { grid-template-columns:repeat(auto-fill,minmax(128px,1fr)); gap:12px; }
   .policy-card { max-width:152px; }
+  .tree-node-shell{
+    width:152px;
+    min-width:152px;
+  }
+  .tree-node-shell .policy-card{
+    width:152px;
+  }
   .advisor-card { padding:14px 12px 12px; aspect-ratio:3/4; min-height:178px; }
   .policy-front .policy-name { font-size:13px; }
   .policy-front .policy-desc { font-size: 12.5px; line-height: 1.48; -webkit-line-clamp: 4; }
@@ -5739,9 +5800,12 @@ function renderPolicyTree(){
         cardHtml = buildPolicyCardHtml(p, { selectable: true, selected: isSel });
       }
     }
-    return `<div class="tree-chain" style="margin-left:${depth * 22}px;">
-      ${cardHtml}
-      ${kids.length ? `<div class="tree-children">${kids.map(c => nodeHtml(c, 0)).join('')}</div>` : ''}
+    return `<div class="tree-chain" style="margin-left:${depth * 8}px;">
+      <div class="tree-node-shell">
+        ${cardHtml}
+        ${kids.length ? '<span class="tree-link" aria-hidden="true"></span>' : ''}
+      </div>
+      ${kids.length ? `<div class="tree-children">${kids.map(c => nodeHtml(c, depth + 1)).join('')}</div>` : ''}
     </div>`;
   }
 
