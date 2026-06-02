@@ -2280,8 +2280,14 @@ function dealPolicyHand(forceRedraw) {
 
 // Called by the ↺ Redraw Hand button. First redraw each turn is free;
 // each subsequent redraw costs 5 political capital.
+// Maximum 3 redraws per turn (1 free + 2 paid) to prevent capital drain exploit.
 const REDRAW_COST = 5;
+const REDRAW_MAX  = 3; // total redraws allowed per turn (including the free one)
 function requestRedraw() {
+  if (uiState.redrawsThisTurn >= REDRAW_MAX) {
+    addLog(`⚠ Maximum redraws reached for this turn (${REDRAW_MAX}).`);
+    return;
+  }
   if (uiState.redrawsThisTurn === 0) {
     // First redraw — free
     uiState.redrawsThisTurn++;
@@ -2306,12 +2312,18 @@ function requestRedraw() {
 function updateRedrawButton() {
   const btn = document.getElementById('redraw-hand-btn');
   if (!btn) return;
-  if (uiState.redrawsThisTurn === 0) {
+  if (uiState.redrawsThisTurn >= REDRAW_MAX) {
+    btn.title = `Maximum redraws used for this turn (${REDRAW_MAX} total)`;
+    btn.textContent = '↺ Redraw (limit reached)';
+    btn.style.opacity = '0.4';
+  } else if (uiState.redrawsThisTurn === 0) {
     btn.title = 'Draw a new set of 8 policies — first redraw each turn is free';
     btn.textContent = '↺ Redraw Hand';
+    btn.style.opacity = '';
   } else {
     const canAfford = gameState.budget >= REDRAW_COST;
-    btn.title = `Each additional redraw costs ${REDRAW_COST} political capital${canAfford ? '' : ' — not enough capital'}`;
+    const remaining = REDRAW_MAX - uiState.redrawsThisTurn;
+    btn.title = `Each additional redraw costs ${REDRAW_COST} political capital — ${remaining} redraw(s) remaining this turn${canAfford ? '' : ' — not enough capital'}`;
     btn.textContent = `↺ Redraw (${REDRAW_COST} capital)`;
     btn.style.opacity = canAfford ? '' : '0.5';
   }
@@ -4052,6 +4064,10 @@ function resolveEventChoice(choiceIdx) {
     const next = triggerEventQueue.shift();
     renderEventQueueStatus();
     setTimeout(() => displayTriggerEvent(next), 200);
+  } else {
+    // No more events — now safe to render the policy panel without it being
+    // immediately covered by an event modal (companion to the endTurn fix).
+    renderPolicies();
   }
   render();
   renderPolitburoVisual();
@@ -4456,12 +4472,17 @@ function endTurn() {
 
   // Deal a fresh policy hand for the new turn
   dealPolicyHand(true);
-  renderPolicies(); // always redraw — clears stale selection and removes enacted cards
   const hasEvent = checkEvents();
 
   if (!hasEvent && triggerEventQueue.length > 0) {
     const next = triggerEventQueue.shift();
     displayTriggerEvent(next);
+  }
+
+  // Only render the policy panel when no event is about to cover it, preventing
+  // a one-frame flash of the policy UI before the event modal appears (bug #5 fix).
+  if (!hasEvent) {
+    renderPolicies(); // clears stale selection and removes enacted cards
   }
 
   render();
@@ -5097,13 +5118,28 @@ function applyPolicyImmediate(policyId) {
         if (conservativeSignals.includes(k) && n < 0) libScore  += Math.abs(n) * 0.5;
         if (liberalSignals.includes(k)  && n < 0) conScore += Math.abs(n) * 0.5;
       });
-      // Known liberal policy ids
-      const knownLiberal = ['glasnost','perestroika','demokratizatsiya','freedom_of_press',
-        'release_dissidents','inf_treaty','sinatra_doctrine','afghan_withdrawal',
-        'market_reform','cooperative_law','multi_party_elections'];
-      const knownConservative = ['anti_alcohol','law_and_order','martial_law',
-        'price_controls','central_planning','military_buildup','military_tech_modernisation',
-        'kgb_expansion','iron_curtain_reinforcement'];
+      // Known liberal policy ids — must match actual policy id values in the data array
+      const knownLiberal = [
+        'glasnost', 'perestroika',
+        'yakovlev_glasnost_initiation', 'yakovlev_nonintervention',
+        'yakovlev_molotov_ribbentrop', 'yakovlev_manifesto',
+        'inf-treaty', 'akhromeyev_inf_treaty',
+        'afghanistan-pullout',
+        'geneva_summit', 'reykjavik_summit', 'sino_soviet_summit',
+        'cooperative_law_full', 'cooperative_law_partial',
+        'free_economic_zones', 'shadow_market_experiments',
+        'freedom_of_conscience', 'controlled_religious_opening',
+        'republic_autonomy_pact', 'cultural_autonomy_programme',
+        'economic_incentive_republics', 'nazarbayev_union_treaty',
+      ];
+      const knownConservative = [
+        'akhromeyev_afghanistan_escalation', 'akhromeyev_weapons_development',
+        'akhromeyev_eastern_bloc_crackdown',
+        'aliyev_kgb_crackdown', 'aliyev_consolidate_bureaucracy', 'aliyev_regional_patronage',
+        'varennikov_afghanistan', 'varennikov_martial_law',
+        'varennikov_military_industrial', 'varennikov_intimidate_reformers',
+        'karimov_cotton_quota', 'karimov_purge_opposition', 'karimov_fergana_crackdown',
+      ];
       if (knownLiberal.includes(policy.id))      libScore  += 20;
       if (knownConservative.includes(policy.id)) conScore  += 20;
       if (libScore > conScore)       alignment = 'liberal';
