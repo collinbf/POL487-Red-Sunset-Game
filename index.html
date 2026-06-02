@@ -36,6 +36,15 @@
   .dash-meta { font-size: 15px; letter-spacing:.05em; color:var(--gold); display:flex; gap:12px; margin-top:.4rem; margin-bottom:.7rem; flex-wrap:wrap; }
     #current-date { font-weight:700; }
 .status-badge { font-size: 13px; font-style:italic; padding:2px 8px; border:1px solid currentColor; border-radius:2px; }
+  /* Reform Trajectory indicator */
+  .trajectory-row { display:flex; align-items:center; gap:7px; margin: 6px 0 10px; }
+  .trajectory-label { font-family:'Playfair Display',serif; font-size:10px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; opacity:.65; white-space:nowrap; min-width:68px; }
+  .trajectory-track { flex:1; height:6px; background:rgba(43,31,16,0.12); border-radius:3px; overflow:hidden; }
+  .trajectory-fill  { height:100%; border-radius:3px; transition:width .6s ease, background .6s ease; }
+  .trajectory-band  { font-family:'IM Fell English',serif; font-size:11.5px; font-style:italic; white-space:nowrap; }
+  .trajectory-band.promising  { color:#2d6e44; }
+  .trajectory-band.uncertain  { color:#8b5a0a; }
+  .trajectory-band.collapsing { color:#8b1a1a; font-weight:700; }
 
     .budget-badge { font-size:13px; font-style:italic; padding:2px 8px; border:1px solid rgba(154,122,46,.9); border-radius:2px; color:#8b5a0a; cursor:help; position:relative; }
     .budget-tooltip {
@@ -201,6 +210,27 @@
     overflow: hidden;
   }
   .policy-empty { grid-column:1/-1; padding:18px; font-family:'IM Fell English',serif; font-style:italic; color:rgba(43,31,16,.7); }
+  /* Policy tree: not-in-hand overlay */
+  .policy-card.not-in-hand { opacity: 0.70; }
+  .policy-card.not-in-hand:hover { transform: none !important; box-shadow: 8px 8px 0 rgba(92,17,17,0.28), 0 10px 16px rgba(0,0,0,0.10) !important; }
+  .not-in-hand-badge {
+    display: inline-block; margin-top: 6px;
+    font-family: 'Playfair Display', serif; font-size: 9.5px; font-weight: 700;
+    letter-spacing: .08em; text-transform: uppercase;
+    color: rgba(43,31,16,0.65); background: rgba(43,31,16,0.08);
+    border: 1px solid rgba(43,31,16,0.20); border-radius: 2px;
+    padding: 2px 6px;
+  }
+  .btn-add-to-hand {
+    display: block; width: 100%; margin-top: 6px;
+    font-family: 'Playfair Display', serif; font-size: 10px; font-weight: 700;
+    letter-spacing: .06em; text-transform: uppercase; cursor: pointer;
+    color: var(--cream); background: var(--red-dark, #5c1111);
+    border: 1px solid rgba(92,17,17,0.7); border-radius: 2px;
+    padding: 4px 0; text-align: center;
+    transition: background .15s;
+  }
+  .btn-add-to-hand:hover { background: #8b1a1a; }
   .active-policy-list { display:flex; gap:6px; flex-wrap:wrap; margin:8px 2px 10px; }
   .active-policy-chip, .save-chip, .advisor-status-chip { border:1px solid rgba(139,26,26,.35); background:rgba(242,234,216,.7); color:var(--red-dark); border-radius:2px; padding:3px 7px; font-family:'IM Fell English',serif; font-size:12px; }
   .advisor-statuses { display:flex; gap:4px; flex-wrap:wrap; margin-top:8px; }
@@ -647,6 +677,17 @@
   .log-entry:last-child{ margin-bottom:0; }
   .log-turn{ font-weight:800; color:var(--red-dark); margin-right:4px; font-family: 'Courier New', Courier, monospace; }
   .log-text{ opacity: var(--ink, .92); color: rgba(28,22,13,0.92); text-shadow: 0.25px 0 rgba(28,22,13,0.30), -0.18px 0 rgba(28,22,13,0.18), 0 0.8px rgba(28,22,13,0.08); }
+  /* Log entry type colour-coding */
+  .log-entry.log-t-policy  .log-icon { color: #8b5a0a; }
+  .log-entry.log-t-policy  .log-text  { color: rgba(90,52,8,0.92); }
+  .log-entry.log-t-crisis  .log-icon { color: #8b1a1a; }
+  .log-entry.log-t-crisis  .log-text  { color: rgba(120,20,20,0.95); font-weight:600; }
+  .log-entry.log-t-advisor .log-icon { color: #1a4a7a; }
+  .log-entry.log-t-advisor .log-text  { color: rgba(18,45,80,0.90); }
+  .log-entry.log-t-event   .log-icon { color: #4a2a6a; }
+  .log-entry.log-t-event   .log-text  { color: rgba(55,20,80,0.90); }
+  .log-entry.log-t-system  .log-icon { color: rgba(28,22,13,0.45); }
+  .log-entry.log-t-system  .log-text  { color: rgba(28,22,13,0.60); }
   /* TASS dateline styling */
   .log-tass{ font-weight:700; color:rgba(28,22,13,0.80); letter-spacing:0.04em; margin-bottom:3px; display:block; border-bottom: 1px solid rgba(43,31,16,0.18); padding-bottom:2px; }
   /* Teletype printing animation */
@@ -1771,6 +1812,12 @@
     
 <!-- METRICS -->
   <div class="metrics" id="metrics"></div>
+<!-- REFORM TRAJECTORY -->
+  <div class="trajectory-row" id="trajectory-row" title="How close you are to a successful reform outcome by December 1991">
+    <span class="trajectory-label">Trajectory</span>
+    <div class="trajectory-track"><div class="trajectory-fill" id="trajectory-fill" style="width:50%;background:#8b5a0a;"></div></div>
+    <span class="trajectory-band uncertain" id="trajectory-band">Uncertain</span>
+  </div>
 <!-- GOVERNMENT COMPOSITION -->
     <div style="margin-bottom:1.2rem;">
       <div class="section-title">Government</div>
@@ -3749,7 +3796,7 @@ function fireAdvisor(advisorId) {
   if (a.faction === 'Conservative') applyMetricChange('partyUnity', +3);
   const lockedPolicies = policies.filter(p => p.advisorRequired === advisorId && !(gameState.enactedPolicies||[]).includes(p.id));
   const lockedNames = lockedPolicies.map(p => p.name).join(', ');
-  addLog(`${a.name} dismissed. -${cost} political capital, Stability −3. ${lockedNames ? 'Policies lost: ' + lockedNames + '.' : ''}`);
+  addLog(`${a.name} dismissed. -${cost} political capital, Stability −3. ${lockedNames ? 'Policies lost: ' + lockedNames + '.' : ''}`, 'advisor');
   closeAdvisorDetail();
   render();
   renderPolicies();
@@ -3970,7 +4017,7 @@ function resolveEventChoice(choiceIdx) {
     if (!gameState.enactedPolicies) gameState.enactedPolicies = [];
     if (!gameState.enactedPolicies.includes(choice.enactPolicy)) {
       gameState.enactedPolicies.push(choice.enactPolicy);
-      addLog(`Policy enacted via event: ${policyName(choice.enactPolicy)}`);
+      addLog(`Policy enacted via event: ${policyName(choice.enactPolicy)}`, 'policy');
     }
   }
   // Log
@@ -4045,7 +4092,7 @@ function applyActivePolicyEffects(){
       stillActive.push(active);
     } else {
       Object.entries(policy.expireEffects || {}).forEach(([key, val]) => applyMetricChange(key, val));
-      addLog(`${policy.name} expires.`);
+      addLog(`${policy.name} expires.`, 'policy');
     }
   });
 
@@ -4055,6 +4102,11 @@ function applyActivePolicyEffects(){
 function updateAdvisorLoyaltyForTurn(){
   const m = gameState.metrics;
   const pf = gameState.partyFactions;
+  // Snapshot loyalty before this turn's changes so cards can show ↑/↓ trend
+  if (!gameState.advisorLoyaltyPrev) gameState.advisorLoyaltyPrev = {};
+  advisors.forEach(a => {
+    gameState.advisorLoyaltyPrev[a.id] = Number(gameState.advisorLoyalty[a.id] ?? a.defaultLoyalty ?? a.loyalty ?? 50);
+  });
   // Pressure: how destabilised the regime is. Divisor lowered 28→18 so
   // a collapsing state (stability=20, partyUnity=20) yields pressure≈3
   // rather than ≈2 — advisors feel the heat more acutely.
@@ -4120,11 +4172,11 @@ function updateAdvisorLoyaltyForTurn(){
       // Any policies that required this advisor are now locked — log them
       const lockedPolicies = policies.filter(p => p.advisorRequired === a.id && !enactedPolicySet().has(p.id));
       const lockedNames = lockedPolicies.map(p => p.name).join(', ');
-      addLog(`${a.name} resigns. Stability −5. ${lockedNames ? 'Policies now locked: ' + lockedNames + '.' : 'No policies lost.'}`);
+      addLog(`${a.name} resigns. Stability −5. ${lockedNames ? 'Policies now locked: ' + lockedNames + '.' : 'No policies lost.'}`, 'advisor');
     }
     if (next >= 80 && !status.emboldened) {
       status.emboldened = true;
-      addLog(`${a.name} is emboldened and presses harder for their faction's agenda.`);
+      addLog(`${a.name} is emboldened and presses harder for their faction's agenda.`, 'advisor');
     }
     if (next < 80) status.emboldened = false;
     gameState.advisorStatus[a.id] = status;
@@ -4218,11 +4270,15 @@ function endTurn() {
   }
   // Reset the committed-count display for the new turn
   gameState.turnPoliciesCommittedCount = 0;
-  // If player forgot to commit, silently apply any remaining selection
+  // If the player selected policies but never clicked Enact, discard them
+  // rather than applying them for free (which would bypass capital costs and
+  // the commit system entirely). Log a warning so they know what happened.
   if (gameState.selectedPolicies && gameState.selectedPolicies.length > 0) {
-    gameState.selectedPolicies.slice().forEach(id => applyPolicyImmediate(id));
+    const names = gameState.selectedPolicies
+      .map(id => { const p = policies.find(x => x.id === id); return p ? p.name : id; })
+      .join(', ');
+    addLog(`Selection discarded — ${gameState.selectedPolicies.length} polic${gameState.selectedPolicies.length === 1 ? 'y' : 'ies'} were selected but not enacted: ${names}.`, 'system');
     gameState.selectedPolicies = [];
-    gameState.policiesCommittedTurn = gameState.turn;
   }
 
   if (checkEndConditions()) return;
@@ -4239,13 +4295,13 @@ function endTurn() {
       gameState.idleTurns = (gameState.idleTurns || 0) + 1;
       const streak = gameState.idleTurns;
       if (streak === 1) {
-        addLog('The Politburo grows restless — no directives issued this month.');
+        addLog('The Politburo grows restless — no directives issued this month.', 'system');
         applyMetricChange('partyUnity', -1);
       } else if (streak === 2) {
-        addLog('⚠ A second month of inaction — conservative factions read the silence as an opportunity.');
+        addLog('A second month of inaction — conservative factions read the silence as an opportunity.', 'crisis');
         applyMetricChange('partyUnity', -2);
       } else if (streak >= 3) {
-        addLog(`⚠ Month ${streak} of paralysis — Party Unity and Stability erode as the apparatus loses direction.`);
+        addLog(`Month ${streak} of paralysis — Party Unity and Stability erode as the apparatus loses direction.`, 'crisis');
         applyMetricChange('partyUnity', -2);
         applyMetricChange('stability', -1);
       }
@@ -4289,7 +4345,7 @@ function endTurn() {
     const rateShift = Math.abs(net - lastIncome) >= 5;
     const cooldownExpired = (gameState.turn - lastLoggedTurn) >= 6;
     if (rateShift && cooldownExpired) {
-      addLog(`Political capital: +${income} income, −${upkeep} upkeep = ${net > 0 ? '+' : ''}${net}/month`);
+      addLog(`Political capital: +${income} income, −${upkeep} upkeep = ${net > 0 ? '+' : ''}${net}/month`, 'system');
       gameState._lastCapitalIncome = net;
       gameState._lastCapitalLogTurn = gameState.turn;
     }
@@ -4297,7 +4353,7 @@ function endTurn() {
     // Track exhaustion streak for paralysis end condition
     if (gameState.budget <= 0) {
       gameState.budgetCrisisTurns = (gameState.budgetCrisisTurns || 0) + 1;
-      addLog(`⚠ Political capital exhausted — month ${gameState.budgetCrisisTurns} of paralysis.`);
+      addLog(`Political capital exhausted — month ${gameState.budgetCrisisTurns} of paralysis.`, 'crisis');
       if (gameState.budgetCrisisTurns === 1 && !gameState.firedTriggers['budget_crisis_1']) {
         gameState.firedTriggers['budget_crisis_1'] = true;
         displayTriggerEvent({
@@ -4465,7 +4521,7 @@ function applyMetricChange(metricKey, delta) {
 
   // Check for crisis
   if (gameState.metrics[key] === 0) {
-    addLog(`⚠  CRISIS: ${metricKey} has reached 0!`);
+    addLog(`CRISIS: ${metricKey} has reached 0!`, 'crisis');
   }
 }
 
@@ -4473,10 +4529,12 @@ function applyMetricChange(metricKey, delta) {
    TRIGGER SYSTEM  —  GDD v2.0 rules
    ════════════════════════════════════════════════════════════════════ */
 
-function fireTrigger(id, logMsg) {
+function fireTrigger(id, logMsg, type) {
   if (gameState.firedTriggers[id]) return false;
   gameState.firedTriggers[id] = true;
-  addLog('⚠ ' + logMsg);
+  // type defaults to 'crisis' — pass 'system' for positive/neutral thresholds
+  // and 'event' for event-launching triggers so the log colour matches the tone.
+  addLog(logMsg, type || 'crisis');
   return true;
 }
 
@@ -4506,7 +4564,7 @@ function checkAllTriggers() {
   }
 
   // ── SOCIAL PARASITISM TRIGGER (GDD: trigger at 25%) ──────────────
-  if (es.socialParasitism >= 25 && fireTrigger('parasitism_25', 'Social parasitism crisis — public unrest event triggered.')) {
+  if (es.socialParasitism >= 25 && fireTrigger('parasitism_25', 'Social parasitism crisis — public unrest event triggered.', 'event')) {
     displayTriggerEvent({
       name: 'Social Parasitism Crisis',
     image: "images/social_parasitism.png",
@@ -4525,7 +4583,7 @@ function checkAllTriggers() {
     gameState.coupResistDisabled = true;
   }
   // Trigger 2: 30 — protests and demonstrations
-  if (m.popularSupport <= 30 && fireTrigger('popsup_30', 'Mass protests erupt across Soviet cities!')) {
+  if (m.popularSupport <= 30 && fireTrigger('popsup_30', 'Mass protests erupt across Soviet cities!', 'event')) {
     ms.loyalty   = clamp(ms.loyalty   - 4, 0, 100);
     pf.hardliner = clamp(pf.hardliner - 15, 0, 100);
     pf.moderate  = clamp(pf.moderate  - 5, 0, 100);
@@ -4547,7 +4605,7 @@ function checkAllTriggers() {
 
   // ── PARTY UNITY — REFORM FACTION ─────────────────────────────────
   // Trigger 1: reform <= 50 — Yeltsin breaks with Gorbachev
-  if (pf.reform <= 50 && fireTrigger('reform_50', 'Yeltsin breaks with the Kremlin — political crisis in Moscow.')) {
+  if (pf.reform <= 50 && fireTrigger('reform_50', 'Yeltsin breaks with the Kremlin — political crisis in Moscow.', 'event')) {
     displayTriggerEvent({
       name: 'Yeltsin\'s Break with Gorbachev',
       description: 'Boris Yeltsin publicly denounces the pace of reform and resigns from the Politburo. His dramatic departure signals a fracturing of the reformist coalition and a growing rival power centre.',
@@ -4560,7 +4618,7 @@ function checkAllTriggers() {
   }
   // Trigger 2: reform <= 30 — hardliner or moderate advisor unlocked
   if (pf.reform <= 30 && fireTrigger('reform_30', 'Reform faction collapsed — hardliner advisors gaining influence.')) {
-    addLog('Conservative advisors now pressing for greater access to power.');
+    addLog('Conservative advisors now pressing for greater access to power.', 'advisor');
     pf.hardliner = clamp(pf.hardliner + 10, 0, 100);
   }
 
@@ -4568,18 +4626,18 @@ function checkAllTriggers() {
   // Trigger 1: moderate <= 40 — perestroika jeopardised, inflation +5%
   if (pf.moderate <= 40 && fireTrigger('moderate_40', 'Moderate faction wavering — perestroika support collapses.')) {
     applyMetricChange('inflation', 5);
-    addLog('Moderate Politburo members withdraw support for restructuring.');
+    addLog('Moderate Politburo members withdraw support for restructuring.', 'advisor');
   }
   // Trigger 2: moderate <= 30 — moderates shift to hardliner
   if (pf.moderate <= 30 && fireTrigger('moderate_30', 'Moderates defecting to hardliner camp.')) {
     pf.hardliner = clamp(pf.hardliner + 15, 0, 100);
     pf.moderate  = 30;
-    addLog('Several moderate Politburo members align with conservative faction.');
+    addLog('Several moderate Politburo members align with conservative faction.', 'advisor');
   }
 
   // ── PARTY UNITY — HARDLINER FACTION ──────────────────────────────
   // Trigger 1: hardliner <= 30 — Nina\'s Letter event
-  if (pf.hardliner <= 30 && fireTrigger('hard_30', 'Conservative outrage — "Nina\'s Letter" published.')) {
+  if (pf.hardliner <= 30 && fireTrigger('hard_30', 'Conservative outrage — "Nina\'s Letter" published.', 'event')) {
     displayTriggerEvent({
       name: 'Nina\'s Letter',
       image: "images/Nina_Andreyeva.jpg",
@@ -4592,7 +4650,7 @@ function checkAllTriggers() {
     });
   }
   // Trigger 2: hardliner <= 20 — coup attempt
-  if (pf.hardliner <= 20 && fireTrigger('hard_20', 'CRITICAL: Coup conspiracy forming.')) {
+  if (pf.hardliner <= 20 && fireTrigger('hard_20', 'CRITICAL: Coup conspiracy forming.', 'event')) {
     displayTriggerEvent({
       name: 'Coup Conspiracy',
     image: "images/coup_attempt.jpg",
@@ -4609,7 +4667,7 @@ function checkAllTriggers() {
   if (sep >= 30 && fireTrigger('sep_30', 'Separatist movements mobilising — rallies and strikes.')) {
     applyMetricChange('stability', -5);
   }
-  if (sep >= 50 && fireTrigger('sep_50', 'Civil unrest spreading — multiple republics in open defiance.')) {
+  if (sep >= 50 && fireTrigger('sep_50', 'Civil unrest spreading — multiple republics in open defiance.', 'event')) {
     applyMetricChange('stability', -10);
     applyMetricChange('popularSupport', -8);
     displayTriggerEvent({
@@ -4623,10 +4681,36 @@ function checkAllTriggers() {
       ]
     });
   }
-  if (sep >= 70 && fireTrigger('sep_70', 'Political crisis — Union dissolving.')) {
+  if (sep >= 70 && fireTrigger('sep_70', 'Political crisis — Union dissolving.', 'crisis')) {
     applyMetricChange('stability', -15);
     applyMetricChange('partyUnity', -10);
-    addLog('Multiple republics have formally declared sovereignty.');
+    addLog('Multiple republics have formally declared sovereignty.', 'crisis');
+  }
+
+  // ── SEPARATISM 85 — FINAL WARNING ────────────────────────────────
+  // Last-chance intervention event before dissolution at 100.
+  // The player has one realistic turn to act; after this the cascade
+  // is too far gone to reverse without extraordinary measures.
+  if (sep >= 85 && fireTrigger('sep_85', 'FINAL WARNING: Union on the brink of dissolution.', 'crisis')) {
+    displayTriggerEvent({
+      name: 'The Union on the Brink',
+      image: 'images/Republic_Independence_Movements.jpg',
+      description: 'Eleven of the fifteen republics have now either declared sovereignty or are in open confrontation with Moscow. The Union treaty exists only on paper. Gorbachev has days, not months, to either negotiate a final settlement or watch the USSR cease to exist. This is the last moment at which the centre can act.',
+      choices: [
+        {
+          text: 'Emergency Union Treaty — offer maximum autonomy to all republics',
+          effects: { separatism: -20, stability: +5, partyUnity: -15, popularSupport: +8 },
+        },
+        {
+          text: 'Address the nation — make a direct personal appeal for unity',
+          effects: { separatism: -10, popularSupport: +10, stability: -3 },
+        },
+        {
+          text: 'Accept the inevitable — begin orderly dissolution negotiations',
+          effects: { separatism: -5, stability: +10, partyUnity: -20, foreignRelations: +10 },
+        },
+      ],
+    });
   }
 
   // ── FOREIGN RELATIONS — US/CANADA ────────────────────────────────
@@ -4634,7 +4718,7 @@ function checkAllTriggers() {
     es.budgetBalance = clamp(es.budgetBalance - 1, -100, 100);
     applyMetricChange('militaryReadiness', +1);
   }
-  if (ir.us <= 0 && fireTrigger('us_0', 'CRISIS: US relations severed — World War III risk!')) {
+  if (ir.us <= 0 && fireTrigger('us_0', 'CRISIS: US relations severed — World War III risk!', 'event')) {
     displayTriggerEvent({
       name: 'Superpower Crisis',
     image: "images/Superpower_Crisis.jpg",
@@ -4646,14 +4730,14 @@ function checkAllTriggers() {
       ]
     });
   }
-  if (ir.us >= 70 && fireTrigger('us_70', 'Strong US ties: reduced troop requirements and loan access.')) {
+  if (ir.us >= 70 && fireTrigger('us_70', 'Strong US ties: reduced troop requirements and loan access.', 'system')) {
     es.budgetBalance = clamp(es.budgetBalance + 2, -100, 100);
     applyMetricChange('militaryReadiness', -2);
     addLog('Western financial institutions offering credit. Military spending pressure eases.');
   }
 
   // ── FOREIGN RELATIONS — CHINA ─────────────────────────────────────
-  if (ir.china <= 20 && fireTrigger('china_20', 'China tensions rising — border reinforcement required.')) {
+  if (ir.china <= 20 && fireTrigger('china_20', 'China tensions rising — border reinforcement required.', 'event')) {
     displayTriggerEvent({
       name: 'Sino-Soviet Border Tensions',
     image: "images/Sino_Soviet_Border_Tensions.jpg",
@@ -4667,7 +4751,7 @@ function checkAllTriggers() {
   }
 
   // ── FOREIGN RELATIONS — EASTERN BLOC ─────────────────────────────
-  if (ir.eastEu <= 40 && fireTrigger('bloc_40', 'Bloc instability — emergency meeting with satellite leaders.')) {
+  if (ir.eastEu <= 40 && fireTrigger('bloc_40', 'Bloc instability — emergency meeting with satellite leaders.', 'event')) {
     displayTriggerEvent({
       name: 'Warsaw Pact Summit',
     image: "images/Warsaw_Pact_Summit.jpg",
@@ -4679,7 +4763,7 @@ function checkAllTriggers() {
       ]
     });
   }
-  if (ir.eastEu <= 20 && fireTrigger('bloc_20', 'Bloc crisis — coups and revolutions in satellite states.')) {
+  if (ir.eastEu <= 20 && fireTrigger('bloc_20', 'Bloc crisis — coups and revolutions in satellite states.', 'event')) {
     applyMetricChange('stability', -5);
     gameState.separatism = clamp(gameState.separatism + 10, 0, 100);
     displayTriggerEvent({
@@ -4693,7 +4777,7 @@ function checkAllTriggers() {
       ]
     });
   }
-  if (ir.eastEu <= 10 && fireTrigger('bloc_10', 'Bloc dissolution — Warsaw Pact effectively dead.')) {
+  if (ir.eastEu <= 10 && fireTrigger('bloc_10', 'Bloc dissolution — Warsaw Pact effectively dead.', 'event')) {
     displayTriggerEvent({
       name: 'End of the Warsaw Pact',
     image: "images/End_of_the_Warsaw_Pact.jpg",
@@ -4706,17 +4790,17 @@ function checkAllTriggers() {
   }
 
   // ── FOREIGN RELATIONS — WESTERN EUROPE ───────────────────────────
-  if (ir.westEu >= 80 && fireTrigger('west_80', 'Strong Western ties: election dividend — troop reduction and loans.')) {
+  if (ir.westEu >= 80 && fireTrigger('west_80', 'Strong Western ties: election dividend — troop reduction and loans.', 'system')) {
     applyMetricChange('militaryReadiness', -2);
     es.budgetBalance = clamp(es.budgetBalance + 3, -100, 100);
     addLog('Western Europe offering preferential loans and reduced military pressure.');
   }
 
   // ── FOREIGN RELATIONS — NON-ALIGNED ──────────────────────────────
-  if (ir.nonAlign >= 70 && fireTrigger('na_70', 'Non-Aligned ties strong — additional oil sales.')) {
+  if (ir.nonAlign >= 70 && fireTrigger('na_70', 'Non-Aligned ties strong — additional oil sales.', 'system')) {
     es.budgetBalance = clamp(es.budgetBalance + 1, -100, 100);
   }
-  if (ir.nonAlign >= 90 && fireTrigger('na_90', 'Non-Aligned Movement support peaks — budget boost.')) {
+  if (ir.nonAlign >= 90 && fireTrigger('na_90', 'Non-Aligned Movement support peaks — budget boost.', 'system')) {
     es.budgetBalance = clamp(es.budgetBalance + 2, -100, 100);
     addLog('Non-Aligned Movement countries offering trade and diplomatic support.');
   }
@@ -4913,7 +4997,7 @@ function triggerGameOver(type, message) {
   animatePaperUnfurl(panel);
   renderPolicies();
   saveGame(false);
-  addLog('GAME OVER: ' + (titles[type] || type));
+  addLog('GAME OVER: ' + (titles[type] || type), 'crisis');
 }
 
 function plannedSpend() {
@@ -5056,7 +5140,7 @@ function applyPolicyImmediate(policyId) {
     gameState.activePolicies = gameState.activePolicies.filter(x => x.id !== policy.id);
     gameState.activePolicies.push({ id: policy.id, remainingTurns: durationTurns, startedTurn: gameState.turn });
   }
-  addLog(`Policy: ${policy.name} (-${policy.cost} capital)`);
+  addLog(`Policy: ${policy.name} (-${policy.cost} capital)`, 'policy');
 }
 
 // NOTE: commitPolicies is defined above — this duplicate was removed.
@@ -5080,6 +5164,50 @@ function getOverallStatus() {
   if (avg >= 65) return { text: 'Stable', color: '#2d6e44' };
   if (avg >= 45) return { text: 'Tense', color: '#8b5a0a' };
   return { text: 'Crisis', color: '#8b1a1a' };
+}
+
+// Reform trajectory: weighted 0-100 score toward the success end condition.
+// Success requires avg(economy, stability, popularSupport, partyUnity, foreignRelations) >= 50
+// AND stability >= 40 AND popularSupport >= 40.
+// We weight those two gating metrics more heavily so the bar reflects what
+// actually matters for the ending, not just the average.
+//
+// Returns: { score, band, label, color, barColor }
+//   band: 'promising' | 'uncertain' | 'collapsing'
+function getReformTrajectory() {
+  const m = gameState.metrics;
+  const sep = Number(gameState.separatism || 0);
+  const budget = Number(gameState.budget || 0);
+
+  // Core success metrics (equal weight)
+  const economy        = Number(m.economy        || 0);
+  const stability      = Number(m.stability      || 0);
+  const popularSupport = Number(m.popularSupport || 0);
+  const partyUnity     = Number(m.partyUnity     || 0);
+  const foreignRel     = Number(m.foreignRelations || 0);
+
+  // Weighted average: stability and popularSupport count 1.5x (they are gating)
+  const weighted = (economy + stability * 1.5 + popularSupport * 1.5 + partyUnity + foreignRel) / 6.0;
+
+  // Penalty for high separatism (accelerates dissolution)
+  const sepPenalty = Math.max(0, (sep - 30) * 0.4);
+
+  // Penalty for near-empty coffers
+  const budgetPenalty = budget < 20 ? (20 - budget) * 0.5 : 0;
+
+  const raw = Math.max(0, Math.min(100, weighted - sepPenalty - budgetPenalty));
+  const score = Math.round(raw);
+
+  let band, label, color, barColor;
+  if (score >= 58) {
+    band = 'promising';  label = 'Promising';  color = '#2d6e44'; barColor = '#4aaa72';
+  } else if (score >= 38) {
+    band = 'uncertain';  label = 'Uncertain';  color = '#8b5a0a'; barColor = '#c9982e';
+  } else {
+    band = 'collapsing'; label = 'Collapsing'; color = '#8b1a1a'; barColor = '#cc4040';
+  }
+
+  return { score, band, label, color, barColor };
 }
 
 function metricRowHtml(name, barHtml, displayVal) {
@@ -5158,6 +5286,30 @@ function renderStatus() {
   badge.textContent = s.text;
   badge.style.color = s.color;
   badge.style.borderColor = s.color;
+}
+
+function renderTrajectory() {
+  const t = getReformTrajectory();
+  const fill = document.getElementById('trajectory-fill');
+  const band = document.getElementById('trajectory-band');
+  if (!fill || !band) return;
+
+  fill.style.width  = t.score + '%';
+  fill.style.background = t.barColor;
+  band.textContent = t.label;
+  band.className = 'trajectory-band ' + t.band;
+
+  // Log a message when the band changes (at most once per band transition)
+  const prev = gameState._trajectoryBand;
+  if (prev && prev !== t.band) {
+    const msgs = {
+      promising:  'Reform trajectory: the situation is improving — keep the momentum.',
+      uncertain:  'Reform trajectory: the path forward is uncertain.',
+      collapsing: 'Reform trajectory: the Union is heading toward collapse.',
+    };
+    addLog(msgs[t.band] || '', t.band === 'collapsing' ? 'crisis' : 'system');
+  }
+  gameState._trajectoryBand = t.band;
 }
 
 function renderDate() {
@@ -5308,7 +5460,15 @@ function renderAdvisors(){
         <div class="advisor-card-overlay"></div>
         <div class="card-body">
           <div class="advisor-name">${escapeHtml(a.name)}</div>
-          <div class="advisor-loyalty ${cls}">Loyalty: ${loyalty}</div>
+          <div class="advisor-loyalty ${cls}">Loyalty: ${loyalty}${(() => {
+            const prev = gameState.advisorLoyaltyPrev && gameState.advisorLoyaltyPrev[a.id];
+            if (prev == null) return '';
+            const delta = loyalty - prev;
+            if (Math.abs(delta) < 1) return ' <span style="opacity:.55;font-size:10px;">\u2192</span>';
+            const arrow = delta > 0 ? '\u2191' : '\u2193';
+            const col = delta > 0 ? '#7eeaa0' : '#ff7070';
+            return ' <span style="color:' + col + ';font-size:10px;font-weight:700;">' + arrow + Math.abs(delta) + '</span>';
+          })()}</div>
           ${loyaltyBar}
           <div class="advisor-statuses">${chips.join('')}</div>
         </div>
@@ -5328,6 +5488,31 @@ function renderActivePolicies(){
     return;
   }
   el.innerHTML = active.map(ap => `<span class="active-policy-chip">${escapeHtml(policyName(ap.id))}: ${ap.remainingTurns} turns</span>`).join('');
+}
+
+function addPolicyToHand(policyId) {
+  // Add an eligible policy from the tree directly into the current hand.
+  // Replaces the last non-milestone card, or appends if space allows.
+  if (!uiState.policyHandIds) uiState.policyHandIds = [];
+  if (uiState.policyHandIds.includes(policyId)) {
+    // Already in hand — just scroll to game tab and highlight
+    switchMainTab('game', document.querySelector('.main-tab'));
+    return;
+  }
+  const HAND_MAX = typeof POLICY_HAND_SIZE !== 'undefined' ? POLICY_HAND_SIZE : 8;
+  if (uiState.policyHandIds.length < HAND_MAX) {
+    uiState.policyHandIds.push(policyId);
+  } else {
+    // Replace the last non-milestone card
+    const MILESTONES = typeof MILESTONE_POLICY_IDS !== 'undefined' ? MILESTONE_POLICY_IDS : [];
+    const replaceIdx = [...uiState.policyHandIds].map((id,i)=>({id,i}))
+      .reverse().find(x => !MILESTONES.includes(x.id));
+    if (replaceIdx) uiState.policyHandIds[replaceIdx.i] = policyId;
+    else uiState.policyHandIds[uiState.policyHandIds.length - 1] = policyId;
+  }
+  renderPolicies();
+  renderPolicyTree();
+  addLog(`Added "${policyName(policyId)}" to current hand from Reform Tree.`, 'system');
 }
 
 function renderPolicyTree(){
@@ -5365,7 +5550,19 @@ function renderPolicyTree(){
     } else {
       // Live card — same builder as the hand, with selection state reflected.
       const isSel = selected.has(p.id);
-      cardHtml = buildPolicyCardHtml(p, { selectable: true, selected: isSel });
+      const inHand = uiState.policyHandIds && uiState.policyHandIds.includes(p.id);
+      const avail = getPolicyAvailability(p);
+      if (!inHand && avail.available) {
+        // Eligible but not in current hand — show greyed card with add-to-hand button
+        cardHtml = buildPolicyCardHtml(p, { selectable: false, selected: false });
+        // Inject not-in-hand badge + button before closing card-body tag
+        const badge = `<span class="not-in-hand-badge">Not in current hand</span>
+          <button class="btn-add-to-hand" onclick="event.stopPropagation();addPolicyToHand('${p.id}')">+ Add to Hand</button>`;
+        cardHtml = cardHtml.replace('</div>\n    </div>', badge + '</div>\n    </div>');
+        cardHtml = cardHtml.replace('<div class="policy-card', '<div class="policy-card not-in-hand');
+      } else {
+        cardHtml = buildPolicyCardHtml(p, { selectable: true, selected: isSel });
+      }
     }
     return `<div class="tree-chain" style="margin-left:${depth * 22}px;">
       ${cardHtml}
@@ -5505,6 +5702,7 @@ function renderPressures() {
 function render() {
   renderMetrics();
   renderStatus();
+  renderTrajectory();
   renderDate();
   renderFactions();
   renderIntl();
@@ -5614,6 +5812,15 @@ function getTassDateline() {
   return `ТАСС № ${issueNum}  МОСКВА  ${formatTassDate(gameState.month, gameState.year)} --`;
 }
 
+// Type values: 'policy' | 'crisis' | 'advisor' | 'event' | 'system' | null (default/plain)
+const LOG_TYPE_ICONS = {
+  policy:  '📋',
+  crisis:  '⚠',
+  advisor: '👤',
+  event:   '★',
+  system:  '·',
+};
+
 function flushTtyQueue() {
   if (ttyPrinting || ttyPrintQueue.length === 0) {
     if (!ttyPrinting && ttyPrintQueue.length === 0) stopTtySound();
@@ -5622,7 +5829,7 @@ function flushTtyQueue() {
   ttyPrinting = true;
   startTtySound();
 
-  const { entry, isDateline } = ttyPrintQueue.shift();
+  const { entry, isDateline, type } = ttyPrintQueue.shift();
   const log = document.getElementById('history-log');
   const div = document.createElement('div');
   div.className = 'log-entry tty-printing';
@@ -5635,7 +5842,10 @@ function flushTtyQueue() {
   if (isDateline) {
     div.innerHTML = `<span class="log-tass">${entry}</span>`;
   } else {
-    div.innerHTML = `<span class="log-turn">T${gameState.turn}</span><span class="log-text">${entry}</span>`;
+    const typeClass = type ? ` log-t-${type}` : '';
+    div.className = `log-entry tty-printing${typeClass}`;
+    const icon = (type && LOG_TYPE_ICONS[type]) ? `<span class="log-icon" style="margin-right:3px;font-size:9px;">${LOG_TYPE_ICONS[type]}</span>` : '';
+    div.innerHTML = `<span class="log-turn">T${gameState.turn}</span>${icon}<span class="log-text">${entry}</span>`;
   }
 
   log.appendChild(div);
@@ -5652,10 +5862,10 @@ function flushTtyQueue() {
   }, TTY_LINE_DELAY);
 }
 
-function addLog(entry) {
+function addLog(entry, type) {
   entry = sanitizeLogEntry(entry);
   gameState.history.push(entry);
-  ttyPrintQueue.push({ entry, isDateline: false });
+  ttyPrintQueue.push({ entry, isDateline: false, type: type || null });
   flushTtyQueue();
 }
 
@@ -6050,4 +6260,3 @@ document.addEventListener('DOMContentLoaded', () => {
 
 </body>
 </html>
- 
