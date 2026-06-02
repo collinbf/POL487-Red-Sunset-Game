@@ -191,8 +191,8 @@
   .policy-panel { background:rgba(139,26,26,.04); border:1px solid var(--rule); border-radius:3px; padding:12px; margin-bottom:1rem; }
   .policy-title { font-family:'Playfair Display',serif; font-size:13px; font-weight:700; color:var(--red-dark); margin-bottom:.6rem; }
   .policy-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(140px,1fr)); gap:8px; }
-  .policy-card { background:var(--cream); border:1px solid var(--rule); border-radius:2px; padding:8px; cursor:pointer; transition:background .15s,transform .15s; font-size:11px; }
-  .policy-card:hover { background:#fff; transform:translateY(-2px); }
+  .policy-card { background:transparent; border:none; border-radius:2px; padding:8px; cursor:pointer; transition:background .15s,transform .15s; font-size:11px; }
+  .policy-card:hover { background:transparent; transform:translateY(-2px); }
   .policy-name { font-family:'Playfair Display',serif; font-weight:700; font-size:12px; margin-bottom:3px; color:var(--red-dark); }
   .policy-cost { font-size:9px; color:var(--gold); margin-bottom:2px; }
   .policy-effect { font-size:10px; line-height:1.4; color:var(--ink); opacity:.75; }
@@ -524,16 +524,147 @@
 }
 
 /* Persistent selected policy highlight (stays visible even on hover) */
-.policy-card.selected{
+  .policy-card.selected{
   outline: 3px solid rgba(154,122,46,0.78);
   border-color: rgba(154,122,46,0.85);
   box-shadow: 10px 10px 0 rgba(154,122,46,0.32), 0 22px 34px rgba(0,0,0,0.22);
 }
-.policy-card.selected:hover{
+  .policy-card.selected:hover{
   outline: 3px solid rgba(154,122,46,0.88);
   border-color: rgba(154,122,46,0.95);
   box-shadow: 10px 10px 0 rgba(154,122,46,0.36), 0 22px 34px rgba(0,0,0,0.24);
 }
+
+  .policy-card {
+    position: relative;
+    aspect-ratio: 5 / 7;
+    width: 100%;
+    max-width: 168px;
+    min-height: 0;
+    padding: 0;
+    perspective: 1200px;
+    background: transparent;
+    border: none;
+  }
+  .policy-card-inner{
+    position: relative;
+    width: 100%;
+    height: 100%;
+    transform-style: preserve-3d;
+    -webkit-transform-style: preserve-3d;
+    transition: transform .55s cubic-bezier(.2,.75,.2,1);
+    will-change: transform;
+  }
+  .policy-card.flipped .policy-card-inner{
+    transform: rotateY(180deg);
+  }
+  .policy-face{
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    border-radius: 4px;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    transform-style: preserve-3d;
+    -webkit-transform-style: preserve-3d;
+    transform-origin: center center;
+    will-change: transform;
+  }
+  .policy-front,
+  .policy-back{
+    background: linear-gradient(180deg, rgba(255,255,255,0.10) 0%, rgba(242,234,216,0.80) 45%, rgba(232,220,192,0.92) 100%);
+    border: 4px solid rgba(92,17,17,0.90);
+    box-shadow: 8px 8px 0 rgba(92,17,17,0.55), 0 18px 28px rgba(0,0,0,0.18);
+    overflow: hidden;
+  }
+  .policy-front::after,
+  .policy-back::after{
+    content:'';
+    position:absolute;
+    left:0;
+    right:0;
+    bottom:0;
+    height:4px;
+    background: rgba(92,17,17,0.90);
+    pointer-events:none;
+    z-index: 2;
+  }
+  .policy-front{
+    transform: rotateY(0deg) translateZ(0);
+  }
+  .policy-back{
+    transform: rotateY(180deg) translateZ(0);
+  }
+  .policy-face .card-body{
+    position: relative;
+    z-index: 1;
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    padding: 26px 10px 34px 10px;
+  }
+  .policy-front .policy-name{
+    font-size: 14px;
+    font-weight: 900;
+    margin: 0 0 6px;
+    line-height: 1.22;
+    overflow: visible;
+    overflow-wrap: break-word;
+    word-break: normal;
+    hyphens: auto;
+  }
+  .policy-front .policy-desc{
+    flex: 1 1 auto;
+    min-height: 0;
+    font-size: 13px;
+    line-height: 1.5;
+    display: -webkit-box;
+    -webkit-line-clamp: 5;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .policy-back .policy-name{
+    font-size: 13px;
+    margin-bottom: 8px;
+  }
+  .policy-back .policy-effect{
+    font-size: 11px;
+    line-height: 1.55;
+    flex: 1 1 auto;
+    min-height: 0;
+  }
+  .policy-face .card-corner { font-size: 8px; padding: 5px 7px; z-index: 3; }
+  .policy-flip-btn{
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    z-index: 4;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    border: 1px solid rgba(242,234,216,0.65);
+    background: rgba(92,17,17,0.94);
+    color: var(--cream);
+    font-family: 'Playfair Display', serif;
+    font-size: 13px;
+    font-weight: 900;
+    line-height: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.25);
+  }
+  .policy-flip-btn:hover{ background: #8b1a1a; }
+  .policy-flip-btn:focus-visible{
+    outline: 2px solid rgba(242,234,216,0.95);
+    outline-offset: 2px;
+  }
+  .policy-face .policy-lock{
+    margin-top: auto;
+  }
  
   .policy-card::before, .advisor-card::before { content:''; position:absolute; inset:10px; border:1px solid rgba(255,255,255,0.22); pointer-events:none; }
   .policy-card::after, .advisor-card::after { content:'\2606'; position:absolute; inset:0; display:grid; place-items:center; font-size:74px; color:rgba(92,17,17,0.10); pointer-events:none; }
@@ -541,41 +672,10 @@
   .card-corner.tl{ top:0; left:0; border-bottom-right-radius:10px; }
   .card-corner.bl{ left:0; bottom:0; border-top-right-radius:10px; }
   .card-corner.br{ right:0; bottom:0; border-top-left-radius:10px; }
-  .policy-card {
-    aspect-ratio:5/7;
-    width:100%;
-    max-width:168px;
-    min-height:0;
-    padding:11px 10px 10px;
-    display:flex;
-    flex-direction:column;
+  .policy-back .policy-effect{
+    font-size: 12.5px;
+    line-height: 1.45;
   }
-  .policy-card .card-body{
-    position:relative;
-    z-index:1;
-    flex:1 1 auto;
-    display:flex;
-    flex-direction:column;
-    min-height:0;
-    padding:20px 6px 32px 6px;
-  }
-  .policy-card .policy-name{
-    font-size:14px;
-    font-weight:900;
-    margin:0 0 6px;
-    line-height:1.22;
-    overflow:visible;
-    overflow-wrap:break-word;
-    word-break:normal;
-    hyphens:auto;
-  }
-  .policy-card .policy-effect{
-    font-size:12.5px;
-    line-height:1.4;
-    flex:1 1 auto;
-    min-height:0;
-  }
-  .policy-card .card-corner { font-size:8px; padding:5px 7px; }
   .advisor-name{ font-size:14px; margin:22px 0 8px; text-align:left; }
   .advisor-faction{ font-size:10px; margin-bottom:8px; text-align:left; }
   .advisor-loyalty{ font-size:12px; text-align:left; }
@@ -583,10 +683,11 @@
 @media (max-width: 520px) {
   .policy-grid { grid-template-columns:repeat(2, minmax(0, 1fr)); gap:10px; }
   .advisor-grid { grid-template-columns:repeat(auto-fill,minmax(128px,1fr)); gap:12px; }
-  .policy-card { max-width:152px; padding:11px 9px 9px; }
+  .policy-card { max-width:152px; }
   .advisor-card { padding:14px 12px 12px; aspect-ratio:3/4; min-height:178px; }
-  .policy-card .policy-name { font-size:13px; }
-  .policy-card .policy-effect { font-size:12px; }
+  .policy-front .policy-name { font-size:13px; }
+  .policy-front .policy-desc { font-size: 12.5px; line-height: 1.48; -webkit-line-clamp: 4; }
+  .policy-back .policy-effect { font-size:12px; }
   .policy-name { font-size:14px; }
 }
 
@@ -2209,6 +2310,7 @@ const uiState = {
   audioVolume: 0.7,
   sfxVolume: 0.7,
   musicVolume: 0.7,
+  policyCardFlips: {},
   policyHandIds: [],   // IDs of policies currently shown (the "hand")
   policyHandTurn: -1,  // Turn on which the hand was last dealt
   redrawsThisTurn: 0,  // Number of redraws used this turn (first is free; subsequent cost 5 capital)
@@ -2332,7 +2434,7 @@ function updateRedrawButton() {
 // ── SHARED POLICY CARD BUILDER ────────────────────────────────────
 // Used by both the hand (renderPolicies) and the tree (renderPolicyTree)
 // so both views always render identically.
-function buildPolicyCardHtml(p, { selectable = true, selected = false } = {}) {
+function buildPolicyCardHtml(p, { selectable = true, selected = false, showAddToHand = false } = {}) {
   const availability = getPolicyAvailability(p);
   const isSel = selected;
   const lockHtml = availability.available ? '' : `<div class="policy-lock">${availability.reasons.map(escapeHtml).join('<br>')}</div>`;
@@ -2341,18 +2443,48 @@ function buildPolicyCardHtml(p, { selectable = true, selected = false } = {}) {
     ? `<div class="policy-advisor-req" title="Required">★ ${escapeHtml(advisorName(p.advisorRequired))}</div>` : '';
   const oppAdvisors = (p.advisorOpposition || []).length
     ? `<div class="policy-advisor-opp" title="Opposes">✕ ${p.advisorOpposition.map(aid => escapeHtml(advisorName(aid))).join(', ')}</div>` : '';
+  const isFlipped = Boolean(uiState.policyCardFlips && uiState.policyCardFlips[p.id]);
+  const flipBtn = `<button type="button" class="policy-flip-btn" title="Flip card to view ${isFlipped ? 'description' : 'effects'}" aria-label="Flip policy card" onclick="event.stopPropagation(); togglePolicyCardFace('${p.id}')">i</button>`;
+  const addToHand = `<span class="not-in-hand-badge">Not in current hand</span>
+    <button class="btn-add-to-hand" onclick="event.stopPropagation();addPolicyToHand('${p.id}')">+ Add to Hand</button>`;
+  const cardClasses = [
+    'policy-card',
+    isSel ? 'selected' : '',
+    availability.available ? '' : 'locked',
+    isFlipped ? 'flipped' : '',
+  ].filter(Boolean).join(' ');
   return `
-    <div class="policy-card${isSel ? ' selected' : ''}${availability.available ? '' : ' locked'}" data-cat="${p.category || ''}" ${click}>
-      <div class="card-corner tl">${p.category || 'Policy'}</div>
-      <div class="card-corner br">Cost ${p.cost} <span style="font-size:8px;opacity:.75;">capital</span></div>
-      <div class="card-body">
-        <div class="policy-name">${p.name}</div>
-        ${p.description ? `<div class="policy-desc">${escapeHtml(p.description)}</div>` : ''}
-        <div class="policy-effect">${formatEffects(p.effects)}</div>
-        ${reqAdvisor}${oppAdvisors}
-        ${lockHtml}
+    <div class="${cardClasses}" data-cat="${p.category || ''}" ${click}>
+      <div class="policy-card-inner">
+        <div class="policy-face policy-front">
+          <div class="card-corner tl">${p.category || 'Policy'}</div>
+          <div class="card-corner br">Cost ${p.cost} <span style="font-size:8px;opacity:.75;">capital</span></div>
+          ${flipBtn}
+          <div class="card-body">
+            <div class="policy-name">${escapeHtml(p.name)}</div>
+            ${p.description ? `<div class="policy-desc">${escapeHtml(p.description)}</div>` : ''}
+            ${showAddToHand ? addToHand : ''}
+          </div>
+        </div>
+        <div class="policy-face policy-back">
+          <div class="card-corner tl">Effects</div>
+          <div class="card-corner br">Cost ${p.cost} <span style="font-size:8px;opacity:.75;">capital</span></div>
+          ${flipBtn}
+          <div class="card-body">
+            <div class="policy-name">${escapeHtml(p.name)}</div>
+            <div class="policy-effect">${formatEffects(p.effects)}</div>
+            ${reqAdvisor}${oppAdvisors}
+            ${lockHtml}
+          </div>
+        </div>
       </div>
     </div>`;
+}
+
+function togglePolicyCardFace(policyId) {
+  if (!uiState.policyCardFlips) uiState.policyCardFlips = {};
+  uiState.policyCardFlips[policyId] = !uiState.policyCardFlips[policyId];
+  renderPolicies();
 }
 
 
@@ -4592,7 +4724,7 @@ function checkAllTriggers() {
   if (es.socialParasitism >= 25 && fireTrigger('parasitism_25', 'Social parasitism crisis — public unrest event triggered.', 'event')) {
     displayTriggerEvent({
       name: 'Social Parasitism Crisis',
-    image: "images/social_parasitism.png",
+      image: "images/social_parasitism.png",
       description: 'Widespread absenteeism, underground markets, and work avoidance have become impossible to ignore. The state\'s authority to compel economic participation is collapsing.',
       choices: [
         { text: 'Launch anti-parasitism campaign', effects: { stability: +5, popularSupport: -8, partyUnity: +3 } },
@@ -4614,7 +4746,7 @@ function checkAllTriggers() {
     pf.moderate  = clamp(pf.moderate  - 5, 0, 100);
     displayTriggerEvent({
       name: 'Mass Protests',
-    image: "images/Mass_Protests.jpg",
+      image: "images/Mass_Protests.jpg",
       description: 'Hundreds of thousands take to the streets in Moscow, Leningrad, and across the republics. Gorbachev\'s authority is openly challenged.',
       choices: [
         { text: 'Address the nation — promise reforms', effects: { popularSupport: +8, partyUnity: -5 } },
@@ -4678,7 +4810,7 @@ function checkAllTriggers() {
   if (pf.hardliner <= 20 && fireTrigger('hard_20', 'CRITICAL: Coup conspiracy forming.', 'event')) {
     displayTriggerEvent({
       name: 'Coup Conspiracy',
-    image: "images/coup_attempt.jpg",
+      image: "images/coup_attempt.jpg",
       description: 'KGB chief Kryuchkov, Defence Minister Yazov, and Vice-President Yanayev have formed a secret committee. They plan to remove Gorbachev and restore order. The August Coup is imminent.',
       choices: [
         { text: 'Confront conspirators directly', effects: { partyUnity: -10, stability: -10, popularSupport: gameState.coupResistDisabled ? -5 : +10 } },
@@ -4697,7 +4829,7 @@ function checkAllTriggers() {
     applyMetricChange('popularSupport', -8);
     displayTriggerEvent({
       name: 'Republic Independence Movements',
-    image: "images/Republic_Independence_Movements.jpg",
+      image: "images/Republic_Independence_Movements.jpg",
       description: 'Lithuania, Estonia, Latvia, Georgia, and Armenia are all pressing for sovereignty or independence. The Union Treaty is under direct challenge.',
       choices: [
         { text: 'Offer genuine autonomy', effects: { stability: +5, partyUnity: -10, foreignRelations: +5 } },
@@ -4746,7 +4878,7 @@ function checkAllTriggers() {
   if (ir.us <= 0 && fireTrigger('us_0', 'CRISIS: US relations severed — World War III risk!', 'event')) {
     displayTriggerEvent({
       name: 'Superpower Crisis',
-    image: "images/Superpower_Crisis.jpg",
+      image: "images/Superpower_Crisis.jpg",
       description: 'Soviet-American relations have completely broken down. Both sides are on high alert. The world is closer to nuclear war than at any time since the Cuban Missile Crisis.',
       choices: [
         { text: 'Emergency diplomatic back-channel', effects: { foreignRelations: +15, partyUnity: -8, militaryReadiness: -5 } },
@@ -4765,7 +4897,7 @@ function checkAllTriggers() {
   if (ir.china <= 20 && fireTrigger('china_20', 'China tensions rising — border reinforcement required.', 'event')) {
     displayTriggerEvent({
       name: 'Sino-Soviet Border Tensions',
-    image: "images/Sino_Soviet_Border_Tensions.jpg",
+      image: "images/Sino_Soviet_Border_Tensions.jpg",
       description: 'Chinese troop buildups along the Sino-Soviet border are forcing a Soviet military response. Diplomatic channels are strained.',
       choices: [
         { text: 'Deploy additional troops', effects: { militaryReadiness: +3, economy: -5, foreignRelations: -3 } },
@@ -4779,7 +4911,7 @@ function checkAllTriggers() {
   if (ir.eastEu <= 40 && fireTrigger('bloc_40', 'Bloc instability — emergency meeting with satellite leaders.', 'event')) {
     displayTriggerEvent({
       name: 'Warsaw Pact Summit',
-    image: "images/Warsaw_Pact_Summit.jpg",
+      image: "images/Warsaw_Pact_Summit.jpg",
       description: 'Leaders of Poland, East Germany, Hungary, Czechoslovakia, Romania, and Bulgaria demand clarity on whether the Brezhnev Doctrine still applies. Solidarity is spreading. Budapest is restless.',
       choices: [
         { text: 'Reaffirm Soviet commitment to intervene', effects: { ir: null, partyUnity: +5, foreignRelations: -8, popularSupport: -5 } },
@@ -4793,7 +4925,7 @@ function checkAllTriggers() {
     gameState.separatism = clamp(gameState.separatism + 10, 0, 100);
     displayTriggerEvent({
       name: 'Revolutions of 1989',
-    image: "images/Revolutions_of_1989.JPG",
+      image: "images/Revolutions_of_1989.JPG",
       description: 'Poland\'s Solidarity movement sweeps elections. Hungary opens its border with Austria. Mass protests in East Germany. Romania is on the brink. The Soviet empire in Eastern Europe is collapsing.',
       choices: [
         { text: 'Accept the revolutions — non-intervention', effects: { partyUnity: -10, foreignRelations: +15, popularSupport: +5 } },
@@ -4805,7 +4937,7 @@ function checkAllTriggers() {
   if (ir.eastEu <= 10 && fireTrigger('bloc_10', 'Bloc dissolution — Warsaw Pact effectively dead.', 'event')) {
     displayTriggerEvent({
       name: 'End of the Warsaw Pact',
-    image: "images/End_of_the_Warsaw_Pact.jpg",
+      image: "images/End_of_the_Warsaw_Pact.jpg",
       description: 'The satellite states are openly seeking NATO membership. The Warsaw Pact exists only on paper. Soviet strategic depth in Europe is gone.',
       choices: [
         { text: 'Formally dissolve the Pact — negotiate NATO assurances', effects: { foreignRelations: +10, partyUnity: -10, militaryReadiness: -5 } },
@@ -5583,10 +5715,16 @@ function renderPolicyTree(){
       // Enacted policies: show a lightweight "done" badge instead of a full card
       // to avoid confusing players into thinking they can re-select them.
       cardHtml = `<div class="policy-card locked" style="opacity:.45;filter:grayscale(.5);cursor:default;" title="Already enacted">
-        <div class="card-corner tl">${p.category || 'Policy'}</div>
-        <div class="card-corner br" style="background:var(--green,#2d6e44);">Enacted</div>
-        <div class="card-body"><div class="policy-name">${escapeHtml(p.name)}</div>
-        <div class="policy-effect" style="font-size:10px;opacity:.6;">Already in effect</div></div>
+        <div class="policy-card-inner">
+          <div class="policy-face policy-front">
+            <div class="card-corner tl">${p.category || 'Policy'}</div>
+            <div class="card-corner br" style="background:var(--green,#2d6e44);">Enacted</div>
+            <div class="card-body">
+              <div class="policy-name">${escapeHtml(p.name)}</div>
+              <div class="policy-desc" style="display:block;-webkit-line-clamp:unset;overflow:visible;">Already in effect</div>
+            </div>
+          </div>
+        </div>
       </div>`;
     } else {
       // Live card — same builder as the hand, with selection state reflected.
@@ -5594,13 +5732,9 @@ function renderPolicyTree(){
       const inHand = uiState.policyHandIds && uiState.policyHandIds.includes(p.id);
       const avail = getPolicyAvailability(p);
       if (!inHand && avail.available) {
-        // Eligible but not in current hand — show greyed card with add-to-hand button
-        cardHtml = buildPolicyCardHtml(p, { selectable: false, selected: false });
-        // Inject not-in-hand badge + button before closing card-body tag
-        const badge = `<span class="not-in-hand-badge">Not in current hand</span>
-          <button class="btn-add-to-hand" onclick="event.stopPropagation();addPolicyToHand('${p.id}')">+ Add to Hand</button>`;
-        cardHtml = cardHtml.replace('</div>\n    </div>', badge + '</div>\n    </div>');
-        cardHtml = cardHtml.replace('<div class="policy-card', '<div class="policy-card not-in-hand');
+        // Eligible but not in current hand — show a greyed card with add-to-hand CTA
+        cardHtml = buildPolicyCardHtml(p, { selectable: false, selected: false, showAddToHand: true });
+        cardHtml = cardHtml.replace('<div class="policy-card ', '<div class="policy-card not-in-hand ');
       } else {
         cardHtml = buildPolicyCardHtml(p, { selectable: true, selected: isSel });
       }
