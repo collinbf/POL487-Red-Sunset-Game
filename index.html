@@ -191,8 +191,6 @@
   .event-choices { display:flex; flex-direction:column; gap:6px; }
   .event-btn { background:transparent; border:1px solid var(--red); color:var(--red-dark); padding:6px 10px; font-family:'Cormorant Garamond',serif; font-size:11px; letter-spacing:.08em; text-transform:uppercase; cursor:pointer; border-radius:2px; transition:background .15s,color .15s; text-align:left; }
   .event-btn:hover { background:var(--red); color:var(--cream); }
-  .event-queue-status { display:none; margin:0 0 10px; padding:5px 8px; border:1px solid rgba(139,26,26,.35); background:rgba(242,234,216,.72); color:var(--red-dark); font-family:'Playfair Display',serif; font-size:11px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; }
-  .event-queue-status.active { display:inline-block; }
   .ending-summary { display:grid; grid-template-columns:repeat(auto-fit,minmax(145px,1fr)); gap:8px; margin:12px 0; }
   .ending-stat { border:1px solid rgba(139,26,26,.24); background:rgba(242,234,216,.62); padding:8px; }
   .ending-stat span { display:block; font-family:'IM Fell English',serif; font-size:12px; opacity:.76; }
@@ -1259,10 +1257,6 @@
 .event-panel.pravda.active{
   display: flex !important;
 }
-/* The inner newspaper card */
-.event-panel.pravda > *:not(.event-queue-status) {
-  /* handled per-child below */
-}
 /* Wrap all pravda content in a centred card */
 .pravda-modal-card {
   position: relative;
@@ -2232,7 +2226,6 @@
     <!-- EVENT PANEL -->
 <div class="event-panel pravda" id="event-panel">
   <div class="pravda-modal-card">
-  <div class="event-queue-status" id="event-queue-status"></div>
   <div class="pravda-masthead">
     <div class="pravda-mast-top" id="pravda-mast-top"></div>
     <div class="pravda-mast-name" id="pravda-mast-name">
@@ -2469,7 +2462,10 @@ const uiState = {
   audioVolume: 0.7,
   sfxVolume: 0.7,
   musicVolume: 0.7,
-  policyCardFlips: {},
+  policyCardFlips: {
+    hand: {},
+    tree: {},
+  },
   policyHandIds: [],   // IDs of policies currently shown (the "hand")
   policyHandTurn: -1,  // Turn on which the hand was last dealt
   redrawsThisTurn: 0,  // Number of redraws used this turn (first is free; subsequent cost 5 capital)
@@ -2593,7 +2589,7 @@ function updateRedrawButton() {
 // ── SHARED POLICY CARD BUILDER ────────────────────────────────────
 // Used by both the hand (renderPolicies) and the tree (renderPolicyTree)
 // so both views always render identically.
-function buildPolicyCardHtml(p, { selectable = true, selected = false, showAddToHand = false, treeStatusLabel = '', treeStatusTone = 'ready' } = {}) {
+function buildPolicyCardHtml(p, { selectable = true, selected = false, showAddToHand = false, treeStatusLabel = '', treeStatusTone = 'ready', view = 'hand' } = {}) {
   const availability = getPolicyAvailability(p);
   const isSel = selected;
   const lockHtml = availability.available ? '' : `<div class="policy-lock">${availability.reasons.map(escapeHtml).join('<br>')}</div>`;
@@ -2602,11 +2598,12 @@ function buildPolicyCardHtml(p, { selectable = true, selected = false, showAddTo
     ? `<div class="policy-advisor-req" title="Required">★ ${escapeHtml(advisorName(p.advisorRequired))}</div>` : '';
   const oppAdvisors = (p.advisorOpposition || []).length
     ? `<div class="policy-advisor-opp" title="Opposes">✕ ${p.advisorOpposition.map(aid => escapeHtml(advisorName(aid))).join(', ')}</div>` : '';
-  const isFlipped = Boolean(uiState.policyCardFlips && uiState.policyCardFlips[p.id]);
+  const flipState = uiState.policyCardFlips && uiState.policyCardFlips[view] ? uiState.policyCardFlips[view] : {};
+  const isFlipped = Boolean(flipState[p.id]);
   const flipLabel = isFlipped ? 'Show description side' : 'Show effects side';
   const faceLabel = isFlipped ? 'Policy effects' : 'Policy description';
   const statusHtml = treeStatusLabel ? `<div class="policy-status tree-status ${treeStatusTone}">${escapeHtml(treeStatusLabel)}</div>` : '';
-  const flipBtn = `<button type="button" class="policy-flip-btn" title="${flipLabel}" aria-label="${flipLabel}" aria-pressed="${isFlipped ? 'true' : 'false'}" onclick="event.stopPropagation(); togglePolicyCardFace('${p.id}')"><span aria-hidden="true">i</span><span class="sr-only">${flipLabel}</span></button>`;
+  const flipBtn = `<button type="button" class="policy-flip-btn" title="${flipLabel}" aria-label="${flipLabel}" aria-pressed="${isFlipped ? 'true' : 'false'}" onclick="event.stopPropagation(); togglePolicyCardFace('${p.id}', '${view}')"><span aria-hidden="true">i</span><span class="sr-only">${flipLabel}</span></button>`;
   const addToHand = `<span class="not-in-hand-badge">Not in current hand</span>
     <button class="btn-add-to-hand" onclick="event.stopPropagation();addPolicyToHand('${p.id}')">+ Add to Hand</button>`;
   const cardClasses = [
@@ -2645,10 +2642,12 @@ function buildPolicyCardHtml(p, { selectable = true, selected = false, showAddTo
     </div>`;
 }
 
-function togglePolicyCardFace(policyId) {
-  if (!uiState.policyCardFlips) uiState.policyCardFlips = {};
-  uiState.policyCardFlips[policyId] = !uiState.policyCardFlips[policyId];
+function togglePolicyCardFace(policyId, view = 'hand') {
+  if (!uiState.policyCardFlips) uiState.policyCardFlips = { hand: {}, tree: {} };
+  if (!uiState.policyCardFlips[view]) uiState.policyCardFlips[view] = {};
+  uiState.policyCardFlips[view][policyId] = !uiState.policyCardFlips[view][policyId];
   renderPolicies();
+  renderPolicyTree();
 }
 
 
@@ -4888,7 +4887,7 @@ function checkAllTriggers() {
   if (es.socialParasitism >= 25 && fireTrigger('parasitism_25', 'Social parasitism crisis — public unrest event triggered.', 'event')) {
     displayTriggerEvent({
       name: 'Social Parasitism Crisis',
-      image: "images/social_parasitism.png",
+      image: 'images/social_parasitism.png',
       description: 'Widespread absenteeism, underground markets, and work avoidance have become impossible to ignore. The state\'s authority to compel economic participation is collapsing.',
       choices: [
         { text: 'Launch anti-parasitism campaign', effects: { stability: +5, popularSupport: -8, partyUnity: +3 } },
@@ -4910,7 +4909,7 @@ function checkAllTriggers() {
     pf.moderate  = clamp(pf.moderate  - 5, 0, 100);
     displayTriggerEvent({
       name: 'Mass Protests',
-      image: "images/Mass_Protests.jpg",
+      image: 'images/Mass_Protests.jpg',
       description: 'Hundreds of thousands take to the streets in Moscow, Leningrad, and across the republics. Gorbachev\'s authority is openly challenged.',
       choices: [
         { text: 'Address the nation — promise reforms', effects: { popularSupport: +8, partyUnity: -5 } },
@@ -4961,7 +4960,7 @@ function checkAllTriggers() {
   if (pf.hardliner <= 30 && fireTrigger('hard_30', 'Conservative outrage — "Nina\'s Letter" published.', 'event')) {
     displayTriggerEvent({
       name: 'Nina\'s Letter',
-      image: "images/Nina_Andreyeva.jpg",
+      image: 'images/Nina_Andreyeva.jpg',
       description: 'A Leningrad schoolteacher named Nina Andreyeva publishes a letter in Sovetskaya Rossiya defending Stalinism and attacking Gorbachev\'s reforms. It is widely believed to be organised by Ligachev and becomes a conservative manifesto.',
       choices: [
         { text: 'Suppress the letter', effects: { partyUnity: +5, popularSupport: -5, foreignRelations: -3 } },
@@ -4974,7 +4973,7 @@ function checkAllTriggers() {
   if (pf.hardliner <= 20 && fireTrigger('hard_20', 'CRITICAL: Coup conspiracy forming.', 'event')) {
     displayTriggerEvent({
       name: 'Coup Conspiracy',
-      image: "images/coup_attempt.jpg",
+      image: 'images/coup_attempt.jpg',
       description: 'KGB chief Kryuchkov, Defence Minister Yazov, and Vice-President Yanayev have formed a secret committee. They plan to remove Gorbachev and restore order. The August Coup is imminent.',
       choices: [
         { text: 'Confront conspirators directly', effects: { partyUnity: -10, stability: -10, popularSupport: gameState.coupResistDisabled ? -5 : +10 } },
@@ -4993,7 +4992,7 @@ function checkAllTriggers() {
     applyMetricChange('popularSupport', -8);
     displayTriggerEvent({
       name: 'Republic Independence Movements',
-      image: "images/Republic_Independence_Movements.jpg",
+      image: 'images/Republic_Independence_Movements.jpg',
       description: 'Lithuania, Estonia, Latvia, Georgia, and Armenia are all pressing for sovereignty or independence. The Union Treaty is under direct challenge.',
       choices: [
         { text: 'Offer genuine autonomy', effects: { stability: +5, partyUnity: -10, foreignRelations: +5 } },
@@ -5042,7 +5041,7 @@ function checkAllTriggers() {
   if (ir.us <= 0 && fireTrigger('us_0', 'CRISIS: US relations severed — World War III risk!', 'event')) {
     displayTriggerEvent({
       name: 'Superpower Crisis',
-      image: "images/Superpower_Crisis.jpg",
+      image: 'images/Superpower_Crisis.jpg',
       description: 'Soviet-American relations have completely broken down. Both sides are on high alert. The world is closer to nuclear war than at any time since the Cuban Missile Crisis.',
       choices: [
         { text: 'Emergency diplomatic back-channel', effects: { foreignRelations: +15, partyUnity: -8, militaryReadiness: -5 } },
@@ -5061,7 +5060,7 @@ function checkAllTriggers() {
   if (ir.china <= 20 && fireTrigger('china_20', 'China tensions rising — border reinforcement required.', 'event')) {
     displayTriggerEvent({
       name: 'Sino-Soviet Border Tensions',
-      image: "images/Sino_Soviet_Border_Tensions.jpg",
+      image: 'images/Sino_Soviet_Border_Tensions.jpg',
       description: 'Chinese troop buildups along the Sino-Soviet border are forcing a Soviet military response. Diplomatic channels are strained.',
       choices: [
         { text: 'Deploy additional troops', effects: { militaryReadiness: +3, economy: -5, foreignRelations: -3 } },
@@ -5075,7 +5074,7 @@ function checkAllTriggers() {
   if (ir.eastEu <= 40 && fireTrigger('bloc_40', 'Bloc instability — emergency meeting with satellite leaders.', 'event')) {
     displayTriggerEvent({
       name: 'Warsaw Pact Summit',
-      image: "images/Warsaw_Pact_Summit.jpg",
+      image: 'images/Warsaw_Pact_Summit.jpg',
       description: 'Leaders of Poland, East Germany, Hungary, Czechoslovakia, Romania, and Bulgaria demand clarity on whether the Brezhnev Doctrine still applies. Solidarity is spreading. Budapest is restless.',
       choices: [
         { text: 'Reaffirm Soviet commitment to intervene', effects: { ir: null, partyUnity: +5, foreignRelations: -8, popularSupport: -5 } },
@@ -5089,7 +5088,7 @@ function checkAllTriggers() {
     gameState.separatism = clamp(gameState.separatism + 10, 0, 100);
     displayTriggerEvent({
       name: 'Revolutions of 1989',
-      image: "images/Revolutions_of_1989.JPG",
+      image: 'images/Revolutions_of_1989.JPG',
       description: 'Poland\'s Solidarity movement sweeps elections. Hungary opens its border with Austria. Mass protests in East Germany. Romania is on the brink. The Soviet empire in Eastern Europe is collapsing.',
       choices: [
         { text: 'Accept the revolutions — non-intervention', effects: { partyUnity: -10, foreignRelations: +15, popularSupport: +5 } },
@@ -5101,7 +5100,7 @@ function checkAllTriggers() {
   if (ir.eastEu <= 10 && fireTrigger('bloc_10', 'Bloc dissolution — Warsaw Pact effectively dead.', 'event')) {
     displayTriggerEvent({
       name: 'End of the Warsaw Pact',
-      image: "images/End_of_the_Warsaw_Pact.jpg",
+      image: 'images/End_of_the_Warsaw_Pact.jpg',
       description: 'The satellite states are openly seeking NATO membership. The Warsaw Pact exists only on paper. Soviet strategic depth in Europe is gone.',
       choices: [
         { text: 'Formally dissolve the Pact — negotiate NATO assurances', effects: { foreignRelations: +10, partyUnity: -10, militaryReadiness: -5 } },
@@ -5313,7 +5312,7 @@ function triggerGameOver(type, message) {
     <p style="margin-top:1rem;font-family:'Playfair Display',serif;font-weight:700;font-size:12px;letter-spacing:.06em;text-transform:uppercase;">Reform record</p>
     ${enactedHtml}
   `;
-  document.getElementById('event-choices').innerHTML = '<button class="event-btn" onclick="saveGame(true)">Save Outcome</button><button class="event-btn" onclick="resetGame()">Start Over</button>';
+  document.getElementById('event-choices').innerHTML = '<button class="event-btn" onclick="resetGame()">Start Over</button>';
   panel.classList.add('active');
   animatePaperUnfurl(panel);
   renderPolicies();
@@ -5721,7 +5720,7 @@ function renderPolicies() {
         ? '<div class="policy-limit-banner">✦ Policy limit reached — commit or deselect to change ✦</div>'
         : '';
       gridEl.innerHTML = banner + list.map(p =>
-        buildPolicyCardHtml(p, { selectable: true, selected: picks.includes(p.id) })
+        buildPolicyCardHtml(p, { selectable: true, selected: picks.includes(p.id), view: 'hand' })
       ).join('');
     } else {
       gridEl.innerHTML = '<div class="policy-empty">No available policies in this category.</div>';
@@ -5904,10 +5903,10 @@ function renderPolicyTree(){
       const avail = getPolicyAvailability(p);
       if (!inHand && avail.available) {
         // Eligible but not in current hand — show a greyed card with add-to-hand CTA
-        cardHtml = buildPolicyCardHtml(p, { selectable: false, selected: false, showAddToHand: true, treeStatusLabel, treeStatusTone: treeState });
+        cardHtml = buildPolicyCardHtml(p, { selectable: false, selected: false, showAddToHand: true, treeStatusLabel, treeStatusTone: treeState, view: 'tree' });
         cardHtml = cardHtml.replace('<div class="policy-card ', '<div class="policy-card not-in-hand ');
       } else {
-        cardHtml = buildPolicyCardHtml(p, { selectable: true, selected: isSel, treeStatusLabel, treeStatusTone: treeState });
+        cardHtml = buildPolicyCardHtml(p, { selectable: true, selected: isSel, treeStatusLabel, treeStatusTone: treeState, view: 'tree' });
       }
     }
     return `<div class="tree-chain ${treeState}" style="margin-left:${depth * 8}px;">
