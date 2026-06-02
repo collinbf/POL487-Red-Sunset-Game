@@ -1981,6 +1981,12 @@
           <strong>Events</strong> — Team 3<br/>
           <strong>Advisors</strong> — Team 4<br/>
           <strong>Library &amp; Narrative</strong> — Team 6<br/><br/>
+          <strong>Groups</strong><br/>
+          <strong>Olivia</strong> — Domestic Pol: Eamon; Foreign Pol: Charlie; Advisors: Yiqing; Events: George<br/>
+          <strong>Rasoul</strong> — Domestic Pol: Celine; Foreign Pol: Aadan; Advisors: Pauline; Events: Ben Collins<br/>
+          <strong>Leili</strong> — Domestic Pol: Rayan; Foreign Pol: Wenbo; Advisors: Cypress<br/>
+          <strong>Cholan ?</strong> — Domestic Pol: Mariam; Foreign Pol: Vivian; Advisors: Eric<br/>
+          <strong>Viet</strong> — Domestic Pol: Khin; Foreign Pol: Peter; Advisors: Lev<br/><br/>
           Built as part of an experimental project in digital history pedagogy. Original game design by POL487, Summer 2026.
         </div>
       </div>
@@ -4119,7 +4125,9 @@ function buildAdvisorDetailContent(a){
   if (loyalty >= 75) loyaltyCls = 'high';
   if (loyalty <= 40) loyaltyCls = 'low';
 
-  const statusNote = status.resigned || loyalty < 20
+  const statusNote = status.fired
+    ? '<p class="advisor-detail-empty" style="color:var(--red);font-style:normal;">This advisor was dismissed and no longer supports your agenda.</p>'
+    : status.resigned || loyalty < 20
     ? '<p class="advisor-detail-empty" style="color:var(--red);font-style:normal;">This advisor has resigned and no longer supports your agenda.</p>'
     : status.emboldened || loyalty >= 80
       ? '<p style="color:var(--green);font-style:italic;">Emboldened — unusually effective this month.</p>'
@@ -5780,7 +5788,8 @@ function renderAdvisors(){
     if (loyalty >= 75) cls = 'high';
     if (loyalty <= 40) cls = 'low';
     const chips = [];
-    if (status.resigned || loyalty < 20) chips.push('<span class="advisor-status-chip low">Resigned</span>');
+    if (status.fired) chips.push('<span class="advisor-status-chip low">Dismissed</span>');
+    else if (status.resigned || loyalty < 20) chips.push('<span class="advisor-status-chip low">Resigned</span>');
     else if (status.emboldened || loyalty >= 80) chips.push('<span class="advisor-status-chip high">Emboldened</span>');
 
     const photoBg = a.image
@@ -5792,7 +5801,7 @@ function renderAdvisors(){
     const loyaltyBar = `<div class="advisor-loyalty-bar">${fillBarHtml('advisor-loyalty-fill ' + loyaltyTone, loyalty, loyaltyColor)}</div>`;
 
     return `
-      <div class="advisor-card${status.resigned || loyalty < 20 ? ' resigned' : ''}" role="button" tabindex="0" title="View advisor profile" onclick="openAdvisorDetail('${a.id}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openAdvisorDetail('${a.id}')}">
+      <div class="advisor-card${status.fired || status.resigned || loyalty < 20 ? ' resigned' : ''}" role="button" tabindex="0" title="View advisor profile" onclick="openAdvisorDetail('${a.id}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openAdvisorDetail('${a.id}')}">
         <div class="card-corner tl">${escapeHtml(a.faction || 'Advisor')}</div>
         <div class="card-corner br">${escapeHtml((a.role || '').length > 18 ? (a.role || '').slice(0,17)+'…' : (a.role || ''))}</div>
         ${photoBg}
