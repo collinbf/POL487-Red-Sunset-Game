@@ -1836,17 +1836,17 @@
       <div class="section-title" style="font-size:10px;">Faction Strength</div>
       <div class="faction-row">
         <span class="faction-name reform">Reformers</span>
-        <div class="faction-bar"><div class="faction-fill reform" id="fb-reform" style="width:70%"></div></div>
+        <div class="faction-bar"><div class="faction-fill reform" id="fb-reform" style="width:0%"></div></div>
         <span class="approval-val pos" id="fv-reform">70</span>
       </div>
       <div class="faction-row">
         <span class="faction-name moderate">Moderates</span>
-        <div class="faction-bar"><div class="faction-fill moderate" id="fb-moderate" style="width:50%"></div></div>
+        <div class="faction-bar"><div class="faction-fill moderate" id="fb-moderate" style="width:0%"></div></div>
         <span class="approval-val neu" id="fv-moderate">50</span>
       </div>
       <div class="faction-row">
         <span class="faction-name hard">Hardliners</span>
-        <div class="faction-bar"><div class="faction-fill hard" id="fb-hard" style="width:40%"></div></div>
+        <div class="faction-bar"><div class="faction-fill hard" id="fb-hard" style="width:0%"></div></div>
         <span class="approval-val neu" id="fv-hard">40</span>
       </div>
     </div>
@@ -1856,11 +1856,11 @@
 <!-- INTERNATIONAL RELATIONS -->
     <div style="margin-top:1rem;">
       <div class="section-title" style="font-size:10px;">International Relations</div>
-      <div class="intl-row"><span class="intl-name">US &amp; Canada</span><div class="intl-bar"><div class="intl-fill" id="if-us" style="width:50%;background:var(--gold);"></div></div><span class="intl-val neu" id="iv-us">0</span></div>
-      <div class="intl-row"><span class="intl-name">China</span><div class="intl-bar"><div class="intl-fill" id="if-cn" style="width:50%;background:var(--gold);"></div></div><span class="intl-val neu" id="iv-cn">0</span></div>
-      <div class="intl-row"><span class="intl-name">Eastern Europe</span><div class="intl-bar"><div class="intl-fill" id="if-ee" style="width:50%;background:var(--gold);"></div></div><span class="intl-val neu" id="iv-ee">0</span></div>
-      <div class="intl-row"><span class="intl-name">Western Europe</span><div class="intl-bar"><div class="intl-fill" id="if-we" style="width:50%;background:var(--gold);"></div></div><span class="intl-val neu" id="iv-we">0</span></div>
-      <div class="intl-row"><span class="intl-name">Non-Aligned</span><div class="intl-bar"><div class="intl-fill" id="if-na" style="width:50%;background:var(--gold);"></div></div><span class="intl-val neu" id="iv-na">0</span></div>
+      <div class="intl-row"><span class="intl-name">US &amp; Canada</span><div class="intl-bar"><div class="intl-fill" id="if-us" style="width:0%;background:var(--gold);"></div></div><span class="intl-val neu" id="iv-us">0</span></div>
+      <div class="intl-row"><span class="intl-name">China</span><div class="intl-bar"><div class="intl-fill" id="if-cn" style="width:0%;background:var(--gold);"></div></div><span class="intl-val neu" id="iv-cn">0</span></div>
+      <div class="intl-row"><span class="intl-name">Eastern Europe</span><div class="intl-bar"><div class="intl-fill" id="if-ee" style="width:0%;background:var(--gold);"></div></div><span class="intl-val neu" id="iv-ee">0</span></div>
+      <div class="intl-row"><span class="intl-name">Western Europe</span><div class="intl-bar"><div class="intl-fill" id="if-we" style="width:0%;background:var(--gold);"></div></div><span class="intl-val neu" id="iv-we">0</span></div>
+      <div class="intl-row"><span class="intl-name">Non-Aligned</span><div class="intl-bar"><div class="intl-fill" id="if-na" style="width:0%;background:var(--gold);"></div></div><span class="intl-val neu" id="iv-na">0</span></div>
     </div>
 
 
@@ -4559,6 +4559,10 @@ function fireTrigger(id, logMsg, type) {
   return true;
 }
 
+function logTrigger(message, type = 'crisis') {
+  addLog(message, type);
+}
+
 function checkAllTriggers() {
   const m  = gameState.metrics;
   const es = gameState.economySub;
@@ -4639,7 +4643,7 @@ function checkAllTriggers() {
   }
   // Trigger 2: reform <= 30 — hardliner or moderate advisor unlocked
   if (pf.reform <= 30 && fireTrigger('reform_30', 'Reform faction collapsed — hardliner advisors gaining influence.')) {
-    addLog('Conservative advisors now pressing for greater access to power.', 'advisor');
+    logTrigger('Conservative advisors now pressing for greater access to power.', 'advisor');
     pf.hardliner = clamp(pf.hardliner + 10, 0, 100);
   }
 
@@ -4647,13 +4651,13 @@ function checkAllTriggers() {
   // Trigger 1: moderate <= 40 — perestroika jeopardised, inflation +5%
   if (pf.moderate <= 40 && fireTrigger('moderate_40', 'Moderate faction wavering — perestroika support collapses.')) {
     applyMetricChange('inflation', 5);
-    addLog('Moderate Politburo members withdraw support for restructuring.', 'advisor');
+    logTrigger('Moderate Politburo members withdraw support for restructuring.', 'advisor');
   }
   // Trigger 2: moderate <= 30 — moderates shift to hardliner
   if (pf.moderate <= 30 && fireTrigger('moderate_30', 'Moderates defecting to hardliner camp.')) {
     pf.hardliner = clamp(pf.hardliner + 15, 0, 100);
     pf.moderate  = 30;
-    addLog('Several moderate Politburo members align with conservative faction.', 'advisor');
+    logTrigger('Several moderate Politburo members align with conservative faction.', 'advisor');
   }
 
   // ── PARTY UNITY — HARDLINER FACTION ──────────────────────────────
@@ -4831,7 +4835,7 @@ function checkAllTriggers() {
     ms.loyalty = clamp(ms.loyalty - 10, 0, 100);
     pf.hardliner = clamp(pf.hardliner - 5, 0, 100);
     gameState.separatism = clamp(gameState.separatism + 5, 0, 100);
-    addLog('Declining readiness is demoralising the officer corps and emboldening separatists.', 'crisis');
+    logTrigger('Declining readiness is demoralising the officer corps and emboldening separatists.', 'crisis');
   }
   if (ms.combatReadiness <= 25 && fireTrigger('combat_25', 'Military near collapse — crackdown option removed.')) {
     // doubled effect
@@ -4839,15 +4843,15 @@ function checkAllTriggers() {
     pf.hardliner = clamp(pf.hardliner - 10, 0, 100);
     gameState.separatism = clamp(gameState.separatism + 10, 0, 100);
     gameState.militaryCrackdownDisabled = true;
-    addLog('Military too weak to suppress protests. Crackdown option deactivated.', 'crisis');
+    logTrigger('Military too weak to suppress protests. Crackdown option deactivated.', 'crisis');
   }
 
   // ── MILITARY — LOYALTY ────────────────────────────────────────────
   if (ms.loyalty <= 45 && fireTrigger('mloyalty_45', 'Military loyalty wavering.')) {
-    addLog('Officers are questioning orders. Reliability in a crisis is uncertain.', 'crisis');
+    logTrigger('Officers are questioning orders. Reliability in a crisis is uncertain.', 'crisis');
   }
   if (ms.loyalty <= 30 && fireTrigger('mloyalty_30', 'Military loyalty critical — coup conspirators gain army support.')) {
-    addLog('If a coup occurs now, significant portions of the military will side with the conspirators.', 'crisis');
+    logTrigger('If a coup occurs now, significant portions of the military will side with the conspirators.', 'crisis');
     gameState.militaryCoupSupport = true;
   }
 
