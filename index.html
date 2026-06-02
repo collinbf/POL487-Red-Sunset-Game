@@ -1815,7 +1815,7 @@
 <!-- REFORM TRAJECTORY -->
   <div class="trajectory-row" id="trajectory-row" title="How close you are to a successful reform outcome by December 1991">
     <span class="trajectory-label">Trajectory</span>
-    <div class="trajectory-track"><div class="trajectory-fill" id="trajectory-fill" style="width:50%;background:#8b5a0a;"></div></div>
+    <div class="trajectory-track"><div class="trajectory-fill" id="trajectory-fill" style="width:0%;background:#8b5a0a;"></div></div>
     <span class="trajectory-band uncertain" id="trajectory-band">Uncertain</span>
   </div>
 <!-- GOVERNMENT COMPOSITION -->
@@ -4754,7 +4754,7 @@ function checkAllTriggers() {
   if (ir.us >= 70 && fireTrigger('us_70', 'Strong US ties: reduced troop requirements and loan access.', 'system')) {
     es.budgetBalance = clamp(es.budgetBalance + 2, -100, 100);
     applyMetricChange('militaryReadiness', -2);
-    addLog('Western financial institutions offering credit. Military spending pressure eases.');
+    addLog('Western financial institutions offering credit. Military spending pressure eases.', 'system');
   }
 
   // ── FOREIGN RELATIONS — CHINA ─────────────────────────────────────
@@ -4814,7 +4814,7 @@ function checkAllTriggers() {
   if (ir.westEu >= 80 && fireTrigger('west_80', 'Strong Western ties: election dividend — troop reduction and loans.', 'system')) {
     applyMetricChange('militaryReadiness', -2);
     es.budgetBalance = clamp(es.budgetBalance + 3, -100, 100);
-    addLog('Western Europe offering preferential loans and reduced military pressure.');
+    addLog('Western Europe offering preferential loans and reduced military pressure.', 'system');
   }
 
   // ── FOREIGN RELATIONS — NON-ALIGNED ──────────────────────────────
@@ -4823,7 +4823,7 @@ function checkAllTriggers() {
   }
   if (ir.nonAlign >= 90 && fireTrigger('na_90', 'Non-Aligned Movement support peaks — budget boost.', 'system')) {
     es.budgetBalance = clamp(es.budgetBalance + 2, -100, 100);
-    addLog('Non-Aligned Movement countries offering trade and diplomatic support.');
+    addLog('Non-Aligned Movement countries offering trade and diplomatic support.', 'system');
   }
 
   // ── MILITARY — COMBAT READINESS ───────────────────────────────────
@@ -4831,7 +4831,7 @@ function checkAllTriggers() {
     ms.loyalty = clamp(ms.loyalty - 10, 0, 100);
     pf.hardliner = clamp(pf.hardliner - 5, 0, 100);
     gameState.separatism = clamp(gameState.separatism + 5, 0, 100);
-    addLog('Declining readiness is demoralising the officer corps and emboldening separatists.');
+    addLog('Declining readiness is demoralising the officer corps and emboldening separatists.', 'crisis');
   }
   if (ms.combatReadiness <= 25 && fireTrigger('combat_25', 'Military near collapse — crackdown option removed.')) {
     // doubled effect
@@ -4839,15 +4839,15 @@ function checkAllTriggers() {
     pf.hardliner = clamp(pf.hardliner - 10, 0, 100);
     gameState.separatism = clamp(gameState.separatism + 10, 0, 100);
     gameState.militaryCrackdownDisabled = true;
-    addLog('Military too weak to suppress protests. Crackdown option deactivated.');
+    addLog('Military too weak to suppress protests. Crackdown option deactivated.', 'crisis');
   }
 
   // ── MILITARY — LOYALTY ────────────────────────────────────────────
   if (ms.loyalty <= 45 && fireTrigger('mloyalty_45', 'Military loyalty wavering.')) {
-    addLog('Officers are questioning orders. Reliability in a crisis is uncertain.');
+    addLog('Officers are questioning orders. Reliability in a crisis is uncertain.', 'crisis');
   }
   if (ms.loyalty <= 30 && fireTrigger('mloyalty_30', 'Military loyalty critical — coup conspirators gain army support.')) {
-    addLog('If a coup occurs now, significant portions of the military will side with the conspirators.');
+    addLog('If a coup occurs now, significant portions of the military will side with the conspirators.', 'crisis');
     gameState.militaryCoupSupport = true;
   }
 
@@ -5402,7 +5402,8 @@ function renderPolicies() {
   const picks = gameState.selectedPolicies || [];
   const gridEl = document.getElementById('policy-grid');
   if (gridEl) {
-    const limitReached = picks.length >= 3 && gameState.policiesCommittedTurn !== gameState.turn;
+    const committedThisTurn = gameState.policiesCommittedTurn === gameState.turn;
+    const limitReached = picks.length >= 3 && !committedThisTurn;
     if (limitReached) {
       gridEl.classList.add('limit-reached');
     } else {
