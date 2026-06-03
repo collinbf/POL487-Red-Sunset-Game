@@ -23,6 +23,11 @@
   .game-layout { display:grid; grid-template-columns:300px 1fr; gap:0; max-width:1100px; margin:1rem auto; padding:0 1rem; align-items:start; }
   .sidebar { padding-right:1.5rem; border-right:1.5px solid var(--rule); position:sticky; top:1rem; max-height:calc(100vh-2rem); overflow-y:auto; overflow-x:hidden; }
   .main { padding-left:1.5rem; min-width:0; }
+  @media(max-width:780px){
+    .game-layout { grid-template-columns:1fr; padding:0 .75rem; }
+    .sidebar { padding-right:0; border-right:none; border-bottom:1.5px solid var(--rule); padding-bottom:1rem; margin-bottom:1rem; position:static; max-height:none; }
+    .main { padding-left:0; }
+  }
 
   /* SECTION TITLE */
   .section-title { font-family:'Playfair Display',serif; font-size:12px; font-weight:700; letter-spacing:.12em; text-transform:uppercase; color:var(--red-dark); margin-bottom:.6rem; display:flex; align-items:center; gap:8px; }
@@ -37,7 +42,7 @@
     #current-date { font-weight:700; }
 .status-badge { font-size: 13px; font-style:italic; padding:2px 8px; border:1px solid currentColor; border-radius:2px; }
   /* Reform Trajectory indicator */
-  .trajectory-row { display:flex; align-items:center; gap:7px; margin: 6px 0 10px; }
+  .trajectory-row { display:flex; align-items:center; gap:7px; margin: 6px 0 10px; cursor:help; position:relative; }
   .trajectory-label { font-family:'Playfair Display',serif; font-size:10px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; opacity:.65; white-space:nowrap; min-width:68px; }
   .trajectory-track { flex:1; height:6px; background:rgba(43,31,16,0.12); border-radius:3px; overflow:hidden; }
   .trajectory-fill  { height:100%; border-radius:3px; transition:width .6s ease, background .6s ease; --fill-color:#8b5a0a; }
@@ -45,6 +50,27 @@
   .trajectory-band.promising  { color:#2d6e44; }
   .trajectory-band.uncertain  { color:#8b5a0a; }
   .trajectory-band.collapsing { color:#8b1a1a; font-weight:700; }
+  .trajectory-tooltip {
+    display: none;
+    position: absolute;
+    bottom: calc(100% + 8px);
+    left: 50%;
+    transform: translateX(-50%);
+    background: #2a1a0a;
+    color: #f2ead8;
+    font-size: 11px;
+    font-style: normal;
+    font-family: 'IM Fell English', serif;
+    line-height: 1.5;
+    padding: 8px 12px;
+    border-radius: 3px;
+    width: 260px;
+    text-align: center;
+    z-index: 9999;
+    pointer-events: none;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+  }
+  .trajectory-row:hover .trajectory-tooltip { display: block; }
 
     .budget-badge { font-size:13px; font-style:italic; padding:2px 8px; border:1px solid rgba(154,122,46,.9); border-radius:2px; color:#8b5a0a; cursor:help; position:relative; }
     .budget-tooltip {
@@ -2073,7 +2099,8 @@
 <!-- METRICS -->
   <div class="metrics" id="metrics"></div>
 <!-- REFORM TRAJECTORY -->
-  <div class="trajectory-row" id="trajectory-row" title="How close you are to a successful reform outcome by December 1991">
+  <div class="trajectory-row" id="trajectory-row">
+    <span class="trajectory-tooltip">Reform Trajectory — a composite of Economy, Popular Support, Stability, and Party Unity. Promising means reform is on track; Uncertain means the situation is precarious; Collapsing means the Union is at serious risk before December 1991.</span>
     <span class="trajectory-label">Trajectory</span>
     <div class="trajectory-track"><div class="trajectory-fill" id="trajectory-fill"></div></div>
     <span class="trajectory-band uncertain" id="trajectory-band">Uncertain</span>
@@ -4918,11 +4945,11 @@ function checkAllTriggers() {
     displayTriggerEvent({
       name: 'Mass Protests',
       image: 'images/Mass_Protests.jpg',
-      description: 'Hundreds of thousands take to the streets in Moscow, Leningrad, and across the republics. Gorbachev\'s authority is openly challenged.',
+      description: 'Crowds of hooligans, provocateurs, and — let us be honest — Western-funded agitators have gathered in the squares of Moscow, Leningrad, Kyiv, and eleven other cities. They carry signs. They shout. TASS has not reported this. CNN has. The workers and peasants of the Soviet Union — the real Soviet people — did not ask for this. These are not the masses. These are elements. Nevertheless, there are rather a lot of them, the Politburo has been in emergency session since 6 a.m., and your press secretary is, technically, still waiting for guidance.',
       choices: [
-        { text: 'Address the nation — promise reforms', effects: { popularSupport: +8, partyUnity: -5 } },
-        { text: 'Deploy security forces', budgetCost: 10, effects: { stability: +5, popularSupport: -15, foreignRelations: -8 } },
-        { text: 'Declare a state of emergency', budgetCost: 15, effects: { stability: +8, popularSupport: -20, partyUnity: -10 } },
+        { text: 'Address the nation. Announce reforms. Remind them you are on their side.', effects: { popularSupport: +8, partyUnity: -5 } },
+        { text: 'Restore order. The Ministry of Interior knows what to do.', budgetCost: 10, effects: { stability: +5, popularSupport: -15, foreignRelations: -8 } },
+        { text: 'Declare emergency powers. Public assembly suspended until further notice.', budgetCost: 15, effects: { stability: +8, popularSupport: -20, partyUnity: -10 } },
       ]
     });
   }
@@ -4969,11 +4996,11 @@ function checkAllTriggers() {
     displayTriggerEvent({
       name: 'Nina\'s Letter',
       image: 'images/Nina_Andreyeva.jpg',
-      description: 'A Leningrad schoolteacher named Nina Andreyeva publishes a letter in Sovetskaya Rossiya defending Stalinism and attacking Gorbachev\'s reforms. It is widely believed to be organised by Ligachev and becomes a conservative manifesto.',
+      description: 'SOVETSKAYA ROSSIYA has published a letter from Leningrad chemistry teacher Nina Andreyeva, a simple Soviet woman, a patriot, a defender of Lenin\'s immortal legacy. She asks only: why do we spit on our grandfathers? Why do we grovel before the West? Her letter — reprinted with great enthusiasm by seventeen fraternal regional organs — exposes the so-called "openness" as a campaign of bourgeois falsification, Trotskyite revisionism, and cosmopolitan sabotage directed against the heroic achievements of Soviet socialism. The working class did not defeat Hitler so that their grandchildren could read Solzhenitsyn.',
       choices: [
-        { text: 'Suppress the letter', effects: { partyUnity: +5, popularSupport: -5, foreignRelations: -3 } },
-        { text: 'Allow open rebuttal', effects: { popularSupport: +8, partyUnity: -8, stability: -3 } },
-        { text: 'Dismiss it as one opinion', effects: { stability: +2, partyUnity: -3 } },
+        { text: 'Suppress it. One chemistry teacher does not set the Party line.', effects: { partyUnity: +5, popularSupport: -5, foreignRelations: -3 } },
+        { text: 'Pravda will publish a rebuttal. The Party\'s position must be made clear.', effects: { popularSupport: +8, partyUnity: -8, stability: -3 } },
+        { text: 'She is entitled to her opinion. This is, after all, glasnost.', effects: { stability: +2, partyUnity: -3 } },
       ]
     });
   }
