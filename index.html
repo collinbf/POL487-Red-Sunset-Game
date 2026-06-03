@@ -5275,6 +5275,21 @@ function triggerGameOver(type, message) {
   gameState.gameOver = true;
   activeEvent = null;
   gameState.ending = { type, message, turn: gameState.turn, month: gameState.month, year: gameState.year };
+  // Fade out and stop the soundtrack
+  try {
+    if (musicAudio && !musicAudio.paused) {
+      const fadeOut = setInterval(() => {
+        if (musicAudio.volume > 0.05) {
+          musicAudio.volume = Math.max(0, musicAudio.volume - 0.05);
+        } else {
+          musicAudio.pause();
+          musicAudio.currentTime = 0;
+          musicAudio.volume = uiState.audioMuted ? 0 : uiState.musicVolume;
+          clearInterval(fadeOut);
+        }
+      }, 80);
+    }
+  } catch(e){}
   const panel = document.getElementById('event-panel');
   const titles = {
     revolution: 'REVOLUTION',
@@ -6165,6 +6180,28 @@ function makeAudio(relPath){
   return audio;
 }
 
+// ── SOUNDTRACK ──────────────────────────────────────────────────────────────
+// Reference the <audio data-music> element declared at the bottom of the page.
+// We defer lookup until DOMContentLoaded so the element exists.
+let musicAudio = null;
+document.addEventListener('DOMContentLoaded', () => {
+  musicAudio = document.getElementById('music-track');
+  if (musicAudio) {
+    musicAudio.volume = uiState.audioMuted ? 0 : uiState.musicVolume;
+    musicAudio.muted  = uiState.audioMuted;
+  }
+});
+
+function startMusic() {
+  if (!musicAudio || musicAudio.dataset.missing === 'true') return;
+  musicAudio.volume = uiState.audioMuted ? 0 : uiState.musicVolume;
+  musicAudio.muted  = uiState.audioMuted;
+  if (musicAudio.paused) {
+    musicAudio.currentTime = 0;
+    musicAudio.play().catch(() => {});
+  }
+}
+
 // Unlock audio on first user gesture (required by most browsers).
 let audioUnlocked = false;
 function unlockAllAudio(){
@@ -6191,6 +6228,15 @@ function unlockAllAudio(){
     if (t && t.catch) t.catch(()=>{});
     ttyAudio.pause();
     ttyAudio.currentTime = 0;
+  } catch(e){}
+  try {
+    // Prime music (play/pause to reset gesture lock, actual start deferred to dismissIntro)
+    if (musicAudio && musicAudio.dataset.missing !== 'true') {
+      const m = musicAudio.play();
+      if (m && m.catch) m.catch(()=>{});
+      musicAudio.pause();
+      musicAudio.currentTime = 0;
+    }
   } catch(e){}
 }
 
@@ -6629,6 +6675,8 @@ function dismissIntro() {
   // Stop projector sound
   projectorAudio.pause();
   projectorAudio.currentTime = 0;
+  // Start soundtrack
+  startMusic();
   // Start the game (teletype/log begins after Begin)
   startGame();
   const overlay = document.getElementById('intro-modal');
@@ -6679,6 +6727,13 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 });
 </script>
+
+<!-- ── SOUNDTRACK ─────────────────────────────────────────────────────────── -->
+<audio id="music-track"
+       data-music
+       src="music/gregorquendel-tetris-theme-korobeiniki-arranged-for-piano-186249.mp3"
+       loop
+       preload="none"></audio>
 
 </body>
 </html>
