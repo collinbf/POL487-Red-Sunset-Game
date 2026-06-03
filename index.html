@@ -3510,6 +3510,44 @@ The question before the General Secretary is not only one of rights. It is a que
       { text: 'Reject the law and authorise a public ideological counter-campaign — religion is the enemy of socialist progress', effects: { popularSupport: -15, partyUnity: +10, stability: -5, foreignRelations: -8 } },
     ],
   },
+
+  // ── AMERICAN BOMBING OF LIBYA (OPERATION EL DORADO CANYON) ───────────
+  {
+    id: 'libya_bombing_1986',
+    name: 'Operation El Dorado Canyon: America Bombs Libya',
+    image: 'images/Chernobyl.jpg',
+    caption: 'Триполи и Бенгази, 15 апреля 1986 — удары американской авиации',
+    trigger: { month: 4, year: 1986 },
+    description: `Comrade General Secretary — United States Air Force and Navy aircraft have conducted a massive coordinated bombing raid against Tripoli and Benghazi, striking the residential compound of Libyan leader Muammar Gaddafi. President Reagan asserts this is direct retaliation for Libyan state-sponsored terrorism in West Berlin.
+
+Libya is a significant purchaser of Soviet arms and a client state in the Mediterranean. Gaddafi has survived, but the Americans have demonstrated they will strike Soviet-aligned states without warning.
+
+The timing could not be more delicate. US Secretary of State George Shultz is scheduled to visit Moscow next month as a preliminary step toward a historic superpower summit. Your emerging "New Political Thinking" has staked the Soviet Union's credibility on replacing Cold War reflexes with principled diplomacy.
+
+The world is watching. Will you risk the peace process to defend an unpredictable ally, or absorb the humiliation to keep détente alive?`,
+    choices: [
+      {
+        text: 'The Diplomatic Freeze — publicly condemn the strikes and cancel the Shultz visit. Express Soviet anger through diplomatic channels, but do not take military action',
+        effects: { foreignRelations: -5, partyUnity: -5, popularSupport: +5 },
+        note: 'The historical path. Summit preparations are delayed, but the rupture is not fatal. Gaddafi survives knowing Moscow will not be his shield.',
+      },
+      {
+        text: 'The Realist Retaliation — deploy the Mediterranean Fleet and airlift advanced SAM systems to Libya immediately. Demonstrate that the Soviet sphere will be defended',
+        effects: { foreignRelations: -15, partyUnity: +12, economy: -8, militaryReadiness: -5 },
+        note: 'The generals are satisfied. But the emergency airlift burns through vital state funds, and Reagan permanently closes the door on summit talks.',
+      },
+      {
+        text: 'Quiet Acquiescence — issue a mild generic statement calling for "peace" while privately signalling to Washington that the USSR will not intervene. Prioritise the summit and Soviet economic survival',
+        effects: { foreignRelations: +8, partyUnity: -12, stability: -5 },
+        note: 'Reagan accelerates summit planning. But the betrayal sends shockwaves through the Third World — Soviet allies from Havana to Damascus are now on their own.',
+      },
+      {
+        text: 'Multilateral Mediation — pivot to the United Nations, demand a Security Council intervention, and position Moscow as a champion of international law rather than a Cold War patron',
+        effects: { foreignRelations: -3, partyUnity: -4, popularSupport: +8 },
+        note: 'The US vetoes every resolution. But you win a moral victory on the global stage and empower civilian diplomats over the military old guard.',
+      },
+    ],
+  },
 ];
 
 let advisors = [
