@@ -455,6 +455,11 @@
     margin:4px 0 5px;
     overflow:hidden;
   }
+  /* Flash animation when loyalty changes */
+  @keyframes loyaltyUp   { 0%{box-shadow:0 0 0 2px rgba(93,186,126,0); height:3px} 30%{box-shadow:0 0 0 3px rgba(93,186,126,0.8); height:5px; background:rgba(93,186,126,0.35);} 100%{box-shadow:0 0 0 2px rgba(93,186,126,0); height:3px} }
+  @keyframes loyaltyDown { 0%{box-shadow:0 0 0 2px rgba(204,64,64,0);  height:3px} 30%{box-shadow:0 0 0 3px rgba(204,64,64,0.8);  height:5px; background:rgba(204,64,64,0.35);}  100%{box-shadow:0 0 0 2px rgba(204,64,64,0);  height:3px} }
+  .advisor-loyalty-bar.flash-up   { animation: loyaltyUp   0.9s ease-out forwards; }
+  .advisor-loyalty-bar.flash-down { animation: loyaltyDown 0.9s ease-out forwards; }
 
   
   /* PLAYING-CARD LOOK for policy/advisor choices */
@@ -848,6 +853,7 @@
   .card-corner.bl{ left:0; bottom:0; border-top-right-radius:10px; }
   .card-corner.br{ right:0; bottom:0; border-top-left-radius:10px; }
   .card-corner-state.done{ background:var(--green,#2d6e44); }
+  .card-corner.emboldened{ background:rgba(45,110,68,0.92); font-weight:900; letter-spacing:.18em; }
   .policy-cost-unit{ font-size:8px; opacity:.75; }
   .policy-tree-note{
     display:block;
@@ -1443,7 +1449,7 @@
 .pravda-caption::after{ content:''; display:block; margin-top:4px; border-bottom:1px solid rgba(0,0,0,0.35); }
 .pravda-main{ display:flex !important; flex-direction:column !important; min-height: calc(var(--pravda-photo-h) + 28px) !important; }
 .pravda-choices{ margin-top:12px !important; display:flex !important; flex-direction:column !important; gap:12px !important; flex:1 1 auto !important; }
-.pravda-choices .event-btn{ width:100% !important; flex:1 1 0 !important; min-height:44px !important; max-height:84px !important; padding:10px 12px !important; }
+.pravda-choices .event-btn{ width:100% !important; flex:0 0 auto !important; min-height:44px !important; padding:10px 12px !important; }
 @media (max-width: 760px){
   :root{ --pravda-photo-h: clamp(170px, 42vw, 240px); }
   .pravda-grid{ grid-template-columns:1fr !important; }
@@ -1974,6 +1980,71 @@
   font-size: 11px;
   color: var(--ink);
   opacity: .6;
+  /* clamp to 2 lines in card view */
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+/* Library expand modal */
+.library-modal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 8000;
+  background: rgba(10,6,3,0.80);
+  align-items: center;
+  justify-content: center;
+  padding: 4vh 1rem;
+}
+.library-modal.active { display: flex; animation: backdropIn 0.25s ease-out forwards; }
+.library-modal-card {
+  position: relative;
+  width: min(580px, 100%);
+  max-height: 80vh;
+  overflow-y: auto;
+  background: linear-gradient(180deg, rgba(255,255,255,0.06) 0%, rgba(242,234,216,0.97) 14%, rgba(232,220,192,0.99) 100%);
+  border: 3px solid rgba(92,17,17,0.90);
+  box-shadow: 0 24px 50px rgba(0,0,0,0.60), 8px 8px 0 rgba(92,17,17,0.40);
+  padding: 28px 28px 24px;
+}
+.library-modal-close {
+  position: absolute;
+  top: 10px; right: 10px;
+  width: 30px; height: 30px;
+  border: 1.5px solid rgba(92,17,17,0.50);
+  background: rgba(242,234,216,0.95);
+  color: var(--red-dark);
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  border-radius: 2px;
+}
+.library-modal-close:hover { background: #fff; }
+.library-modal-category {
+  font-family: 'Playfair Display', serif;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 6px;
+}
+.library-modal-term {
+  font-family: 'Playfair Display', serif;
+  font-size: 22px;
+  font-weight: 900;
+  color: var(--red-dark);
+  margin-bottom: 14px;
+  line-height: 1.1;
+  border-bottom: 1px solid var(--rule);
+  padding-bottom: 12px;
+}
+.library-modal-body {
+  font-family: 'IM Fell English', serif;
+  font-size: 14px;
+  line-height: 1.7;
+  color: var(--ink);
 }
 </style>
 
@@ -2284,7 +2355,7 @@
   <div class="main">
 
     <!-- MAIN TABS -->
-    <div class="main-tabs">  <button class="main-tab active" onclick="switchMainTab('game', this)">Game</button>  <button class="main-tab" onclick="switchMainTab('tree', this)">Reform Tree</button>  <button class="main-tab" onclick="switchMainTab('library', this)">Library</button>  <!-- DEV TEST BUTTON (not a tab) -->  <button class="main-tab" id="test-event-btn" onclick="testPravdaEvent(); flashTestButton()" type="button">    DEV: Test Event  </button>  <button class="main-tab" onclick="switchMainTab('dev', this)">Dev</button></div>
+    <div class="main-tabs">  <button class="main-tab active" onclick="switchMainTab('game', this)">Game</button>  <button class="main-tab" onclick="switchMainTab('tree', this)">Reform Tree</button>  <button class="main-tab" onclick="switchMainTab('library', this)">Library</button>  <!-- DEV TEST BUTTON: only shown when ?dev=true -->  <button class="main-tab" id="test-event-btn" onclick="testPravdaEvent(); flashTestButton()" type="button" style="display:none;">    DEV: Test Event  </button>  <button class="main-tab" onclick="switchMainTab('dev', this)">Dev</button></div>
     <!-- GAME TAB -->
     <div id="tab-game" class="main-tab-panel">
 
@@ -2357,7 +2428,7 @@
         <button class="filter-btn" onclick="setAdvisorFilter('Reformist', this)">Reformist</button>
         <button class="filter-btn" onclick="setAdvisorFilter('Conservative', this)">Conservative</button>
         <button class="filter-btn" onclick="setAdvisorFilter('Centrist', this)">Centrist</button>
-        <button class="filter-btn" onclick="setAdvisorFilter('Military', this)">Military</button>
+        <button class="filter-btn" onclick="setAdvisorFilter('Hardliner', this)">Hardliner</button>
       </div>
       <div class="advisor-grid" id="advisor-grid"></div>
     </div><!-- /advisor-panel -->
@@ -3210,6 +3281,44 @@ let policies = [
     visibleIf: { minSeparatism: 10 },
   },
 
+  // ── LATE-GAME SEPARATISM COUNTERMEASURES ─────────────────────────
+  {
+    id: 'novo_ogarevo_process',
+    name: 'Novo-Ogaryovo Union Negotiations',
+    category: 'Domestic',
+    cost: 20,
+    description: 'Convene republic leaders at the Novo-Ogaryovo state dacha to draft a voluntary Union Treaty that would replace the coercive 1922 constitution with genuine federalism. Nine republics signal tentative agreement. Hardliners regard the process as treason; reformers see it as the last thread holding the Union together.',
+    effects: { separatism: -20, stability: +8, partyUnity: -12, popularSupport: +10, foreignRelations: +5 },
+    duration: 'permanent',
+    prerequisites: ['republic_autonomy_pact'],
+    advisorRequired: 'nazarbayev',
+    advisorOpposition: ['ligachev', 'akhromeyev', 'kryuchkov'],
+    visibleIf: { minYear: 1990, minSeparatism: 50 },
+  },
+  {
+    id: 'emergency_federalism',
+    name: 'Emergency Federal Authority Decree',
+    category: 'Domestic',
+    cost: 15,
+    description: 'Issue a presidential decree granting republic governments expanded budget authority and administrative autonomy in exchange for formally renewing their commitment to the Union. A costly concession — but the alternative is a unilateral declaration race. Reformers accept it as necessary; the military views it with contempt.',
+    effects: { separatism: -15, stability: +5, partyUnity: -8, economy: -5, popularSupport: +6 },
+    duration: 'permanent',
+    advisorOpposition: ['akhromeyev', 'kryuchkov'],
+    visibleIf: { minYear: 1990, minSeparatism: 60 },
+  },
+  {
+    id: 'sovereignty_parade_recognition',
+    name: 'Recognise Republic Sovereignty Declarations',
+    category: 'Domestic',
+    cost: 10,
+    description: 'Accept the sovereignty declarations issuing from the Baltic states and other republics as a political reality — granting them formal but limited recognition within a reformed Union structure rather than contesting them by force. A bitter retreat that may, nonetheless, preserve some form of common state.',
+    effects: { separatism: -10, stability: -5, partyUnity: -15, popularSupport: +12, foreignRelations: +10 },
+    duration: 'permanent',
+    advisorRequired: 'shevardnadze',
+    advisorOpposition: ['akhromeyev', 'kryuchkov', 'ligachev'],
+    visibleIf: { minYear: 1990, minSeparatism: 65 },
+  },
+
   // ── FREE ECONOMIC ZONES ───────────────────────────────────────────
   {
     id: 'free_economic_zones',
@@ -3682,7 +3791,7 @@ The vote is yours.`,
   {
     id: 'august_coup_1991',
     name: 'State Committee on the State of Emergency — The Coup',
-    image: 'images/Chernobyl.jpg',
+    image: 'images/coup_attempt.jpg',
     caption: 'Москва, 19–21 августа 1991 — Государственный комитет по чрезвычайному положению',
     trigger: { month: 8, year: 1991 },
     description: `Comrade General Secretary — at 06:00 this morning, a self-proclaimed State Committee on the State of Emergency (GKChP) broadcast a declaration over Soviet state television announcing that you had been removed from office for reasons of health. Tanks are moving in Moscow. The ringleaders are Vice President Yanayev, KGB Chairman Kryuchkov, Defence Minister Yazov, and Prime Minister Pavlov.
@@ -3732,7 +3841,7 @@ The question before the General Secretary is not only one of rights. It is a que
   {
     id: 'libya_bombing_1986',
     name: 'Operation El Dorado Canyon: America Bombs Libya',
-    image: 'images/Chernobyl.jpg',
+    image: 'images/USF-111_Libya1986.JPG',
     caption: 'Триполи и Бенгази, 15 апреля 1986 — удары американской авиации',
     trigger: { month: 4, year: 1986 },
     description: `Comrade General Secretary — United States Air Force and Navy aircraft have conducted a massive coordinated bombing raid against Tripoli and Benghazi, striking the residential compound of Libyan leader Muammar Gaddafi. President Reagan asserts this is direct retaliation for Libyan state-sponsored terrorism in West Berlin.
@@ -4228,6 +4337,13 @@ function ensureAdvisorLoyaltyDefaults(){
   if (gameState.advisorLoyalty[a.id] == null) {
    gameState.advisorLoyalty[a.id] = (a.defaultLoyalty ?? a.loyalty ?? 50);
   }
+  // Pre-seed emboldened so advisors who start above 80 don't fire the
+  // "emboldened" log message on the very first turn.
+  if (!gameState.advisorStatus[a.id]) gameState.advisorStatus[a.id] = {};
+  const startingLoyalty = gameState.advisorLoyalty[a.id];
+  if (startingLoyalty >= 80) {
+   gameState.advisorStatus[a.id].emboldened = true;
+  }
  });
 }
 
@@ -4546,7 +4662,7 @@ function buildAdvisorDetailContent(a){
     ? '<p class="advisor-detail-empty" style="color:var(--red);font-style:normal;">This advisor was dismissed and no longer supports your agenda.</p>'
     : status.resigned || loyalty < 20
     ? '<p class="advisor-detail-empty" style="color:var(--red);font-style:normal;">This advisor has resigned and no longer supports your agenda.</p>'
-    : status.emboldened || loyalty >= 80
+    : status.emboldened
       ? '<p style="color:var(--green);font-style:italic;">Emboldened — unusually effective this month.</p>'
       : '';
 
@@ -4866,7 +4982,7 @@ function updateAdvisorLoyaltyForTurn(){
     // Heat bonuses doubled: being on the losing side of the political
     // climate now stings more than a single point per turn.
     const reformHeat = a.faction === 'Reformist' && m.partyUnity < 45 ? -2 : 0;
-    const stabilityHeat = a.faction === 'Conservative' && m.stability < 45 ? -2 : 0;
+    const stabilityHeat = (a.faction === 'Conservative' || a.faction === 'Hardliner') && m.stability < 45 ? -2 : 0;
     let next = clamp(before + factionDelta - Math.max(0, pressure) + reformHeat + stabilityHeat, 0, 100);
 
     // ── YELTSIN SPECIAL TRAJECTORY ──────────────────────────────────
@@ -4915,7 +5031,12 @@ function updateAdvisorLoyaltyForTurn(){
     }
     if (next >= 80 && !status.emboldened) {
       status.emboldened = true;
-      addLog(`${a.name} is emboldened and presses harder for their faction's agenda.`, 'advisor');
+      if (a.id !== 'raisa') {
+        const msg = a.faction
+          ? `${a.name} is emboldened and presses harder for their faction's agenda.`
+          : `${a.name} is fully committed to the reform project.`;
+        addLog(msg, 'advisor');
+      }
     }
     if (next < 80) status.emboldened = false;
     gameState.advisorStatus[a.id] = status;
@@ -5162,9 +5283,9 @@ function endTurn() {
     if (stability < 65) delta += Math.floor((65 - stability) / 15);
 
     // Historical year acceleration (independence movements radicalize post-1988)
-    if (gameState.year >= 1989) delta += 1.0;
-    if (gameState.year >= 1990) delta += 1.0;
-    if (gameState.year >= 1991) delta += 1.5;
+    if (gameState.year >= 1989) delta += 0.7;
+    if (gameState.year >= 1990) delta += 0.8;
+    if (gameState.year >= 1991) delta += 1.0;
 
     // Glasnost and Perestroika fuel national consciousness
     if (enacted.has('glasnost'))     delta += 1.0;
@@ -5191,28 +5312,35 @@ function endTurn() {
     const m       = gameState.metrics;
     const enacted = new Set(gameState.enactedPolicies || []);
 
-    // Economy momentum: above 50 and not in deficit → mild upward drift
+    // Economy momentum: above 50 → mild drift; above 65 → stronger drift
     // Represents investment confidence and production inertia.
-    if (m.economy >= 50 && (gameState.economySub.budgetBalance || 0) >= 0 && m.economy < 85) {
+    if (m.economy >= 65 && (gameState.economySub.budgetBalance || 0) >= 0 && m.economy < 85) {
       applyMetricChange('economy', 0.5);
+    } else if (m.economy >= 50 && (gameState.economySub.budgetBalance || 0) >= 0 && m.economy < 65) {
+      applyMetricChange('economy', 0.3);
     }
 
-    // Popular Support consolidation: high support sustains itself —
+    // Popular Support consolidation: 50+ → light; 65+ → full
     // a popular leader finds it easier to maintain their mandate.
     if (m.popularSupport >= 65 && m.popularSupport < 90) {
       applyMetricChange('popularSupport', 0.5);
+    } else if (m.popularSupport >= 50 && m.popularSupport < 65) {
+      applyMetricChange('popularSupport', 0.3);
     }
 
-    // Party Unity cohesion: when unity is high and the player has been
-    // active (not idle), factional trust compounds slightly.
+    // Party Unity cohesion: 50+ → light; 65+ → full
     if (m.partyUnity >= 65 && !gameState.idleTurns && m.partyUnity < 90) {
       applyMetricChange('partyUnity', 0.5);
+    } else if (m.partyUnity >= 50 && !gameState.idleTurns && m.partyUnity < 65) {
+      applyMetricChange('partyUnity', 0.3);
     }
 
-    // Foreign Relations: once détente is well-established, diplomacy
-    // generates its own momentum — summits beget summits.
+    // Foreign Relations: 50+ → light; 60+ → full
+    // Once détente is well-established, diplomacy generates its own momentum.
     if (m.foreignRelations >= 60 && m.foreignRelations < 85) {
       applyMetricChange('foreignRelations', 0.5);
+    } else if (m.foreignRelations >= 50 && m.foreignRelations < 60) {
+      applyMetricChange('foreignRelations', 0.3);
     }
 
     // Stability dividend: a stable society suppresses separatism slightly.
@@ -5465,6 +5593,54 @@ function checkAllTriggers() {
     });
   }
 
+  // ── AFGHANISTAN WITHDRAWAL FOLLOW-ON ─────────────────────────────
+  // Fires the turn after afghanistan-pullout is enacted.
+  // Covers returning soldiers, public reaction, and hardliner backlash.
+  const enacted = new Set(gameState.enactedPolicies || []);
+  if (enacted.has('afghanistan-pullout') && fireTrigger('afghan_withdrawal_followon', 'Last Soviet units cross the Friendship Bridge — the withdrawal is complete.', 'event')) {
+    displayTriggerEvent({
+      name: 'The Boys Come Home',
+      image: 'images/Afghan_withdrawal.jpg',
+      description: `Comrade General Secretary — the last Soviet troops have crossed the Amu Darya river back into Soviet territory. General Boris Gromov, commander of the 40th Army, walked across the Friendship Bridge alone. He told waiting reporters: "There is not a single Soviet soldier or officer left behind me." Nine years, fifty-one days. Fifteen thousand dead.
+
+The homecoming is not a triumph. The veterans return to a country that has no language for what happened — the official narrative of "internationalist duty" has collapsed, and the new glasnost press is already running first-person accounts from wounded soldiers and mothers of the dead. Pamyat nationalists are furious. Reformers are vindicated. The generals are silent.
+
+The world has taken notice. Reagan's team signals that the Geneva Process can now accelerate.`,
+      choices: [
+        {
+          text: 'National ceremony of honour — receive the troops publicly and acknowledge their sacrifice, however painful the truth of the war',
+          effects: { popularSupport: +12, foreignRelations: +5, partyUnity: -8, stability: +3 },
+        },
+        {
+          text: 'Quiet reintegration — no ceremony, no headlines; redirect the defence budget savings into consumer goods and social programmes',
+          effects: { economy: +8, popularSupport: +4, stability: +5, partyUnity: +3 },
+        },
+        {
+          text: 'Commission a public inquiry into the conduct of the war — names, decisions, and failures on the record',
+          effects: { popularSupport: +15, foreignRelations: +8, partyUnity: -15, militaryReadiness: -5 },
+        },
+      ],
+    });
+    // Hardliner loyalty hit regardless of player choice — the military-industrial
+    // complex views the withdrawal as a humiliation, not a statesmanship.
+    if (gameState.advisorLoyalty['akhromeyev'] != null) {
+      gameState.advisorLoyalty['akhromeyev'] = clamp(
+        Number(gameState.advisorLoyalty['akhromeyev']) - 12, 0, 100
+      );
+    }
+    if (gameState.advisorLoyalty['kryuchkov'] != null) {
+      gameState.advisorLoyalty['kryuchkov'] = clamp(
+        Number(gameState.advisorLoyalty['kryuchkov']) - 8, 0, 100
+      );
+    }
+    // Shevardnadze, who championed the withdrawal, gains confidence
+    if (gameState.advisorLoyalty['shevardnadze'] != null) {
+      gameState.advisorLoyalty['shevardnadze'] = clamp(
+        Number(gameState.advisorLoyalty['shevardnadze']) + 10, 0, 100
+      );
+    }
+  }
+
   // ── SEPARATISM ────────────────────────────────────────────────────
   if (sep >= 30 && fireTrigger('sep_30', 'Separatist movements mobilising — rallies and strikes.')) {
     applyMetricChange('stability', -5);
@@ -5543,11 +5719,17 @@ function checkAllTriggers() {
     displayTriggerEvent({
       name: 'Sino-Soviet Border Tensions',
       image: 'images/Sino_Soviet_Border_Tensions.jpg',
-      description: 'Chinese troop buildups along the Sino-Soviet border are forcing a Soviet military response. Diplomatic channels are strained.',
+      description: `Comrade General Secretary — the General Staff of the Armed Forces of the Union of Soviet Socialist Republics submits the following assessment for your urgent consideration.
+
+Intelligence reports received through the Far Eastern Military District confirm a significant concentration of People's Liberation Army ground forces along the Sino-Soviet frontier in the Amur and Ussuri river sectors. The movements are consistent with a posture of forward deployment rather than routine exercise rotation. Border guard units of the KGB have reported increased aerial reconnaissance activity over Soviet territory in the Trans-Baikal region.
+
+The deterioration of fraternal relations between the Communist Party of the Soviet Union and the Communist Party of China — originating in the revisionist provocations of the Khrushchev period and deepened by the adventurist foreign policy line pursued by the Chinese leadership since 1969 — has created conditions in which miscalculation along the frontier cannot be excluded.
+
+The Ministry of Foreign Affairs has received no communication through established diplomatic channels. The General Staff requests guidance.`,
       choices: [
-        { text: 'Deploy additional troops', effects: { militaryReadiness: +3, economy: -5, foreignRelations: -3 } },
-        { text: 'Request diplomatic talks', effects: { foreignRelations: +5, militaryReadiness: -2 } },
-        { text: 'Ignore the buildup', effects: { stability: -3, militaryReadiness: -3 } },
+        { text: 'Authorise reinforcement of the Far Eastern Military District — additional motorised rifle divisions to be deployed to the frontier sectors', effects: { militaryReadiness: +3, economy: -5, foreignRelations: -3 } },
+        { text: 'Instruct the Ministry of Foreign Affairs to request an immediate exchange of military attaches and open a direct channel with the PLA General Staff', effects: { foreignRelations: +5, militaryReadiness: -2 } },
+        { text: 'No response — the General Staff is to maintain existing deployments and take no action that could be construed as provocative', effects: { stability: -3, militaryReadiness: -3 } },
       ]
     });
   }
@@ -5557,11 +5739,15 @@ function checkAllTriggers() {
     displayTriggerEvent({
       name: 'Warsaw Pact Summit',
       image: 'images/Warsaw_Pact_Summit.jpg',
-      description: 'Leaders of Poland, East Germany, Hungary, Czechoslovakia, Romania, and Bulgaria demand clarity on whether the Brezhnev Doctrine still applies. Solidarity is spreading. Budapest is restless.',
+      description: `Comrade General Secretary — the First Secretaries of the fraternal socialist parties of the Polish People's Republic, the German Democratic Republic, the Hungarian People's Republic, the Czechoslovak Socialist Republic, the Socialist Republic of Romania, and the People's Republic of Bulgaria have requested an extraordinary convocation of the Political Consultative Committee of the Warsaw Treaty Organisation.
+
+The delegations have raised, through established fraternal channels, certain questions regarding the continuity of the principles governing mutual assistance and collective defence as codified in the 1955 Treaty. Specifically: whether the obligations of Article 4 remain operative in the event of internal disturbances directed against the leading role of the Party. The Hungarian comrades have raised this matter with particular insistence. The Polish delegation has forwarded materials documenting the activities of certain anti-socialist elements operating under the designation "Solidarity."
+
+The fraternal parties await clarification of the Union's position. The Military Council of the Warsaw Treaty Organisation has prepared contingency assessments. Your response will define the doctrine of socialist solidarity for the coming period.`,
       choices: [
-        { text: 'Reaffirm Soviet commitment to intervene', effects: { ir: null, partyUnity: +5, foreignRelations: -8, popularSupport: -5 } },
-        { text: 'Announce the Sinatra Doctrine — each country decides for itself', effects: { partyUnity: -10, foreignRelations: +10, popularSupport: +5 } },
-        { text: 'Offer economic aid to stabilise', effects: { economy: -8, ir: null, stability: +3 } },
+        { text: 'Reaffirm the obligations of proletarian internationalism — the fraternal parties may count on the full support of the Union in defence of socialist gains', effects: { partyUnity: +5, foreignRelations: -8, popularSupport: -5 } },
+        { text: 'Each fraternal party bears responsibility for the defence of socialism within its own borders — the Union will not intervene in the internal affairs of sovereign states', effects: { partyUnity: -10, foreignRelations: +10, popularSupport: +5 } },
+        { text: 'Authorise an emergency programme of economic fraternal assistance to stabilise the most exposed People\'s Republics', effects: { economy: -8, stability: +3 } },
       ]
     });
   }
@@ -6096,7 +6282,7 @@ function renderMetrics() {
     rows.push(metricRowHtml(
       label,
       `<div class="metric-bar">${fillBarHtml('metric-fill', val, color)}</div>`,
-      `${val}%`
+      `${Math.round(val)}%`
     ));
 
     if (key === 'economy' && gameState.economySub) {
@@ -6111,7 +6297,7 @@ function renderMetrics() {
       rows.push(metricRowHtml(
         'Separatism',
         `<div class="metric-bar">${fillBarHtml('metric-fill', sep, sepColor)}</div>`,
-        `${sep}%`
+        `${Math.round(sep)}%`
       ));
     }
   }
@@ -6281,7 +6467,7 @@ function renderAdvisors(){
     const chips = [];
     if (status.fired) chips.push('<span class="advisor-status-chip low">Dismissed</span>');
     else if (status.resigned || loyalty < 20) chips.push('<span class="advisor-status-chip low">Resigned</span>');
-    else if (status.emboldened || loyalty >= 80) chips.push('<span class="advisor-status-chip high">Emboldened</span>');
+    else if (status.emboldened) chips.push('<span class="advisor-status-chip high">Emboldened</span>');
 
     const photoBg = a.image
       ? `<img class="advisor-card-photo-bg" src="${a.image}" alt="${escapeHtml(a.name)}" onerror="this.style.display='none'">`
@@ -6289,11 +6475,11 @@ function renderAdvisors(){
 
     const loyaltyTone = loyalty >= 60 ? 'high' : loyalty >= 30 ? 'mid' : 'low';
     const loyaltyColor = loyalty >= 60 ? '#5dba7e' : loyalty >= 30 ? '#c9982e' : '#cc4040';
-    const loyaltyBar = `<div class="advisor-loyalty-bar">${fillBarHtml('advisor-loyalty-fill ' + loyaltyTone, loyalty, loyaltyColor)}</div>`;
+    const loyaltyBar = `<div class="advisor-loyalty-bar" data-advisor-id="${a.id}" data-loyalty="${loyalty}">${fillBarHtml('advisor-loyalty-fill ' + loyaltyTone, loyalty, loyaltyColor)}</div>`;
 
     return `
       <div class="advisor-card${status.fired || status.resigned || loyalty < 20 ? ' resigned' : ''}" role="button" tabindex="0" title="View advisor profile" onclick="openAdvisorDetail('${a.id}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openAdvisorDetail('${a.id}')}">
-        <div class="card-corner tl">${escapeHtml(a.faction || 'Advisor')}</div>
+        <div class="card-corner tl${status.emboldened && !status.fired && !status.resigned && loyalty >= 20 ? ' emboldened' : ''}">${escapeHtml(a.faction || 'Advisor')}</div>
         <div class="card-corner br">${escapeHtml((a.role || '').length > 18 ? (a.role || '').slice(0,17)+'…' : (a.role || ''))}</div>
         ${photoBg}
         <div class="advisor-card-overlay"></div>
@@ -6316,6 +6502,22 @@ function renderAdvisors(){
 
   document.getElementById('advisor-grid').innerHTML = html;
   refreshAdvisorDetailIfOpen();
+
+  // Flash loyalty bars where value changed this turn
+  if (gameState.advisorLoyaltyPrev) {
+    document.querySelectorAll('.advisor-loyalty-bar[data-advisor-id]').forEach(bar => {
+      const id  = bar.dataset.advisorId;
+      const cur = Number(bar.dataset.loyalty);
+      const prv = gameState.advisorLoyaltyPrev[id];
+      if (prv == null) return;
+      const delta = cur - prv;
+      if (Math.abs(delta) < 1) return;
+      bar.classList.remove('flash-up', 'flash-down');
+      // Force reflow so removing then adding the class re-triggers the animation
+      void bar.offsetWidth;
+      bar.classList.add(delta > 0 ? 'flash-up' : 'flash-down');
+    });
+  }
 }
 
 function renderActivePolicies(){
@@ -6466,11 +6668,12 @@ function renderUtility(){
 function renderLibrary() {
   const grid = document.getElementById('ency-grid');
   if (!grid) return;
-  const html = (libraryEntries || []).map(entry => {
+  const html = (libraryEntries || []).map((entry, idx) => {
     const pending = entry.pending || !entry.summary || entry.summary === 'Entry pending';
     const cat = entry.category ? `<span class="ency-stub">${escapeHtml(entry.category)}</span>` : '';
+    const clickAttr = pending ? '' : ` onclick="openLibraryEntry(${idx})"`;
     return `
-      <div class="ency-card${pending ? ' ency-empty' : ''}">
+      <div class="ency-card${pending ? ' ency-empty' : ''}" role="${pending ? 'presentation' : 'button'}" tabindex="${pending ? -1 : 0}"${clickAttr} onkeydown="if(!${pending}&&(event.key==='Enter'||event.key===' ')){event.preventDefault();openLibraryEntry(${idx})}">
         <span class="ency-term">${escapeHtml(entry.term)}</span>
         ${cat}
         <span class="ency-stub">${escapeHtml(entry.summary || 'Entry pending')}</span>
@@ -6478,6 +6681,27 @@ function renderLibrary() {
   }).join('');
   grid.innerHTML = html;
 }
+
+function openLibraryEntry(idx) {
+  const entry = (libraryEntries || [])[idx];
+  if (!entry || entry.pending || !entry.summary || entry.summary === 'Entry pending') return;
+  const modal = document.getElementById('library-modal');
+  document.getElementById('library-modal-category').textContent = entry.category || 'Encyclopaedia';
+  document.getElementById('library-modal-term').textContent = entry.term || '';
+  document.getElementById('library-modal-body').textContent = entry.summary || '';
+  modal.classList.add('active');
+  modal.focus();
+}
+
+function closeLibraryModal() {
+  const modal = document.getElementById('library-modal');
+  if (modal) modal.classList.remove('active');
+}
+
+// Close library modal on Escape
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') closeLibraryModal();
+});
 
 
 
@@ -6879,6 +7103,16 @@ function applyAudioSettings(){
       el.muted = muted;
       el.volume = musicVol;
     });
+    // Also directly control the musicAudio object (not yet in DOM)
+    if (typeof musicAudio !== 'undefined' && musicAudio) {
+      musicAudio.muted = muted;
+      musicAudio.volume = musicVol;
+      if (muted || musicVol === 0) {
+        musicAudio.pause();
+      } else if (gameStarted && musicAudio.paused && musicAudio.dataset.missing !== 'true') {
+        musicAudio.play().catch(() => {});
+      }
+    }
   } catch(e){}
 }
 
@@ -6967,6 +7201,18 @@ function debugForceEnding(type){
 }
 
 
+// ── DEV MODE GATING ─────────────────────────────────────────────────────────
+// Show the DEV: Test Event button (and Dev panel tab) only when ?dev=true is
+// present in the URL. In production nothing is visible.
+(function applyDevMode() {
+  const isDev = new URLSearchParams(window.location.search).get('dev') === 'true';
+  const testBtn = document.getElementById('test-event-btn');
+  if (testBtn) testBtn.style.display = isDev ? '' : 'none';
+  document.querySelectorAll('.main-tab').forEach(btn => {
+    if (btn.textContent.trim() === 'Dev') btn.style.display = isDev ? '' : 'none';
+  });
+})();
+
 // Init
 ensureAdvisorLoyaltyDefaults();
 // Initialise oil baseline from the starting month
@@ -6988,6 +7234,29 @@ function startGame() {
   // Print opening TASS dateline then opening log message
   addTassDateline();
   setTimeout(() => addLog('Gorbachev assumes office. The era of reform begins.'), 200);
+}
+
+// ── SOUNDTRACK ──────────────────────────────────────────────────────────────
+const musicAudio = makeAudio('music/gregorquendel-tetris-theme-korobeiniki-arranged-for-piano-186249.mp3');
+musicAudio.setAttribute('data-music', '');
+musicAudio.loop = true;
+musicAudio.volume = uiState.musicVolume;
+musicAudio.preload = 'auto'; // fetch while launcher/intro screens are showing
+
+function startSoundtrack() {
+  if (uiState.audioMuted || uiState.musicVolume <= 0) return;
+  if (musicAudio.dataset.missing === 'true') return;
+  musicAudio.volume = uiState.musicVolume;
+  // With preload='none' the browser hasn't fetched the file yet.
+  // Call load() to start fetching, then play once enough data is ready.
+  if (musicAudio.readyState === 0) {
+    musicAudio.load();
+    musicAudio.addEventListener('canplaythrough', () => {
+      musicAudio.play().catch(() => {});
+    }, { once: true });
+  } else {
+    musicAudio.play().catch(() => {});
+  }
 }
 
 // ── SLIDE PROJECTOR SOUND ────────────────────────────────────────────────────
@@ -7061,6 +7330,7 @@ function dismissIntro() {
   projectorAudio.currentTime = 0;
   // Start the game (teletype/log begins after Begin)
   startGame();
+  startSoundtrack();
   const overlay = document.getElementById('intro-modal');
   overlay.classList.add('dismissed');
   document.querySelector('.game-layout').style.visibility = 'visible';
@@ -7109,6 +7379,16 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 });
 </script>
+
+<!-- LIBRARY ENTRY MODAL -->
+<div class="library-modal" id="library-modal" role="dialog" aria-modal="true" aria-labelledby="library-modal-term" onclick="if(event.target===this)closeLibraryModal()">
+  <div class="library-modal-card">
+    <button class="library-modal-close" onclick="closeLibraryModal()" aria-label="Close">×</button>
+    <div class="library-modal-category" id="library-modal-category"></div>
+    <div class="library-modal-term" id="library-modal-term"></div>
+    <div class="library-modal-body" id="library-modal-body"></div>
+  </div>
+</div>
 
 </body>
 </html>
