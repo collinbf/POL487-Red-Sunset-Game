@@ -2380,20 +2380,7 @@
         <div class="section-title panel-header">Encyclopedia</div>
         <p style="font-family:'IM Fell English',serif; font-size:13px; font-style:italic; opacity:.75; margin-bottom:1rem;">Key terms, figures, and concepts. Content to be added by Team 6.</p>
 
-        <div class="ency-grid" id="ency-grid">
-          <div class="ency-card ency-empty"><span class="ency-term">Glasnost</span><span class="ency-stub">Entry pending</span></div>
-          <div class="ency-card ency-empty"><span class="ency-term">Perestroika</span><span class="ency-stub">Entry pending</span></div>
-          <div class="ency-card ency-empty"><span class="ency-term">Uskoreniye</span><span class="ency-stub">Entry pending</span></div>
-          <div class="ency-card ency-empty"><span class="ency-term">Politburo</span><span class="ency-stub">Entry pending</span></div>
-          <div class="ency-card ency-empty"><span class="ency-term">KGB</span><span class="ency-stub">Entry pending</span></div>
-          <div class="ency-card ency-empty"><span class="ency-term">CPSU</span><span class="ency-stub">Entry pending</span></div>
-          <div class="ency-card ency-empty"><span class="ency-term">Nomenklatura</span><span class="ency-stub">Entry pending</span></div>
-          <div class="ency-card ency-empty"><span class="ency-term">Brezhnev Doctrine</span><span class="ency-stub">Entry pending</span></div>
-          <div class="ency-card ency-empty"><span class="ency-term">Sinatra Doctrine</span><span class="ency-stub">Entry pending</span></div>
-          <div class="ency-card ency-empty"><span class="ency-term">Warsaw Pact</span><span class="ency-stub">Entry pending</span></div>
-          <div class="ency-card ency-empty"><span class="ency-term">Chernobyl</span><span class="ency-stub">Entry pending</span></div>
-          <div class="ency-card ency-empty"><span class="ency-term">INF Treaty</span><span class="ency-stub">Entry pending</span></div>
-        </div>
+        <div class="ency-grid" id="ency-grid"><!-- populated by renderLibrary() on init --></div>
       </div>
 
     </div><!-- /tab-library -->
@@ -3578,7 +3565,7 @@ What do you say at the podium?`,
     name: 'The Yeltsin Affair',
     image: 'images/ProfilePlaceholder.jpeg',
     caption: 'Б. Н. Ельцин на заседании Верховного Совета, октябрь 1987',
-    trigger: { month: 11, year: 1987 },
+    trigger: { month: 10, year: 1987 },
     description: `Comrade General Secretary — following his denunciation at the October Plenum of the Central Committee and your personal rebuke, Boris Nikolayevich Yeltsin, First Secretary of the Moscow City Party Committee, has been found in his office incapacitated and bleeding. He has been conveyed to hospital under medical escort.
 
 The circumstances remain contested. Some accounts describe a self-inflicted wound; others attribute the episode to cardiac exhaustion. Yeltsin's written apology of the 3rd of November was rejected. The conservative faction, led by Ligachev, demands an exemplary response.
@@ -3995,8 +3982,7 @@ let advisors = [
     faction: 'Reformist',
     loyalty: 85,
     effectiveness: 80,
-    // Replace with images/Anatoly_Chernyaev.jpg once you have a photo
-    image: 'images/ProfilePlaceholder.jpeg',
+    image: 'images/Anatoly_Chernyaev.jpg',
     description: "A trusted aide and intellectual architect of Soviet \"New Thinking.\" Chernyaev helped shape many of Gorbachev's speeches, foreign policy initiatives, and reform agenda. His diaries remain one of the most important records of the collapse of the Soviet Union.",
     specialty: 'Reform design, Speechwriting, Political negotiation.',
     reactionLiberal: +10,
@@ -4865,10 +4851,13 @@ function updateAdvisorLoyaltyForTurn(){
   // by ±2–4/turn rather than ±1–2. Advisors should respond to the
   // political climate within a realistic number of turns.
   const factionTilt = {
-    Reformist: Math.round((Number(pf.reform || 0) - 50) / 9),
-    Conservative: Math.round((Number(pf.hardliner || 0) - 50) / 9),
-    Centrist: Math.round((Number(pf.moderate || 0) - 50) / 10),
-    Military: Math.round((Number(gameState.militarySub.loyalty || 0) - 50) / 9),
+    Reformist:   Math.round((Number(pf.reform    || 0) - 50) / 9),
+    Conservative:Math.round((Number(pf.hardliner || 0) - 50) / 9),
+    // 'Hardliner' is used on Akhromeyev's advisor card — map it to the same
+    // hardliner faction score so his loyalty responds to the political climate.
+    Hardliner:   Math.round((Number(pf.hardliner || 0) - 50) / 9),
+    Centrist:    Math.round((Number(pf.moderate  || 0) - 50) / 10),
+    Military:    Math.round((Number(gameState.militarySub.loyalty || 0) - 50) / 9),
   };
 
   advisors.forEach(a => {
@@ -5277,6 +5266,10 @@ function endTurn() {
 }
 
 function resetGame() {
+  // Explicitly clear the auto-save before reloading so the New Game button
+  // starts fresh rather than immediately reloading the last saved state.
+  // Without this, location.reload() restores localStorage on the next init.
+  try { localStorage.removeItem(SAVE_KEY); } catch(e) {}
   location.reload();
 }
 
@@ -6985,6 +6978,7 @@ if (gameState.economySub && gameState.economySub.oilBaseline == null) {
 
 render();
 renderPolicies();
+renderLibrary(); // populate library from JS data on first load
 
 // ── GAME START GATING (wait for Begin) ───────────────────────────────────────
 let gameStarted = false;
