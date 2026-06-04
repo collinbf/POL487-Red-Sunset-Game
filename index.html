@@ -520,6 +520,38 @@
     border-radius: 2px;
   }
   .advisor-detail-close:hover { background: #fff; }
+  /* Mobile: sticky bottom close strip so the button is always reachable
+     even when the modal card is taller than the viewport */
+  .advisor-detail-close-bottom {
+    display: none;
+  }
+  @media (max-width: 600px) {
+    .advisor-detail-close {
+      /* Keep the corner × but also show the bottom strip */
+    }
+    .advisor-detail-close-bottom {
+      display: block;
+      position: sticky;
+      bottom: 0;
+      width: 100%;
+      padding: 10px 20px;
+      background: var(--red-dark);
+      color: var(--cream);
+      font-family: 'Playfair Display', serif;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      text-align: center;
+      border: none;
+      cursor: pointer;
+      border-top: 2px solid rgba(255,255,255,0.15);
+      box-shadow: 0 -4px 12px rgba(0,0,0,0.25);
+      z-index: 10;
+    }
+    .advisor-detail-close-bottom:hover,
+    .advisor-detail-close-bottom:active { background: #8b1a1a; }
+  }
   .advisor-detail-hero {
     position: relative;
     min-height: 140px;
@@ -947,7 +979,7 @@
 
   .log-entry{ margin-bottom:4px; padding:2px 0; border-bottom:none; transform: translateX(var(--jitter, 0px)); font-family: 'Courier New', Courier, 'Lucida Console', monospace; font-size: 11px; }
   .log-entry:last-child{ margin-bottom:0; }
-  .log-turn{ font-weight:800; color:var(--red-dark); margin-right:4px; font-family: 'Courier New', Courier, monospace; }
+  .log-turn{ font-weight:800; color:var(--red-dark); margin-right:5px; font-family: 'Courier New', Courier, monospace; min-width:56px; display:inline-block; }
   .log-text{ opacity: var(--ink, .92); color: rgba(28,22,13,0.92); text-shadow: 0.25px 0 rgba(28,22,13,0.30), -0.18px 0 rgba(28,22,13,0.18), 0 0.8px rgba(28,22,13,0.08); }
   /* Log entry type colour-coding */
   .log-entry.log-t-policy  .log-icon { color: #8b5a0a; }
@@ -2391,6 +2423,7 @@
   <div class="advisor-detail-card" role="dialog" aria-labelledby="advisor-detail-title">
     <button type="button" class="advisor-detail-close" onclick="closeAdvisorDetail()" aria-label="Close profile">&times;</button>
     <div id="advisor-detail-body"></div>
+    <button type="button" class="advisor-detail-close-bottom" onclick="closeAdvisorDetail()" aria-label="Close profile">Close</button>
   </div>
 </div>
 
@@ -3416,6 +3449,9 @@ let policies = [
   },
 
   // ── CHERNYAEV POLICIES ────────────────────────────────────────────────────
+  // Chernyaev becomes available from 1988 (availableFrom: { year: 1988 }).
+  // All his policies carry visibleIf: { minYear: 1988 } so they don't appear
+  // in early-game policy hands before he joins the government.
   {
     id: 'chernyaev_speech',
     name: 'Chernyaev — Write a Speech',
@@ -3426,6 +3462,7 @@ let policies = [
     duration: 'permanent',
     advisorRequired: 'chernyaev',
     advisorOpposition: [],
+    visibleIf: { minYear: 1988 },
   },
   {
     id: 'chernyaev_foreign_memorandum',
@@ -3437,6 +3474,7 @@ let policies = [
     duration: 'permanent',
     advisorRequired: 'chernyaev',
     advisorOpposition: [],
+    visibleIf: { minYear: 1988 },
   },
   {
     id: 'chernyaev_reform_proposal',
@@ -3448,6 +3486,7 @@ let policies = [
     duration: 'permanent',
     advisorRequired: 'chernyaev',
     advisorOpposition: ['ligachev'],
+    visibleIf: { minYear: 1988 },
   },
   {
     id: 'chernyaev_negotiation',
@@ -3459,6 +3498,7 @@ let policies = [
     duration: 'permanent',
     advisorRequired: 'chernyaev',
     advisorOpposition: [],
+    visibleIf: { minYear: 1988 },
   },
 ];
 
@@ -3763,7 +3803,7 @@ let advisors = [
     faction: 'Reformist',
     loyalty: 75,
     effectiveness: 85,
-    image: 'images/Eduad_Shevardnadze.jpg',
+    image: 'images/Eduard_Shevardnadze.jpg',
     description: 'Former First Secretary of the Georgian SSR and one of Gorbachev\'s closest political allies. Despite lacking extensive diplomatic experience, Shevardnadze became the public face of Soviet foreign policy reform. He helped reduce Cold War tensions, improve relations with the West, and implement the \"New Thinking\" approach to international affairs.',
     specialty: 'Foreign Relations, Détente, Cold War diplomacy. Required for all major foreign summit policies.',
     reactionLiberal: +10,
@@ -3902,6 +3942,7 @@ let advisors = [
     faction: 'Centrist',
     loyalty: 60,
     effectiveness: 85,
+    // Replace with images/Valery_Boldin.jpg once you have a photo
     image: 'images/ProfilePlaceholder.jpeg',
     description: "One of Gorbachev's most trusted administrators. Quiet, secretive, and highly organised, Boldin managed information flow, coordinated meetings, and maintained communication between factions. As the Soviet system weakened, his loyalties became increasingly uncertain.",
     specialty: 'Political Management, Bureaucratic Coordination, Intelligence Gathering, Administrative Control.',
@@ -3929,6 +3970,23 @@ let advisors = [
     availableFrom: { year: 1988 },
   },
 
+  // ── RAISA GORBACHEVA ─────────────────────────────────────────────────────
+  {
+    id: 'raisa',
+    name: 'Raisa Gorbacheva',
+    role: 'First Lady / Informal Advisor',
+    faction: 'Reformist',
+    loyalty: 90,
+    effectiveness: 65,
+    image: 'images/Raisa_Gorbacheva.jpg',
+    description: 'Raisa Gorbacheva was the first Soviet leader\'s wife to take an active public role, accompanying Gorbachev on state visits and engaging openly with Western leaders and media. Educated as a philosopher, she was her husband\'s closest confidante and a genuine intellectual partner in the reform project. Conservative apparatchiks resented her visibility; Western leaders found her an asset. Her influence was soft but real — she helped shape Gorbachev\'s image abroad and his resolve at home.',
+    specialty: 'Public diplomacy, Western perception, Gorbachev\'s personal confidence. Boosts Foreign Relations when present at summits.',
+    reactionLiberal: +8,
+    reactionConservative: -5,
+    threshold: 20,
+    thresholdEffect: 'Public estrangement reported — Popular Support -5, Foreign Relations -5',
+  },
+
   // ── CHERNYAEV ─────────────────────────────────────────────────────────────
   {
     id: 'chernyaev',
@@ -3937,6 +3995,7 @@ let advisors = [
     faction: 'Reformist',
     loyalty: 85,
     effectiveness: 80,
+    // Replace with images/Anatoly_Chernyaev.jpg once you have a photo
     image: 'images/ProfilePlaceholder.jpeg',
     description: "A trusted aide and intellectual architect of Soviet \"New Thinking.\" Chernyaev helped shape many of Gorbachev's speeches, foreign policy initiatives, and reform agenda. His diaries remain one of the most important records of the collapse of the Soviet Union.",
     specialty: 'Reform design, Speechwriting, Political negotiation.',
@@ -3961,6 +4020,70 @@ let libraryEntries = [
   'Chernobyl',
   'INF Treaty',
 ].map(term => ({ term, summary: 'Entry pending', pending: true }));
+
+// Override stubs with full entries
+libraryEntries = [
+  {
+    term: 'Glasnost',
+    summary: 'Russian for "openness." Gorbachev\'s policy of relaxing Soviet censorship, allowing freer public debate, and exposing past crimes of the Stalin era. Glasnost unleashed demands for accountability and national self-determination that the Party had not anticipated. The Chernobyl disaster in 1986 accelerated the policy: the government\'s initial cover-up was so damaging that Gorbachev concluded the old culture of secrecy was unsustainable. By 1988–89, glasnost had made it possible for citizens, journalists, and legislators to openly challenge the Communist Party\'s monopoly on truth — and eventually on power.',
+    pending: false,
+  },
+  {
+    term: 'Perestroika',
+    summary: 'Russian for "restructuring." Gorbachev\'s programme of economic and political reform, announced in 1986 and deepened through 1989. Perestroika sought to modernise the Soviet economy by introducing limited market mechanisms, reducing central planning, and curbing endemic corruption. It also decentralised some political authority, allowing contested elections to the Congress of People\'s Deputies in 1989. The tragedy of perestroika is that it moved too slowly to produce results before expectations outran delivery — raising hopes it could not immediately fulfil while destabilising the institutions that held the system together.',
+    pending: false,
+  },
+  {
+    term: 'Uskoreniye',
+    summary: 'Russian for "acceleration." Gorbachev\'s initial economic slogan, preceding perestroika. Announced in 1985, uskoreniye called for faster industrial growth, higher labour productivity, and the adoption of modern technology — all within the existing command-economy framework. It was essentially an attempt to make the Soviet system work better without changing its structure. By 1987 it had largely failed: raising output targets without reforming incentives or supply chains produced bottlenecks, not growth. Uskoreniye was quietly abandoned as perestroika took its place.',
+    pending: false,
+  },
+  {
+    term: 'Politburo',
+    summary: 'The Political Bureau of the Central Committee of the Communist Party of the Soviet Union — in practice, the governing cabinet of the USSR. In the 1985–91 period it comprised roughly a dozen full members and several candidate members, drawn from the party apparatus, the military, the KGB, and republic first secretaries. All significant policy decisions required Politburo approval. Its internal balance between reformists (Yakovlev, Shevardnadze), centrists (Ryzhkov), and conservatives (Ligachev, later Kryuchkov) shaped every major decision of the Gorbachev era. The August 1991 coup attempt was in large part a revolt by hardliners who felt Gorbachev had outrun the Politburo\'s consent.',
+    pending: false,
+  },
+  {
+    term: 'KGB',
+    summary: 'Komitet Gosudarstvennoy Bezopasnosti — the Committee for State Security. Founded in 1954 as the successor to the MGB and earlier Stalinist security organs, the KGB was simultaneously a secret police force, a foreign intelligence service, a counterintelligence agency, and an internal surveillance apparatus. Under Gorbachev, KGB chairman Vladimir Kryuchkov became a leading opponent of reform and a central organiser of the August 1991 coup attempt. After the coup\'s failure, the KGB was dissolved and its functions divided among successor agencies. Its legacy persists in Russia\'s Federal Security Service (FSB).',
+    pending: false,
+  },
+  {
+    term: 'CPSU',
+    summary: 'The Communist Party of the Soviet Union — the only legal political party in the USSR from 1917 until 1990. The CPSU held a constitutional "leading role" in Soviet society, meaning it directed the state, the economy, the military, and cultural life. By 1985 it had approximately 19 million members. Gorbachev\'s reforms progressively undermined the party\'s monopoly: the 1990 amendment to Article 6 of the Soviet Constitution formally ended the CPSU\'s exclusive hold on power. After the failed August 1991 coup — in which senior CPSU officials played central roles — Gorbachev suspended the party\'s activities. It was formally dissolved in August 1991.',
+    pending: false,
+  },
+  {
+    term: 'Nomenklatura',
+    summary: 'The system by which the Communist Party controlled appointments to all significant positions in Soviet government, the economy, the military, academia, and cultural institutions. Senior posts — factory directors, regional party secretaries, newspaper editors, ambassadors — could only be filled with candidates approved by the relevant party committee. The nomenklatura created a self-perpetuating ruling class with strong incentives to resist reform. Perestroika threatened this class directly: decentralisation, contested elections, and market mechanisms all undermined their job security, privileges, and social status.',
+    pending: false,
+  },
+  {
+    term: 'Brezhnev Doctrine',
+    summary: 'The informal principle, articulated after the 1968 Warsaw Pact invasion of Czechoslovakia, that the Soviet Union reserved the right to intervene militarily in any socialist country where socialism itself was threatened. The doctrine justified Soviet interventions in Hungary (1956), Czechoslovakia (1968), and Afghanistan (1979). Gorbachev effectively renounced it in 1988–89, signalling that Eastern European communist governments could not count on Soviet troops to keep them in power. His adviser Gennady Gerasimov famously quipped that the Brezhnev Doctrine had been replaced by the "Sinatra Doctrine" — each country could do it "My Way."',
+    pending: false,
+  },
+  {
+    term: 'Sinatra Doctrine',
+    summary: 'The nickname — coined by Gorbachev\'s spokesman Gennady Gerasimov in October 1989 — for the Soviet policy of allowing Eastern European states to determine their own political futures without Soviet military interference. The name alluded to Frank Sinatra\'s "My Way." In practice, the doctrine meant that when East Germans, Czechs, Romanians, and others rose against their communist governments in 1989, Moscow did not send tanks. This was a decisive break from 1956 and 1968. Without the credible threat of Soviet intervention, the Eastern European communist regimes fell in quick succession through the autumn of 1989.',
+    pending: false,
+  },
+  {
+    term: 'Warsaw Pact',
+    summary: 'The Treaty of Friendship, Cooperation and Mutual Assistance, signed in Warsaw in 1955 — the Soviet bloc\'s military alliance, the counterpart to NATO. Members included the USSR, East Germany, Poland, Czechoslovakia, Hungary, Romania, Bulgaria, and (until 1968) Albania. The Pact provided a legal framework for stationing Soviet troops in Eastern Europe and for coordinating bloc military doctrine. As the Soviet grip on Eastern Europe weakened in 1989–90, member states rapidly moved toward independence. Hungary opened its border with Austria in May 1989, triggering the chain of events that ended the Wall. The Warsaw Pact was formally dissolved on 1 July 1991.',
+    pending: false,
+  },
+  {
+    term: 'Chernobyl',
+    summary: 'On 26 April 1986, reactor No. 4 at the Chernobyl Nuclear Power Plant in northern Ukraine exploded during a safety test, releasing a plume of radioactive material across Europe. The Soviet government\'s initial response — delay, minimisation, and partial cover-up — became a turning point in the glasnost debate: Gorbachev later said Chernobyl showed him the impossible cost of secrecy. The disaster required the evacuation of over 350,000 people, caused a massive burden on the Soviet budget, and severely damaged public confidence in both nuclear energy and the competence of Soviet institutions. It accelerated nationalist sentiment in Ukraine and Belarus.',
+    pending: false,
+  },
+  {
+    term: 'INF Treaty',
+    summary: 'The Intermediate-Range Nuclear Forces Treaty, signed by Gorbachev and Reagan in Washington on 8 December 1987 — the first arms control agreement to eliminate an entire class of nuclear weapons. The treaty banned all ground-launched ballistic and cruise missiles with ranges between 500 and 5,500 kilometres. For Gorbachev, the INF Treaty was a cornerstone of his "New Thinking" in foreign policy: reducing the military burden on the Soviet economy while demonstrating to the West that the USSR was a reliable partner. For Reagan, it was vindication of his "zero option" proposal. The treaty was suspended by the United States in 2019, citing Russian violations.',
+    pending: false,
+  },
+];
 
 
 
@@ -4497,10 +4620,10 @@ function buildAdvisorDetailContent(a){
       ${threshold}
       ${!status.resigned && !status.fired ? `
       <div class="advisor-detail-section" style="border-top:1px solid rgba(139,26,26,0.2);padding-top:1rem;margin-top:.5rem;">
-        <h4 style="color:var(--red);">Dismiss advisor</h4>
-        <p style="font-size:12px;margin-bottom:.6rem;">Removing ${escapeHtml(a.name)} from the inner circle costs <strong>15 political capital</strong> and carries consequences for stability and party cohesion. This cannot be undone.</p>
-        <button class="action-btn-secondary" style="font-size:11px;padding:6px 14px;" onclick="fireAdvisor('${escapeHtml(a.id)}')">Dismiss ${escapeHtml(a.name)}</button>
-      </div>` : status.fired ? `<p style="color:var(--red);font-style:italic;margin-top:1rem;">This advisor was dismissed.</p>` : ''}
+        <h4 style="color:var(--red);">${a.id === 'raisa' ? 'Divorce' : 'Dismiss advisor'}</h4>
+        <p style="font-size:12px;margin-bottom:.6rem;">${a.id === 'raisa' ? 'Divorcing Raisa Gorbacheva would be a personal and political catastrophe. It costs <strong>15 political capital</strong> and deals a severe blow to public standing and reformist morale. This cannot be undone.' : 'Removing ' + escapeHtml(a.name) + ' from the inner circle costs <strong>15 political capital</strong> and carries consequences for stability and party cohesion. This cannot be undone.'}</p>
+        <button class="action-btn-secondary" style="font-size:11px;padding:6px 14px;" onclick="fireAdvisor('${escapeHtml(a.id)}')">${a.id === 'raisa' ? 'Divorce Raisa Gorbacheva' : 'Dismiss ' + escapeHtml(a.name)}</button>
+      </div>` : status.fired ? `<p style="color:var(--red);font-style:italic;margin-top:1rem;">${a.id === 'raisa' ? 'Raisa Gorbacheva was divorced.' : 'This advisor was dismissed.'}</p>` : ''}
     </div>`;
 }
 
@@ -5066,6 +5189,56 @@ function endTurn() {
     if (rounded > 0) applyMetricChange('separatism', rounded);
   })();
 
+  // ── POSITIVE PASSIVE RECOVERY ────────────────────────────────────
+  // Counters the "slow slide regardless of good play" problem.
+  // When key metrics are in healthy ranges, they tick upward slightly —
+  // representing momentum: a stable economy attracts investment, high
+  // public support lubricates reform, strong foreign relations build
+  // diplomatic dividends. Each effect is small (≤1/turn) so it never
+  // overwhelms active policy but rewards sustained good management.
+  // None of these fire if the metric is already at or above its ceiling
+  // threshold (no free 100s from passive drift alone).
+  (function applyPassiveRecovery() {
+    const m       = gameState.metrics;
+    const enacted = new Set(gameState.enactedPolicies || []);
+
+    // Economy momentum: above 50 and not in deficit → mild upward drift
+    // Represents investment confidence and production inertia.
+    if (m.economy >= 50 && (gameState.economySub.budgetBalance || 0) >= 0 && m.economy < 85) {
+      applyMetricChange('economy', 0.5);
+    }
+
+    // Popular Support consolidation: high support sustains itself —
+    // a popular leader finds it easier to maintain their mandate.
+    if (m.popularSupport >= 65 && m.popularSupport < 90) {
+      applyMetricChange('popularSupport', 0.5);
+    }
+
+    // Party Unity cohesion: when unity is high and the player has been
+    // active (not idle), factional trust compounds slightly.
+    if (m.partyUnity >= 65 && !gameState.idleTurns && m.partyUnity < 90) {
+      applyMetricChange('partyUnity', 0.5);
+    }
+
+    // Foreign Relations: once détente is well-established, diplomacy
+    // generates its own momentum — summits beget summits.
+    if (m.foreignRelations >= 60 && m.foreignRelations < 85) {
+      applyMetricChange('foreignRelations', 0.5);
+    }
+
+    // Stability dividend: a stable society suppresses separatism slightly.
+    // High stability counteracts a fraction of the baseline separatism creep.
+    if (m.stability >= 70 && gameState.separatism > 0) {
+      applyMetricChange('separatism', -0.5);
+    }
+
+    // Military loyalty consolidation: a well-funded, active military
+    // maintains its own esprit de corps above a threshold.
+    if (m.militaryReadiness >= 70 && gameState.militarySub.loyalty < 90) {
+      gameState.militarySub.loyalty = clamp(gameState.militarySub.loyalty + 0.5, 0, 100);
+    }
+  })();
+
   // Run all conditional triggers first
   checkAllTriggers();
   updateAdvisorLoyaltyForTurn();
@@ -5628,7 +5801,7 @@ function triggerGameOver(type, message) {
     <p style="margin-top:1rem;font-family:'Playfair Display',serif;font-weight:700;font-size:12px;letter-spacing:.06em;text-transform:uppercase;">Reform record</p>
     ${enactedHtml}
   `;
-  document.getElementById('event-choices').innerHTML = '<button class="event-btn" onclick="resetGame()">Start Over</button>';
+  document.getElementById('event-choices').innerHTML = '<button class="event-btn" onclick="resetGame()" style="font-size:13px;padding:10px 20px;font-weight:700;letter-spacing:.1em;border-width:2px;">↺ New Game</button>';
   panel.classList.add('active');
   animatePaperUnfurl(panel);
   renderPolicies();
@@ -5781,6 +5954,22 @@ function applyPolicyImmediate(policyId) {
     const current = Number(gameState.advisorLoyalty[advisorId] ?? 50);
     const reward = 4;
     gameState.advisorLoyalty[advisorId] = clamp(current + reward, 0, 100);
+  }
+
+  // ── advisorLoyaltyBonus ───────────────────────────────────────────
+  // Explicit per-advisor loyalty bonuses declared on the policy, e.g.
+  //   advisorLoyaltyBonus: { shevardnadze: +15 }
+  // Distinct from the "used" reward above — these represent targeted
+  // relationship effects (the homecoming trip restoring Shevardnadze's
+  // confidence, etc.) and can be positive or negative.
+  if (policy.advisorLoyaltyBonus && typeof policy.advisorLoyaltyBonus === 'object') {
+    Object.entries(policy.advisorLoyaltyBonus).forEach(([aid, delta]) => {
+      if (gameState.advisorLoyalty[aid] != null) {
+        gameState.advisorLoyalty[aid] = clamp(Number(gameState.advisorLoyalty[aid]) + Number(delta), 0, 100);
+        if (delta > 0) addLog(`${aid.charAt(0).toUpperCase() + aid.slice(1)}'s loyalty improved (+${delta}).`, 'system');
+        else addLog(`${aid.charAt(0).toUpperCase() + aid.slice(1)}'s loyalty fell (${delta}).`, 'crisis');
+      }
+    });
   }
 
   if (!gameState.enactedPolicies) gameState.enactedPolicies = [];
@@ -6086,6 +6275,7 @@ function renderAdvisors(){
     ? advisors.filter(a => String(a.faction || '').toLowerCase() === String(f).toLowerCase())
     : advisors.filter(a => {
         if (a.availableFrom && gameState.year < a.availableFrom.year) return false;
+        if (a.availableUntil && (gameState.year > a.availableUntil.year || (gameState.year === a.availableUntil.year && a.availableUntil.month && gameState.month > a.availableUntil.month))) return false;
         return true;
       });
 
@@ -6494,7 +6684,7 @@ function flushTtyQueue() {
   ttyPrinting = true;
   startTtySound();
 
-  const { entry, isDateline, type } = ttyPrintQueue.shift();
+  const { entry, isDateline, type, month, year } = ttyPrintQueue.shift();
   const log = document.getElementById('history-log');
   const div = document.createElement('div');
   div.className = 'log-entry tty-printing';
@@ -6510,7 +6700,8 @@ function flushTtyQueue() {
     const typeClass = type ? ` log-t-${type}` : '';
     div.className = `log-entry tty-printing${typeClass}`;
     const icon = (type && LOG_TYPE_ICONS[type]) ? `<span class="log-icon" style="margin-right:3px;font-size:9px;">${LOG_TYPE_ICONS[type]}</span>` : '';
-    div.innerHTML = `<span class="log-turn">T${gameState.turn}</span>${icon}<span class="log-text">${entry}</span>`;
+    const ts = (month && year) ? formatMonthYear(month, year) : `T${gameState.turn}`;
+    div.innerHTML = `<span class="log-turn">${ts}</span>${icon}<span class="log-text">${entry}</span>`;
   }
 
   log.appendChild(div);
@@ -6530,7 +6721,9 @@ function flushTtyQueue() {
 function addLog(entry, type) {
   entry = sanitizeLogEntry(entry);
   gameState.history.push(entry);
-  ttyPrintQueue.push({ entry, isDateline: false, type: type || null });
+  // Capture the current date at the moment the entry is added so the
+  // timestamp is frozen to when the event happened, not when rendered.
+  ttyPrintQueue.push({ entry, isDateline: false, type: type || null, month: gameState.month, year: gameState.year });
   flushTtyQueue();
 }
 
