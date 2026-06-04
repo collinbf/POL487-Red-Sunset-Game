@@ -4514,18 +4514,37 @@ function checkEvents() {
     return false;
   });
 
-  if (triggered.length > 0) {
-    // Mark all triggered events as fired immediately so none can re-trigger
-    // next turn while waiting in the queue (bug #8 fix).
-    triggered.forEach(e => { gameState.firedTriggers['event_' + e.id] = true; });
-    // Display the first event now; queue the rest so the player sees each one.
-    displayEvent(triggered[0]);
-    for (let i = 1; i < triggered.length; i++) {
-      triggerEventQueue.push(triggered[i]);
-    }
+if (triggered.length > 0) {
+
+  triggered.forEach(e => {
+
+    gameState.firedTriggers['event_' + e.id] = true;
+
+  });
+
+  if (activeEvent) {
+
+    triggerEventQueue.push(...triggered);
+
     renderEventQueueStatus();
+
     return true;
+
   }
+
+  displayEvent(triggered[0]);
+
+  for (let i = 1; i < triggered.length; i++) {
+
+    triggerEventQueue.push(triggered[i]);
+
+  }
+
+  renderEventQueueStatus();
+
+  return true;
+
+}
 
   return false;
 }
@@ -5356,9 +5375,27 @@ function endTurn() {
     }
   })();
 
-  // Run all conditional triggers first
-  checkAllTriggers();
-  updateAdvisorLoyaltyForTurn();
+// Run all conditional triggers first
+
+checkAllTriggers();
+
+// If a trigger event opened (Warsaw Pact Summit, etc.),
+
+// stop processing the turn until the player resolves it.
+
+if (activeEvent) {
+
+  render();
+
+  renderPolicies();
+
+  saveGame(false);
+
+  return;
+
+}
+
+updateAdvisorLoyaltyForTurn();
 
   // Render the updated state BEFORE checking end conditions so the player
   // can see which metric hit zero before the game-over screen fires (bug #9 fix).
