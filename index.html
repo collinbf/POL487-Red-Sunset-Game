@@ -1437,10 +1437,10 @@
 .pravda-mast-name{ display:flex; justify-content:center; }
 .pravda-logo{ max-width:min(520px, 90%); height:auto; display:block; }
 .pravda-grid{ display:grid !important; grid-template-columns: 260px 1fr !important; gap:14px !important; margin-top:12px !important; align-items:stretch !important; }
-:root{ --pravda-photo-h: clamp(190px, 18vw, 250px); }
+:root{ --pravda-photo-h: clamp(220px, 28vw, 360px); }
 .pravda-photo{ display:flex !important; flex-direction:column !important; justify-content:flex-start !important; gap:6px !important; align-self:stretch !important; background:transparent !important; border:none !important; padding:0 !important; }
 .pravda-photo-frame{ position:relative !important; width:100% !important; height:var(--pravda-photo-h) !important; overflow:hidden !important; background:transparent !important; }
-.pravda-img{ position:absolute !important; inset:0 !important; width:100% !important; height:100% !important; object-fit:cover !important; display:block !important; border:none !important; box-shadow:none !important; filter: grayscale(100%) contrast(1.35) brightness(0.92) !important; }
+.pravda-img{ position:absolute !important; inset:0 !important; width:100% !important; height:100% !important; object-fit:contain !important; object-position:top center !important; display:block !important; border:none !important; box-shadow:none !important; filter: grayscale(100%) contrast(1.35) brightness(0.92) !important; }
 .pravda-photo-frame::after{ content:''; position:absolute; inset:0; pointer-events:none; opacity:0.15;
   background-image: repeating-linear-gradient(0deg, rgba(0,0,0,0.09) 0px, rgba(0,0,0,0.09) 1px, transparent 3px, transparent 6px);
   mix-blend-mode:multiply;
@@ -1451,7 +1451,7 @@
 .pravda-choices{ margin-top:12px !important; display:flex !important; flex-direction:column !important; gap:12px !important; flex:1 1 auto !important; }
 .pravda-choices .event-btn{ width:100% !important; flex:0 0 auto !important; min-height:44px !important; padding:10px 12px !important; }
 @media (max-width: 760px){
-  :root{ --pravda-photo-h: clamp(170px, 42vw, 240px); }
+  :root{ --pravda-photo-h: clamp(200px, 55vw, 320px); }
   .pravda-grid{ grid-template-columns:1fr !important; }
   .pravda-main{ min-height:auto !important; }
   .pravda-choices .event-btn{ flex:0 0 auto !important; max-height:none !important; }
@@ -3661,7 +3661,7 @@ What do you say at the podium?`,
     id: 'yeltsin_incident',
     name: 'The Yeltsin Affair',
     image: 'images/ProfilePlaceholder.jpeg',
-    caption: 'Б. Н. Ельцин на заседании Верховного Совета, октябрь 1987',
+    caption: 'Б. Н. Ельцин на Пленуме ЦК КПСС, октябрь 1987',
     trigger: { month: 10, year: 1987 },
     description: `Comrade General Secretary — following his denunciation at the October Plenum of the Central Committee and your personal rebuke, Boris Nikolayevich Yeltsin, First Secretary of the Moscow City Party Committee, has been found in his office incapacitated and bleeding. He has been conveyed to hospital under medical escort.
 
