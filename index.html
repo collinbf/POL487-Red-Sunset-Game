@@ -2854,18 +2854,6 @@ let policies = [
     // No visibleIf — available from the start
   },
   {
-    id: 'glasnost',
-    name: 'Glasnost (Openness)',
-    category: 'Domestic',
-    cost: 5,
-    description: 'Allow public debate and media criticism.',
-    effects: { popularAffection: +10, stability: -5, partyUnity: -3 },
-    duration: 'permanent',
-    advisorRequired: 'yakovlev',
-    advisorOpposition: ['ligachev'],
-    // No visibleIf — available from the start
-  },
-  {
     id: 'perestroika',
     name: 'Perestroika (Restructuring)',
     category: 'Domestic',
@@ -2942,12 +2930,12 @@ let policies = [
 
   // ── YAKOVLEV POLICIES ──────────────────────────────────────────────
   {
-    id: 'yakovlev_glasnost_initiation',
-    name: 'Initiate Glasnost',
+    id: 'glasnost',
+    name: 'Glasnost (Openness)',
     category: 'Domestic',
     cost: 0,
     description: 'Lift decades of censorship across all Soviet media. Citizens and journalists are permitted to openly discuss and criticise the government and party.',
-    effects: { popularAffection: +8, partyUnity: -8, stability: -5 },
+    effects: { popularSupport: +8, partyUnity: -8, stability: -5 },
     duration: 'permanent',
     advisorRequired: 'yakovlev',
     advisorOpposition: ['ligachev'],
@@ -6155,7 +6143,7 @@ function applyPolicyImmediate(policyId) {
       // Known liberal policy ids — must match actual policy id values in the data array
       const knownLiberal = [
         'glasnost', 'perestroika',
-        'yakovlev_glasnost_initiation', 'yakovlev_nonintervention',
+        'yakovlev_nonintervention',
         'yakovlev_molotov_ribbentrop', 'yakovlev_manifesto',
         'inf-treaty', 'akhromeyev_inf_treaty',
         'afghanistan-pullout',
