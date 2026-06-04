@@ -278,7 +278,7 @@
   .utility-row, .debug-row { display:flex; gap:6px; flex-wrap:wrap; align-items:center; margin-top:7px; }
   .utility-row .btn, .debug-row .btn { font-size:10px; padding:6px 8px; }
   .save-status { min-height:16px; margin-top:6px; font-family:'IM Fell English',serif; font-size:12px; opacity:.76; }
-  .volume-wrap { display:grid; grid-template-columns:auto 1fr; gap:8px; align-items:center; width:100%; margin-top:7px; font-family:'IM Fell English',serif; font-size:12px; }
+  .volume-wrap { display:grid; grid-template-columns:36px 1fr; gap:8px; align-items:center; width:100%; margin-top:7px; font-family:'IM Fell English',serif; font-size:12px; }
   .volume-wrap input { width:100%; accent-color:var(--red); }
 
   .policy-tree {
@@ -3270,6 +3270,196 @@ let policies = [
     prerequisites: ['glasnost'],
     visibleIf: { minYear: 1990, maxYear: 1991 },
   },
+
+  // ── SHEVARDNADZE POLICIES ─────────────────────────────────────────────────
+  {
+    id: 'shevardnadze_eastern_affability_us',
+    name: 'Eastern Affability — Mission to the United States',
+    category: 'Foreign',
+    cost: 0,
+    description: 'Conduct a diplomatic mission to the United States on behalf of the Soviet Union.',
+    effects: { foreignRelations: +5, partyUnity: -3 },
+    duration: 'permanent',
+    advisorRequired: 'shevardnadze',
+    advisorOpposition: [],
+  },
+  {
+    id: 'shevardnadze_eastern_affability_europe',
+    name: 'Eastern Affability — Mission to Western Europe',
+    category: 'Foreign',
+    cost: 0,
+    description: 'Conduct a diplomatic mission to Western Europe to strengthen economic and political ties.',
+    effects: { foreignRelations: +4, economy: +2 },
+    duration: 'permanent',
+    advisorRequired: 'shevardnadze',
+    advisorOpposition: [],
+  },
+  {
+    id: 'shevardnadze_summit_preparation',
+    name: 'Summit Preparation',
+    category: 'Foreign',
+    cost: 0,
+    description: 'Prepare Gorbachev for a major international summit, briefing him on diplomatic priorities and counterpart positions.',
+    effects: { foreignRelations: +3, popularSupport: +1 },
+    duration: 'permanent',
+    advisorRequired: 'shevardnadze',
+    advisorOpposition: [],
+  },
+  {
+    id: 'shevardnadze_homecoming',
+    name: 'Shevardnadze — Homecoming to Georgia',
+    category: 'Domestic',
+    cost: 0,
+    description: 'Allow Shevardnadze to visit Georgia and reconnect with local leaders, restoring his morale and regional standing.',
+    effects: { stability: +1 },
+    duration: 'permanent',
+    advisorRequired: 'shevardnadze',
+    advisorOpposition: [],
+    advisorLoyaltyBonus: { shevardnadze: +15 },
+    visibleIf: { minYear: 1986 },
+  },
+
+  // ── BOLDIN POLICIES ───────────────────────────────────────────────────────
+  {
+    id: 'boldin_set_agenda',
+    name: 'Set the Agenda',
+    category: 'Domestic',
+    cost: 0,
+    description: 'Control the flow of meetings, information, and decisions reaching Gorbachev. The most powerful decisions are often made before the meeting begins.',
+    effects: { partyUnity: +2, stability: +1 },
+    duration: 'permanent',
+    advisorRequired: 'boldin',
+    advisorOpposition: [],
+  },
+  {
+    id: 'boldin_recording_tape',
+    name: 'Recording Tape — Review the Archives',
+    category: 'Domestic',
+    cost: 0,
+    description: 'Review archives and internal records for overlooked opportunities. Nothing is ever truly forgotten in the bureaucracy.',
+    effects: { partyUnity: +1, economy: +2 },
+    duration: 'permanent',
+    advisorRequired: 'boldin',
+    advisorOpposition: [],
+  },
+  {
+    id: 'boldin_closer_enemies',
+    name: 'Closer Enemies',
+    category: 'Domestic',
+    cost: 0,
+    description: 'Quietly reach out to dissatisfied factions before they become dangerous. Keep your enemies close enough to hear them complain.',
+    effects: { stability: +1, partyUnity: +3 },
+    duration: 'permanent',
+    advisorRequired: 'boldin',
+    advisorOpposition: [],
+  },
+  {
+    id: 'boldin_information_network',
+    name: 'Expand the Information Network',
+    category: 'Domestic',
+    cost: 5,
+    description: 'Expand internal reporting channels across government institutions. Forewarned is forearmed.',
+    effects: { stability: +1, partyUnity: +2 },
+    duration: 'permanent',
+    advisorRequired: 'boldin',
+    advisorOpposition: [],
+  },
+
+  // ── MEDVEDEV POLICIES ─────────────────────────────────────────────────────
+  {
+    id: 'medvedev_defend_perestroika',
+    name: 'Defend Perestroika — Party-Wide Campaign',
+    category: 'Domestic',
+    cost: 0,
+    description: 'Launch a Party-wide campaign explaining the necessity of reform. Socialism must adapt if it is to survive.',
+    effects: { partyUnity: +3, popularSupport: -1 },
+    duration: 'permanent',
+    advisorRequired: 'medvedev',
+    advisorOpposition: ['ligachev'],
+    visibleIf: { minYear: 1988 },
+  },
+  {
+    id: 'medvedev_socialist_legitimacy',
+    name: 'Preserve Socialist Legitimacy',
+    category: 'Domestic',
+    cost: 0,
+    description: 'Frame reforms as improvements to socialism rather than abandonment of it. Reform is not surrender.',
+    effects: { stability: +2, partyUnity: +2 },
+    duration: 'permanent',
+    advisorRequired: 'medvedev',
+    advisorOpposition: [],
+    visibleIf: { minYear: 1988 },
+  },
+  {
+    id: 'medvedev_party_education',
+    name: 'Party Education Campaign',
+    category: 'Domestic',
+    cost: 5,
+    description: 'Mobilize Party officials to defend Soviet institutions through structured education programmes. An educated Party is a resilient Party.',
+    effects: { partyUnity: +4, stability: -1 },
+    duration: 'permanent',
+    advisorRequired: 'medvedev',
+    advisorOpposition: [],
+    visibleIf: { minYear: 1988 },
+  },
+  {
+    id: 'medvedev_congress_strategy',
+    name: "Congress Strategy — People's Deputies",
+    category: 'Domestic',
+    cost: 0,
+    description: "Coordinate reformist delegates before the Congress of People's Deputies. The future of reform may depend on a single vote.",
+    effects: { popularSupport: +2, partyUnity: -2 },
+    duration: 'permanent',
+    advisorRequired: 'medvedev',
+    advisorOpposition: ['ligachev'],
+    visibleIf: { minYear: 1989, maxYear: 1989 },
+  },
+
+  // ── CHERNYAEV POLICIES ────────────────────────────────────────────────────
+  {
+    id: 'chernyaev_speech',
+    name: 'Chernyaev — Write a Speech',
+    category: 'Domestic',
+    cost: 0,
+    description: 'Commission Chernyaev to craft a major public address for Gorbachev, marshalling the intellectual case for reform.',
+    effects: { popularSupport: +3, partyUnity: +1 },
+    duration: 'permanent',
+    advisorRequired: 'chernyaev',
+    advisorOpposition: [],
+  },
+  {
+    id: 'chernyaev_foreign_memorandum',
+    name: 'Foreign Policy Memorandum',
+    category: 'Foreign',
+    cost: 5,
+    description: 'Commission Chernyaev to draft a foreign policy memorandum outlining the principles of New Thinking for the next diplomatic cycle.',
+    effects: { foreignRelations: +2 },
+    duration: 'permanent',
+    advisorRequired: 'chernyaev',
+    advisorOpposition: [],
+  },
+  {
+    id: 'chernyaev_reform_proposal',
+    name: 'Policy Reform Proposal',
+    category: 'Domestic',
+    cost: 0,
+    description: "The old system cannot solve new problems. Chernyaev drafts a bold internal reform proposal for the General Secretary's desk.",
+    effects: { economy: +3, partyUnity: -1, popularSupport: +2 },
+    duration: 'permanent',
+    advisorRequired: 'chernyaev',
+    advisorOpposition: ['ligachev'],
+  },
+  {
+    id: 'chernyaev_negotiation',
+    name: 'Chernyaev — Brokered Negotiation',
+    category: 'Domestic',
+    cost: 0,
+    description: "Utilise Chernyaev's diplomatic skill to quietly broker consensus between rival factions inside the Politburo.",
+    effects: { partyUnity: +3, stability: +1 },
+    duration: 'permanent',
+    advisorRequired: 'chernyaev',
+    advisorOpposition: [],
+  },
 ];
 
 let events = [
@@ -3346,7 +3536,7 @@ What do you say at the podium?`,
   {
     id: 'yeltsin_incident',
     name: 'The Yeltsin Affair',
-    image: 'images/Yeltsin_Suicide.jpg',
+    image: 'images/ProfilePlaceholder.jpeg',
     caption: 'Б. Н. Ельцин на заседании Верховного Совета, октябрь 1987',
     trigger: { month: 11, year: 1987 },
     description: `Comrade General Secretary — following his denunciation at the October Plenum of the Central Committee and your personal rebuke, Boris Nikolayevich Yeltsin, First Secretary of the Moscow City Party Committee, has been found in his office incapacitated and bleeding. He has been conveyed to hospital under medical escort.
@@ -3558,7 +3748,7 @@ let advisors = [
     faction: 'Reformist',
     loyalty: 70,
     effectiveness: 80,
-    image: 'images/Александр_Яковлев_(cropped).jpg',
+    image: 'images/Alexander_Yakovlev.jpg',
     description: 'The ideological engine behind both perestroika and glasnost. Inspired by his time at Columbia University, Yakovlev became the de facto "father of glasnost," dismantling Soviet censorship. The most intellectually committed reformer in the Politburo.',
     specialty: 'Unlocks glasnost-related policies. Required for Freedom of the Press and Multi-Party Elections.',
     reactionLiberal: +5,
@@ -3569,17 +3759,18 @@ let advisors = [
   {
     id: 'shevardnadze',
     name: 'Eduard Shevardnadze',
-    role: 'Foreign Minister',
+    role: 'Minister of Foreign Affairs (1985–1990)',
     faction: 'Reformist',
-    loyalty: 70,
-    effectiveness: 80,
-    image: 'images/Eduard_Shevardnadze.jpg',
-    description: 'A close ally of Gorbachev and the architect of the Soviet Union\'s new diplomatic openness. Essential for all arms control and Western engagement initiatives.',
-    specialty: 'Required advisor for all major foreign summit policies.',
-    reactionLiberal: +5,
-    reactionConservative: -8,
+    loyalty: 75,
+    effectiveness: 85,
+    image: 'images/Eduad_Shevardnadze.jpg',
+    description: 'Former First Secretary of the Georgian SSR and one of Gorbachev\'s closest political allies. Despite lacking extensive diplomatic experience, Shevardnadze became the public face of Soviet foreign policy reform. He helped reduce Cold War tensions, improve relations with the West, and implement the \"New Thinking\" approach to international affairs.',
+    specialty: 'Foreign Relations, Détente, Cold War diplomacy. Required for all major foreign summit policies.',
+    reactionLiberal: +10,
+    reactionConservative: -10,
     threshold: 20,
-    thresholdEffect: 'Resigns publicly — Foreign Relations -15, Popular Support -5',
+    thresholdEffect: 'Resigns from government — Foreign Relations -10, Reformers Approval -5',
+    availableUntil: { year: 1990 },
   },
   {
     id: 'ligachev',
@@ -3630,7 +3821,7 @@ let advisors = [
     id: 'akhromeyev',
     name: 'Sergey Akhromeyev',
     role: 'Chief of the General Staff',
-    faction: 'Military',
+    faction: 'Hardliner',
     loyalty: 50,
     effectiveness: 90,
     image: 'images/Sergey_Akhromeyev_1.jpg',
@@ -3648,7 +3839,7 @@ let advisors = [
     faction: 'Conservative',
     loyalty: 65,
     effectiveness: 85,
-    image: 'images/Heydar_Aliyev_(crop).jpg',
+    image: 'images/Heydar_Aliyev.jpg',
     description: 'A formidable conservative powerbroker and former KGB chief in Azerbaijan. A master of regional stability, infrastructure logistics, and strict party discipline. Your primary asset for maintaining control over the restive southern republics, though his methods reinforce the old guard\'s patronage networks.',
     specialty: 'Maintains order and stifles separatism in the Caucasus. Oversees state infrastructure and transport logistics.',
     reactionLiberal: -10,
@@ -3678,7 +3869,7 @@ let advisors = [
     faction: 'Centrist',
     loyalty: 75,
     effectiveness: 85,
-    image: 'images/Nazarbayev_Alma-Ata_Protocol.jpg',
+    image: 'images/Nursultan Nazarbayev.jpg',
     description: 'A highly capable and forward-looking leader from the Kazakh SSR. Nazarbayev supports economic restructuring and a decentralised New Union Treaty, but is cautious about rapid political liberalisation. Essential for stability in Central Asia and keeping the resource-rich republics tied to Moscow.',
     specialty: 'Balances ethnic tensions in Central Asia. Negotiates federal relations and drives regional modernisation.',
     reactionLiberal: +5,
@@ -3693,7 +3884,7 @@ let advisors = [
     faction: 'Conservative',
     loyalty: 55,
     effectiveness: 80,
-    image: 'images/Islam_Karimov_(cropped).jpg',
+    image: 'images/Islam_Karimov.jpg',
     description: 'An iron-fisted leader installed to clean up corruption following the Uzbek Cotton Scandal. A ruthless pragmatist whose true loyalty is to his own regional supremacy. Highly effective at crushing dissent and maintaining agricultural quotas, but his authoritarian methods alienate reformers and risk international condemnation.',
     specialty: 'Suppresses political opposition and nationalist movements. Controls the Uzbek cotton industry.',
     reactionLiberal: -15,
@@ -3701,6 +3892,58 @@ let advisors = [
     threshold: 10,
     thresholdEffect: 'Insulates Uzbekistan and declares early independence — Stability -10, Foreign Relations -15',
     availableFrom: { year: 1989 },
+  },
+
+  // ── BOLDIN ────────────────────────────────────────────────────────────────
+  {
+    id: 'boldin',
+    name: 'Valery Boldin',
+    role: 'Chief of Staff / Presidential Aide',
+    faction: 'Centrist',
+    loyalty: 60,
+    effectiveness: 85,
+    image: 'images/ProfilePlaceholder.jpeg',
+    description: "One of Gorbachev's most trusted administrators. Quiet, secretive, and highly organised, Boldin managed information flow, coordinated meetings, and maintained communication between factions. As the Soviet system weakened, his loyalties became increasingly uncertain.",
+    specialty: 'Political Management, Bureaucratic Coordination, Intelligence Gathering, Administrative Control.',
+    reactionLiberal: -2,
+    reactionConservative: +2,
+    threshold: 20,
+    thresholdEffect: 'Joins Hardline Opposition — Party Unity -10, Stability -5',
+  },
+
+  // ── MEDVEDEV ──────────────────────────────────────────────────────────────
+  {
+    id: 'medvedev',
+    name: 'Vadim Medvedev',
+    role: 'CPSU Secretary / Ideological Advisor',
+    faction: 'Centrist',
+    loyalty: 65,
+    effectiveness: 75,
+    image: 'images/Vadim_Andreevich_Medvedev.jpg',
+    description: 'One of the principal ideological defenders of perestroika. Medvedev attempted to reconcile Marxist-Leninist doctrine with political reform while preserving Party legitimacy during an increasingly unstable period. He believed reform could save socialism, but only if the Party remained united.',
+    specialty: 'Party Ideology, Party Unity, Reform Legitimacy, Political Consensus.',
+    reactionLiberal: +5,
+    reactionConservative: -5,
+    threshold: 20,
+    thresholdEffect: 'Withdraws ideological support — Party Unity -5, Reformers Approval -5',
+    availableFrom: { year: 1988 },
+  },
+
+  // ── CHERNYAEV ─────────────────────────────────────────────────────────────
+  {
+    id: 'chernyaev',
+    name: 'Anatoly Chernyaev',
+    role: 'Chief Foreign Policy Advisor to Gorbachev',
+    faction: 'Reformist',
+    loyalty: 85,
+    effectiveness: 80,
+    image: 'images/ProfilePlaceholder.jpeg',
+    description: "A trusted aide and intellectual architect of Soviet \"New Thinking.\" Chernyaev helped shape many of Gorbachev's speeches, foreign policy initiatives, and reform agenda. His diaries remain one of the most important records of the collapse of the Soviet Union.",
+    specialty: 'Reform design, Speechwriting, Political negotiation.',
+    reactionLiberal: +10,
+    reactionConservative: -10,
+    threshold: 20,
+    thresholdEffect: 'Public criticism of government — Reformers Approval -5, Popular Support -3',
   },
 ];
 
@@ -5275,21 +5518,6 @@ function triggerGameOver(type, message) {
   gameState.gameOver = true;
   activeEvent = null;
   gameState.ending = { type, message, turn: gameState.turn, month: gameState.month, year: gameState.year };
-  // Fade out and stop the soundtrack
-  try {
-    if (musicAudio && !musicAudio.paused) {
-      const fadeOut = setInterval(() => {
-        if (musicAudio.volume > 0.05) {
-          musicAudio.volume = Math.max(0, musicAudio.volume - 0.05);
-        } else {
-          musicAudio.pause();
-          musicAudio.currentTime = 0;
-          musicAudio.volume = uiState.audioMuted ? 0 : uiState.musicVolume;
-          clearInterval(fadeOut);
-        }
-      }, 80);
-    }
-  } catch(e){}
   const panel = document.getElementById('event-panel');
   const titles = {
     revolution: 'REVOLUTION',
@@ -6180,28 +6408,6 @@ function makeAudio(relPath){
   return audio;
 }
 
-// ── SOUNDTRACK ──────────────────────────────────────────────────────────────
-// Reference the <audio data-music> element declared at the bottom of the page.
-// We defer lookup until DOMContentLoaded so the element exists.
-let musicAudio = null;
-document.addEventListener('DOMContentLoaded', () => {
-  musicAudio = document.getElementById('music-track');
-  if (musicAudio) {
-    musicAudio.volume = uiState.audioMuted ? 0 : uiState.musicVolume;
-    musicAudio.muted  = uiState.audioMuted;
-  }
-});
-
-function startMusic() {
-  if (!musicAudio || musicAudio.dataset.missing === 'true') return;
-  musicAudio.volume = uiState.audioMuted ? 0 : uiState.musicVolume;
-  musicAudio.muted  = uiState.audioMuted;
-  if (musicAudio.paused) {
-    musicAudio.currentTime = 0;
-    musicAudio.play().catch(() => {});
-  }
-}
-
 // Unlock audio on first user gesture (required by most browsers).
 let audioUnlocked = false;
 function unlockAllAudio(){
@@ -6228,15 +6434,6 @@ function unlockAllAudio(){
     if (t && t.catch) t.catch(()=>{});
     ttyAudio.pause();
     ttyAudio.currentTime = 0;
-  } catch(e){}
-  try {
-    // Prime music (play/pause to reset gesture lock, actual start deferred to dismissIntro)
-    if (musicAudio && musicAudio.dataset.missing !== 'true') {
-      const m = musicAudio.play();
-      if (m && m.catch) m.catch(()=>{});
-      musicAudio.pause();
-      musicAudio.currentTime = 0;
-    }
   } catch(e){}
 }
 
@@ -6675,8 +6872,6 @@ function dismissIntro() {
   // Stop projector sound
   projectorAudio.pause();
   projectorAudio.currentTime = 0;
-  // Start soundtrack
-  startMusic();
   // Start the game (teletype/log begins after Begin)
   startGame();
   const overlay = document.getElementById('intro-modal');
@@ -6727,13 +6922,6 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 });
 </script>
-
-<!-- ── SOUNDTRACK ─────────────────────────────────────────────────────────── -->
-<audio id="music-track"
-       data-music
-       src="music/gregorquendel-tetris-theme-korobeiniki-arranged-for-piano-186249.mp3"
-       loop
-       preload="none"></audio>
 
 </body>
 </html>
