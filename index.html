@@ -3881,7 +3881,7 @@ let advisors = [
     id: 'yakovlev',
     name: 'Alexander Yakovlev',
     role: 'Chief Ideologist — Architect of Perestroika',
-    faction: 'Reformist',
+    faction: 'Personal',
     loyalty: 70,
     effectiveness: 80,
     image: 'images/Alexander_Yakovlev.jpg',
@@ -3896,7 +3896,7 @@ let advisors = [
     id: 'shevardnadze',
     name: 'Eduard Shevardnadze',
     role: 'Minister of Foreign Affairs (1985–1990)',
-    faction: 'Reformist',
+    faction: 'Personal',
     loyalty: 75,
     effectiveness: 85,
     image: 'images/Eduard_Shevardnadze.jpg',
@@ -3927,7 +3927,7 @@ let advisors = [
     id: 'yeltsin',
     name: 'Boris Yeltsin',
     role: 'First Secretary, Moscow City Party Committee',
-    faction: 'Reformist',
+    faction: 'Personal',
     loyalty: 50,
     effectiveness: 75,
     image: 'images/Boris_Yeltsin_deputies.jpg',
@@ -4071,7 +4071,7 @@ let advisors = [
     id: 'raisa',
     name: 'Raisa Gorbacheva',
     role: 'First Lady / Informal Advisor',
-    faction: 'Reformist',
+    faction: 'Personal',
     loyalty: 90,
     effectiveness: 65,
     image: 'images/Raisa_Gorbacheva.jpg',
@@ -4088,7 +4088,7 @@ let advisors = [
     id: 'chernyaev',
     name: 'Anatoly Chernyaev',
     role: 'Chief Foreign Policy Advisor to Gorbachev',
-    faction: 'Reformist',
+    faction: 'Personal',
     loyalty: 85,
     effectiveness: 80,
     image: 'images/Anatoly_Chernyaev.jpg',
@@ -4681,9 +4681,10 @@ function buildAdvisorDetailContent(a){
     ? '<p class="advisor-detail-empty" style="color:var(--red);font-style:normal;">This advisor was dismissed and no longer supports your agenda.</p>'
     : status.resigned || loyalty < 20
     ? '<p class="advisor-detail-empty" style="color:var(--red);font-style:normal;">This advisor has resigned and no longer supports your agenda.</p>'
-    : status.emboldened
-      ? '<p style="color:var(--green);font-style:italic;">Emboldened — unusually effective this month.</p>'
-      : '';
+    : (a.id==='raisa' && status.supportive) ? '<p style="color:var(--green);font-style:italic;">Supportive — a source of personal confidence and encouragement.</p>' :
+    (a.id==='raisa' && status.disappointed) ? '<p style="color:var(--gold);font-style:italic;">Disappointed by recent decisions.</p>' :
+    (a.id==='raisa' && status.distressed) ? '<p style="color:var(--red);font-style:italic;">Deeply distressed by the direction of events.</p>' :
+    status.emboldened ? '<p style="color:var(--green);font-style:italic;">Emboldened — unusually effective this month.</p>' : '';
 
   const unlocks = advisorUnlockPolicies(a.id);
   const opposes = advisorOpposedPolicies(a.id);
@@ -4717,7 +4718,7 @@ function buildAdvisorDetailContent(a){
         <h2 class="advisor-detail-name" id="advisor-detail-title">${escapeHtml(a.name)}</h2>
         <div class="advisor-detail-role">${escapeHtml(a.role || '')}</div>
         <span class="advisor-detail-faction">${escapeHtml(a.faction || 'Advisor')}</span>
-        <div class="advisor-loyalty ${loyaltyCls}" style="margin-top:10px;color:#fff;">Loyalty: ${loyalty}</div>
+        <div class="advisor-loyalty ${loyaltyCls}" style="margin-top:10px;color:#fff;">${a.id === 'raisa' ? 'Support' : 'Loyalty'}: ${loyalty}</div>
       </div>
     </div>
     <div class="advisor-detail-body">
@@ -5034,6 +5035,33 @@ function updateAdvisorLoyaltyForTurn(){
       }
     }
     gameState.advisorLoyalty[a.id] = next;
+    if (a.id === 'raisa') {
+      const st = gameState.advisorStatus[a.id] || {};
+      st.supportive = next >= 85;
+      st.disappointed = next < 60;
+      st.distressed = next < 40;
+      st.emboldened = false;
+      gameState.advisorStatus[a.id] = st;
+    }
+
+      if (a.id === 'raisa') {
+        const status = gameState.advisorStatus[a.id] || {};
+        if (next >= 85 && !status.supportive) {
+          status.supportive = true;
+          addLog('Raisa Gorbacheva strongly supports your leadership and remains a source of personal confidence.', 'advisor');
+        }
+        if (next < 60 && !status.disappointed) {
+          status.disappointed = true;
+          addLog('Raisa Gorbacheva is disappointed by the direction of recent events.', 'advisor');
+        }
+        if (next < 40 && !status.distressed) {
+          status.distressed = true;
+          addLog('Raisa Gorbacheva is deeply distressed by the course of your government.', 'advisor');
+        }
+        if (next >= 60) status.disappointed = false;
+        if (next >= 40) status.distressed = false;
+        gameState.advisorStatus[a.id] = status;
+      } else {
 
     const status = gameState.advisorStatus[a.id] || {};
     if (next < 20 && !status.resigned) {
@@ -5059,6 +5087,7 @@ function updateAdvisorLoyaltyForTurn(){
     }
     if (next < 80) status.emboldened = false;
     gameState.advisorStatus[a.id] = status;
+      }
   });
 }
 
@@ -6522,7 +6551,7 @@ function renderAdvisors(){
         <div class="advisor-card-overlay"></div>
         <div class="card-body">
           <div class="advisor-name">${escapeHtml(a.name)}</div>
-          <div class="advisor-loyalty ${cls}">Loyalty: ${loyalty}${(() => {
+          <div class="advisor-loyalty ${cls}">${a.id === 'raisa' ? 'Support' : 'Loyalty'}: ${loyalty}${(() => {
             const prev = gameState.advisorLoyaltyPrev && gameState.advisorLoyaltyPrev[a.id];
             if (prev == null) return '';
             const delta = loyalty - prev;
