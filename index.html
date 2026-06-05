@@ -7397,19 +7397,41 @@ musicAudio.volume = uiState.musicVolume;
 musicAudio.preload = 'auto'; // fetch while launcher/intro screens are showing
 
 function startSoundtrack() {
-  if (uiState.audioMuted || uiState.musicVolume <= 0) return;
-  if (musicAudio.dataset.missing === 'true') return;
-  musicAudio.volume = uiState.musicVolume;
-  // With preload='none' the browser hasn't fetched the file yet.
-  // Call load() to start fetching, then play once enough data is ready.
-  if (musicAudio.readyState === 0) {
-    musicAudio.load();
-    musicAudio.addEventListener('canplaythrough', () => {
-      musicAudio.play().catch(() => {});
-    }, { once: true });
-  } else {
-    musicAudio.play().catch(() => {});
-  }
+  // Stop and silence any previously playing music
+  musicAudio.pause();
+  musicAudio.currentTime = 0;
+  musicAudio.volume = 0;
+
+  // Play questnight.mp3, overriding all other music
+  const qn = makeAudio('sounds/questnight.mp3');
+  const qnTarget = uiState.audioMuted ? 0 : (uiState.musicVolume ?? 1);
+  const qnSteps   = 40;
+  const qnFadeInMs  = 1500;
+  const qnFadeOutMs = 2000;
+  qn.volume = 0;
+  qn.play().catch(() => {});
+
+  // Fade in
+  let qnInStep = 0;
+  const qnInTimer = setInterval(() => {
+    qnInStep++;
+    qn.volume = Math.min(qnTarget, qnTarget * (qnInStep / qnSteps));
+    if (qnInStep >= qnSteps) clearInterval(qnInTimer);
+  }, qnFadeInMs / qnSteps);
+
+  // Fade out near end
+  qn.addEventListener('timeupdate', function qnFadeOut() {
+    if (!qn.duration) return;
+    if (qn.duration - qn.currentTime <= qnFadeOutMs / 1000) {
+      qn.removeEventListener('timeupdate', qnFadeOut);
+      let qnOutStep = 0;
+      const qnOutTimer = setInterval(() => {
+        qnOutStep++;
+        qn.volume = Math.max(0, qnTarget * (1 - qnOutStep / qnSteps));
+        if (qnOutStep >= qnSteps) clearInterval(qnOutTimer);
+      }, qnFadeOutMs / qnSteps);
+    }
+  });
 }
 
 // ── SLIDE PROJECTOR SOUND ────────────────────────────────────────────────────
