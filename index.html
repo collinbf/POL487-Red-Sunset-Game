@@ -7433,35 +7433,7 @@ projectorAudio.addEventListener('timeupdate', () => {
 function launcherStartGame() {
   // This runs inside a user gesture — audio unlock is guaranteed
   unlockAllAudio();
-  // Play hello sister sting once on Start Game — with fade in and fade out
-  const questNight = makeAudio('sounds/questnight.mp3');
-  const qnFadeSteps = 40;
-  const qnFadeInMs  = 1500;  // fade-in duration
-  const qnFadeOutMs = 2000;  // fade-out duration
-  const qnTargetVol = uiState.sfxVolume ?? 1;
-  questNight.volume = 0;
-  questNight.play().catch(() => {});
-  // Fade in
-  let qnInStep = 0;
-  const qnInInterval = setInterval(() => {
-    qnInStep++;
-    questNight.volume = Math.min(qnTargetVol, qnTargetVol * (qnInStep / qnFadeSteps));
-    if (qnInStep >= qnFadeSteps) clearInterval(qnInInterval);
-  }, qnFadeInMs / qnFadeSteps);
-  // Fade out when track is near its end
-  questNight.addEventListener('timeupdate', function qnFadeOutCheck() {
-    if (!questNight.duration) return;
-    const remaining = questNight.duration - questNight.currentTime;
-    if (remaining <= qnFadeOutMs / 1000) {
-      questNight.removeEventListener('timeupdate', qnFadeOutCheck);
-      let qnOutStep = 0;
-      const qnOutInterval = setInterval(() => {
-        qnOutStep++;
-        questNight.volume = Math.max(0, qnTargetVol * (1 - qnOutStep / qnFadeSteps));
-        if (qnOutStep >= qnFadeSteps) clearInterval(qnOutInterval);
-      }, qnFadeOutMs / qnFadeSteps);
-    }
-  });
+
 
   // Preload audio position so it starts from the beginning
   projectorAudio.currentTime = 0;
