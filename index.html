@@ -7433,6 +7433,10 @@ projectorAudio.addEventListener('timeupdate', () => {
 function launcherStartGame() {
   // This runs inside a user gesture — audio unlock is guaranteed
   unlockAllAudio();
+  // Play hello sister sting once on Start Game
+  const helloSister = makeAudio('sounds/hellosister.mp3');
+  helloSister.volume = uiState.sfxVolume ?? 1;
+  helloSister.play().catch(() => {});
 
   // Preload audio position so it starts from the beginning
   projectorAudio.currentTime = 0;
