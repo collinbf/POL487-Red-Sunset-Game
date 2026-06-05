@@ -7434,32 +7434,32 @@ function launcherStartGame() {
   // This runs inside a user gesture — audio unlock is guaranteed
   unlockAllAudio();
   // Play hello sister sting once on Start Game — with fade in and fade out
-  const helloSister = makeAudio('sounds/questnight.mp3');
-  const hsFadeSteps = 40;
-  const hsFadeInMs  = 1500;  // fade-in duration
-  const hsFadeOutMs = 2000;  // fade-out duration
-  const hsTargetVol = uiState.sfxVolume ?? 1;
-  helloSister.volume = 0;
-  helloSister.play().catch(() => {});
+  const questNight = makeAudio('sounds/questnight.mp3');
+  const qnFadeSteps = 40;
+  const qnFadeInMs  = 1500;  // fade-in duration
+  const qnFadeOutMs = 2000;  // fade-out duration
+  const qnTargetVol = uiState.sfxVolume ?? 1;
+  questNight.volume = 0;
+  questNight.play().catch(() => {});
   // Fade in
-  let hsInStep = 0;
-  const hsInInterval = setInterval(() => {
-    hsInStep++;
-    helloSister.volume = Math.min(hsTargetVol, hsTargetVol * (hsInStep / hsFadeSteps));
-    if (hsInStep >= hsFadeSteps) clearInterval(hsInInterval);
-  }, hsFadeInMs / hsFadeSteps);
+  let qnInStep = 0;
+  const qnInInterval = setInterval(() => {
+    qnInStep++;
+    questNight.volume = Math.min(qnTargetVol, qnTargetVol * (qnInStep / qnFadeSteps));
+    if (qnInStep >= qnFadeSteps) clearInterval(qnInInterval);
+  }, qnFadeInMs / qnFadeSteps);
   // Fade out when track is near its end
-  helloSister.addEventListener('timeupdate', function hsFadeOutCheck() {
-    if (!helloSister.duration) return;
-    const remaining = helloSister.duration - helloSister.currentTime;
-    if (remaining <= hsFadeOutMs / 1000) {
-      helloSister.removeEventListener('timeupdate', hsFadeOutCheck);
-      let hsOutStep = 0;
-      const hsOutInterval = setInterval(() => {
-        hsOutStep++;
-        helloSister.volume = Math.max(0, hsTargetVol * (1 - hsOutStep / hsFadeSteps));
-        if (hsOutStep >= hsFadeSteps) clearInterval(hsOutInterval);
-      }, hsFadeOutMs / hsFadeSteps);
+  questNight.addEventListener('timeupdate', function qnFadeOutCheck() {
+    if (!questNight.duration) return;
+    const remaining = questNight.duration - questNight.currentTime;
+    if (remaining <= qnFadeOutMs / 1000) {
+      questNight.removeEventListener('timeupdate', qnFadeOutCheck);
+      let qnOutStep = 0;
+      const qnOutInterval = setInterval(() => {
+        qnOutStep++;
+        questNight.volume = Math.max(0, qnTargetVol * (1 - qnOutStep / qnFadeSteps));
+        if (qnOutStep >= qnFadeSteps) clearInterval(qnOutInterval);
+      }, qnFadeOutMs / qnFadeSteps);
     }
   });
 
