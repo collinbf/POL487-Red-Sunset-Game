@@ -2501,7 +2501,14 @@ const gameState = {
   turnPoliciesCommittedCount: 0, // how many policies were committed this turn (persists until end of turn)
   enactedPolicies: [],
   activePolicies: [],
-  advisorStatus: {},
+  advisorStatus: {
+    raisa: {
+      devoted:   true,   // starting affection 90 — Deeply Devoted
+      concerned: false,
+      alienated: false,
+      emboldened: false,
+    },
+  },
   gameOver: false,
   ending: null,
 
@@ -4665,14 +4672,20 @@ function buildAdvisorDetailContent(a){
   if (loyalty >= 75) loyaltyCls = 'high';
   if (loyalty <= 40) loyaltyCls = 'low';
 
+  const getRaisaNote = () => {
+    if (loyalty >= 85) return '<p style="color:var(--green);font-style:italic;">Deeply devoted — your closest confidante and emotional anchor.</p>';
+    if (loyalty >= 40)  return '<p style="color:var(--gold);font-style:italic;">Concerned by the direction of recent events.</p>';
+    if (loyalty >= 15)  return '<p style="color:var(--red);font-style:italic;">Alienated by your decisions and the course of government.</p>';
+    return '<p class="advisor-detail-empty" style="color:var(--red);font-style:normal;">Raisa Gorbacheva has left. The personal and political damage is severe.</p>';
+  };
   const statusNote = status.fired
-    ? '<p class="advisor-detail-empty" style="color:var(--red);font-style:normal;">This advisor was divorced and no longer supports your agenda.</p>'
-    : status.resigned || loyalty < 20
-    ? '<p class="advisor-detail-empty" style="color:var(--red);font-style:normal;">This advisor has resigned and no longer supports your agenda.</p>'
-    : (a.id==='raisa' && status.devoted) ? '<p style="color:var(--green);font-style:italic;">Deeply devoted — your closest confidante and emotional anchor.</p>' :
-    (a.id==='raisa' && status.concerned) ? '<p style="color:var(--gold);font-style:italic;">Concerned by the direction of recent events.</p>' :
-    (a.id==='raisa' && status.alienated) ? '<p style="color:var(--red);font-style:italic;">Alienated by your decisions and the course of government.</p>' :
-    status.emboldened ? '<p style="color:var(--green);font-style:italic;">Emboldened — unusually effective this month.</p>' : '';
+    ? `<p class="advisor-detail-empty" style="color:var(--red);font-style:normal;">${a.id === 'raisa' ? 'Raisa Gorbacheva was divorced and is no longer by your side.' : 'This advisor was dismissed.'}</p>`
+    : (a.id === 'raisa' && (status.resigned || loyalty < 15))
+    ? '<p class="advisor-detail-empty" style="color:var(--red);font-style:normal;">Raisa Gorbacheva has left. The personal and political damage is severe.</p>'
+    : (status.resigned || loyalty < 20)
+    ? `<p class="advisor-detail-empty" style="color:var(--red);font-style:normal;">${a.id === 'akhromeyev' ? 'Akhromeyev is dead. He took his own life rather than witness the end of everything he believed in.' : 'This advisor has resigned and no longer supports your agenda.'}</p>`
+    : a.id === 'raisa' ? getRaisaNote()
+    : status.emboldened ? '<p style="color:var(--green);font-style:italic;">Emboldened — unusually effective this month.</p>' : '';
 
   const unlocks = advisorUnlockPolicies(a.id);
   const opposes = advisorOpposedPolicies(a.id);
@@ -6521,8 +6534,13 @@ function renderAdvisors(){
     if (loyalty <= 40) cls = 'low';
     const chips = [];
     if (status.fired) chips.push('<span class="advisor-status-chip low">Divorced</span>');
-    else if (status.resigned || loyalty < 20) chips.push('<span class="advisor-status-chip low">Resigned</span>');
-    else if (status.emboldened) chips.push('<span class="advisor-status-chip high">Emboldened</span>');
+    else if (a.id === 'raisa' && (status.resigned || loyalty < 15)) chips.push('<span class="advisor-status-chip low">Departed</span>');
+    else if (status.resigned || loyalty < 20) chips.push(`<span class="advisor-status-chip low">${a.id === 'akhromeyev' ? 'Dead' : 'Resigned'}</span>`);
+    else if (a.id === 'raisa') {
+      if (loyalty >= 85)      chips.push('<span class="advisor-status-chip high">Deeply Devoted</span>');
+      else if (loyalty >= 40) chips.push('<span class="advisor-status-chip">Concerned</span>');
+      else                    chips.push('<span class="advisor-status-chip low">Alienated</span>');
+    } else if (status.emboldened) chips.push('<span class="advisor-status-chip high">Emboldened</span>');
 
     const photoBg = a.image
       ? `<img class="advisor-card-photo-bg" src="${a.image}" alt="${escapeHtml(a.name)}" onerror="this.style.display='none'">`
@@ -6534,7 +6552,7 @@ function renderAdvisors(){
 
     return `
       <div class="advisor-card${status.fired || status.resigned || loyalty < 20 ? ' resigned' : ''}" role="button" tabindex="0" title="View advisor profile" onclick="openAdvisorDetail('${a.id}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openAdvisorDetail('${a.id}')}">
-        <div class="card-corner tl${status.emboldened && !status.fired && !status.resigned && loyalty >= 20 ? ' emboldened' : ''}">${escapeHtml(a.faction || 'Advisor')}</div>
+        <div class="card-corner tl${status.emboldened && a.id !== 'raisa' && !status.fired && !status.resigned && loyalty >= 20 ? ' emboldened' : ''}">${escapeHtml(a.faction || 'Advisor')}</div>
         <div class="card-corner br">${escapeHtml((a.role || '').length > 18 ? (a.role || '').slice(0,17)+'…' : (a.role || ''))}</div>
         ${photoBg}
         <div class="advisor-card-overlay"></div>
