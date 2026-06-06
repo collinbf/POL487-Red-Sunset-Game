@@ -6557,7 +6557,7 @@ function renderInvertedMetric(name, rawVal) {
 
 function renderMetrics() {
   const rows = [];
-  const labelMap = { economy:'Economy', stability:'Stability', popularAffection:'Popular Support', partyUnity:'Party Unity', foreignRelations:'Foreign Relations', militaryReadiness:'Military Capability' };
+  const labelMap = { economy:'Economy', popularAffection:'Popular Support', partyUnity:'Party Unity', militaryReadiness:'Military Capability' };
 
   for (const [key, val0] of Object.entries(gameState.metrics)) {
     if (!labelMap[key]) continue;
@@ -6575,15 +6575,20 @@ function renderMetrics() {
       rows.push(renderBudgetBalanceMetric());
       rows.push(renderInvertedMetric('Inflation', gameState.economySub.inflation));
       rows.push(renderInvertedMetric('Social Parasitism', gameState.economySub.socialParasitism));
-    }
-
-    if (key === 'stability') {
-      const sep = clamp(Number(gameState.separatism ?? 0), 0, 100);
-      const sepColor = getMetricColor(100 - sep);
+      const sep = clamp(Math.round(gameState.separatism ?? 0), 0, 100);
       rows.push(metricRowHtml(
         'Separatism',
-        `<div class="metric-bar">${fillBarHtml('metric-fill', sep, sepColor)}</div>`,
-        `${Math.round(sep)}%`
+        `<div class="metric-bar">${fillBarHtml('metric-fill', sep, getMetricColor(100 - sep))}</div>`,
+        `${sep}%`
+      ));
+    }
+
+    if (key === 'militaryReadiness' && gameState.militarySub) {
+      const loy = clamp(Math.round(gameState.militarySub.loyalty ?? 0), 0, 100);
+      rows.push(metricRowHtml(
+        'Military Loyalty',
+        `<div class="metric-bar">${fillBarHtml('metric-fill', loy, getMetricColor(loy))}</div>`,
+        `${loy}%`
       ));
     }
   }
