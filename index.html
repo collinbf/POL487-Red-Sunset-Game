@@ -5378,6 +5378,11 @@ function commitPolicies() {
   // then resets it there. Clearing it early was causing spend to be invisible to
   // the budget model (bug #2 fix).
   gameState.policiesCommittedTurn = gameState.turn;
+  // Snapshot liberal count from round 1 for the music selector
+  if (gameState.turn === 1) {
+    const liberalThisTurn = (gameState.selectedPolicies || []).filter(id => _knownLiberal.includes(id));
+    gameState._turn1LiberalCount = liberalThisTurn.length;
+  }
   gameState.turnPoliciesCommittedCount = count;
   dealPolicyHand(true);
   checkEndConditions();
@@ -7536,9 +7541,9 @@ function startSoundtrack() {
   const qn = playWithFade('sounds/questnight.mp3', vol);
 
   qn.addEventListener('ended', function() {
-    // Count liberal policies enacted in turn 1 (game turn === 1)
-    const turn1Liberal = (gameState.enactedPolicies || []).filter(id => _knownLiberal.includes(id));
-    const nextTrack = turn1Liberal.length >= 2
+    // Use the turn-1 snapshot captured at commit time (see commitPolicies)
+    const turn1Liberal = (gameState._turn1LiberalCount || 0);
+    const nextTrack = turn1Liberal >= 2
       ? 'sounds/changes.mp3'
       : 'sounds/comminist-youth.mp3';
     playWithFade(nextTrack, vol);
