@@ -928,8 +928,8 @@
     margin-top: 1rem;
     position: relative;
     overflow: visible;
-    /* Paper sits above the machine, so add top padding = paperH minus overlap into slot */
-    padding-top: calc(var(--paperH) - 18px);
+    /* Paper sits above the machine, bottom edge feeds into the slot centre (slot at 26px from printer top) */
+    padding-top: calc(var(--paperH) - 26px);
   }
 
   /* PAPER (scroll window) — sits above the printer, bottom edge feeds into the slot */
@@ -1279,6 +1279,13 @@
 .advisor-name{ font-family:'Playfair Display',serif; font-weight:900; font-size:16px; font-style:normal; margin:20px 0 8px; text-align:left; }
 .advisor-grid{ display:grid !important; grid-template-columns:repeat(auto-fill,minmax(140px,1fr)) !important; gap:16px !important; }
 
+/* OVERRIDES: policy grid — mirrors advisor-grid: auto-fill so cards reflow on small screens */
+.policy-grid{ display:grid !important; grid-template-columns:repeat(auto-fill,minmax(148px,1fr)) !important; gap:12px !important; justify-items:stretch !important; }
+@media(max-width:520px){
+  .policy-grid{ grid-template-columns:repeat(auto-fill,minmax(130px,1fr)) !important; gap:8px !important; }
+  .policy-card { max-width: none !important; }
+}
+
 
 /* PRAVDA EVENT PANEL Ã¢ÂÂ masthead strip + photo placeholder */
 .event-panel.pravda{ background: repeating-linear-gradient(0deg, rgba(0,0,0,0.02) 0px, rgba(0,0,0,0.02) 1px, rgba(255,255,255,0.00) 2px, rgba(255,255,255,0.00) 6px), rgba(246,239,224,0.98); border:2px solid rgba(0,0,0,0.55); border-radius:0; padding:12px 14px; margin-bottom:1rem; }
@@ -1314,7 +1321,7 @@
   inset: 0;
   z-index: 9500;
   background: rgba(8,5,2,0.90);
-  align-items: flex-start;
+  align-items: center;
   justify-content: center;
   overflow-y: auto;
   padding: 3vh 1rem 4vh;
@@ -1524,7 +1531,7 @@
   /* Backdrop */
   background: rgba(10,6,3,0.82) !important;
   /* Centre the newspaper */
-  align-items: flex-start !important;
+  align-items: center !important;
   justify-content: center !important;
   overflow-y: auto !important;
   padding: 2vh 1rem 2vh !important;
@@ -2545,12 +2552,6 @@
 
 <!-- HISTORY LOG -->
 <div class="tty-assembly">
-  <!-- Search bar above the log -->
-  <div style="display:flex;gap:6px;margin-bottom:6px;align-items:center;">
-    <input id="log-search" type="text" placeholder="Filter log…" oninput="filterHistoryLog(this.value)"
-      style="flex:1;background:rgba(242,234,216,0.85);border:1px solid rgba(139,26,26,0.35);color:var(--ink);font-family:'Cormorant Garamond',serif;font-size:11px;padding:4px 7px;border-radius:2px;outline:none;" />
-    <button class="btn" style="font-size:9px;padding:4px 7px;" onclick="clearLogFilter()">✕</button>
-  </div>
   <!-- PAPER / LOG (scroll area) — emerges upward from the paper slot -->
   <div class="history-log tty-paper" id="history-log">
   </div>
@@ -5087,6 +5088,7 @@ Gosplan has prepared three courses of action for your consideration.`,
   {
     id: 'moscow-coup',
     name: 'Hardliner Faction Demands Action',
+    image: 'images/hardliner_coup_threat.jpg',
     trigger: { month: 8, year: 1990 },
     condition: (gs) => (
       gs.year >= 1990 &&
@@ -5110,6 +5112,7 @@ You must respond. Silence is itself a choice, and they will interpret it accordi
   {
     id: 'economics-collapse',
     name: 'Deepening Economic Crisis',
+    image: 'images/soviet_economic_crisis.jpg',
     trigger: { month: 6, year: 1991 },
     condition: (gs) => (
       gs.metrics.economy <= 28 ||
@@ -5279,6 +5282,7 @@ The world is watching. Will you risk the peace process to defend an unpredictabl
   {
     id: 'daniloff_affair_1986',
     name: 'The Daniloff Affair: A Hostage Crisis',
+    image: 'images/daniloff_affair_1986.jpg',
     trigger: { month: 9, year: 1986 },
     description: `Comrade General Secretary — just weeks before the scheduled Reykjavik Summit, a crisis has erupted. The FBI arrested Gennadi Zakharov, a Soviet physicist at the UN, on espionage charges. Operating on Cold War reflexes, the KGB — under hardliner Chebrikov — immediately retaliated by arresting Nicholas Daniloff, an American journalist for U.S. News & World Report in Moscow, framing him as a spy.
 
@@ -5311,6 +5315,7 @@ Washington is outraged by the equation of a Soviet intelligence officer with a c
   {
     id: 'shultz_visit_1986',
     name: 'The Shultz Visit: Setting the Summit Agenda',
+    image: 'images/shultz_moscow_visit_1986.jpg',
     trigger: { month: 5, year: 1986 },
     description: `Comrade General Secretary — US Secretary of State George Shultz has arrived in Moscow. This is a rare opportunity to pre-define the agenda for the upcoming summit with President Reagan. The geopolitical climate is cautiously optimistic.
 
@@ -5343,6 +5348,7 @@ However, Shultz is a tough negotiator pushing the "Reagan Doctrine" — demandin
   {
     id: 'reykjavik_summit_1986',
     name: 'The Reykjavik Summit',
+    image: 'images/reykjavik_summit_1986.jpg',
     trigger: { month: 10, year: 1986 },
     description: `Comrade General Secretary — you are meeting with President Reagan in a quiet, isolated house in the Icelandic capital. Originally a preliminary meeting, you have decided to drop a bombshell proposal: the complete elimination of all strategic nuclear weapons by both superpowers within 10 years. Reagan is thrilled by this grand vision, and negotiations proceed astonishingly well.
 
@@ -5375,6 +5381,7 @@ However, at the eleventh hour you hit an insurmountable wall. You demand that th
   {
     id: 'vladivostok_speech_1986',
     name: 'The Vladivostok Speech: Sino-Soviet Rapprochement',
+    image: 'images/vladivostok_speech_1986.jpg',
     trigger: { month: 7, year: 1986 },
     description: `Comrade General Secretary — you have traveled to the Soviet Far East to deliver a major address on Asia-Pacific policy. The Soviet economy is hemorrhaging funds maintaining nearly a million soldiers along the Sino-Soviet border.
 
@@ -5407,6 +5414,7 @@ For years, Beijing has demanded the removal of "Three Obstacles" before normaliz
   {
     id: 'inf_ratification_1987',
     name: 'Early Ratification of the INF Treaty',
+    image: 'images/inf_treaty_ratification_1987.jpg',
     trigger: { month: 12, year: 1987 },
     description: `Comrade General Secretary — following the historic signing of the INF Treaty in Washington, the battlefield has shifted to Moscow. To legally enact the treaty, it must be ratified by the Supreme Soviet. However, conservative elements within the Politburo and the military high command are furious. They view the asymmetrical destruction of Soviet missiles and the unprecedented American on-site inspections as a humiliating surrender of state sovereignty.
 
@@ -5439,6 +5447,7 @@ You must maneuver the political apparatus to secure an early and decisive ratifi
   {
     id: 'hockey_brawl_1987',
     name: 'World Junior Hockey Brawl',
+    image: 'images/world_junior_hockey_brawl_1987.jpg',
     trigger: { month: 1, year: 1987 },
     description: `Comrade General Secretary — a catastrophic public relations disaster has occurred on ice in Czechoslovakia. During the final game of the World Junior Ice Hockey Championships between the Soviet Union and Canada, a massive bench-clearing brawl erupted. It was so violent that officials turned off the arena lights, but players continued fighting in the dark for another 20 minutes. Both teams were disqualified.
 
@@ -5471,6 +5480,7 @@ Western media is playing the footage on a loop, painting the Soviet players as u
   {
     id: 'washington_summit_1987',
     name: 'The Washington Summit: Signing the INF Treaty',
+    image: 'images/washington_summit_inf_1987.jpg',
     trigger: { month: 12, year: 1987 },
     description: `Comrade General Secretary — you have landed in Washington D.C. for a historic summit with President Reagan to officially sign the Intermediate-Range Nuclear Forces Treaty. This treaty is revolutionary: it eliminates an entire class of nuclear weapons. However, the math is brutally asymmetrical — the USSR must destroy roughly twice as many missiles as the United States.
 
@@ -5498,6 +5508,7 @@ Soviet generals are seething, viewing this as a capitulation. Meanwhile, conserv
   {
     id: 'thatcher_visit_1987',
     name: "The Iron Lady Comes to Moscow: Thatcher's Visit",
+    image: 'images/thatcher_moscow_visit_1987.jpg',
     trigger: { month: 3, year: 1987 },
     description: `Comrade General Secretary — British Prime Minister Margaret Thatcher has arrived in Moscow. Despite her fierce anti-communist rhetoric, she was one of the first Western leaders to declare you someone the West "can do business with."
 
@@ -5530,6 +5541,7 @@ Her visit is an unprecedented media spectacle, featuring unscripted walkabouts a
   {
     id: 'assad_visit_1987',
     name: "Assad's Visit: Arming Syria or Seeking Peace?",
+    image: 'images/assad_moscow_visit_1987.jpg',
     trigger: { month: 4, year: 1987 },
     description: `Comrade General Secretary — Syria is your most critical and heavily armed client state in the Middle East. President Hafez al-Assad has arrived in Moscow with an extensive shopping list, demanding the latest Soviet offensive weaponry — including highly accurate SS-23 ballistic missiles — to achieve "strategic parity" with Israel.
 
@@ -5562,6 +5574,7 @@ However, your "New Political Thinking" doctrine dictates that regional proxy war
   {
     id: 'tanker_war_1987',
     name: 'The Tanker War: Kuwaiti Reflagging Crisis',
+    image: 'images/persian_gulf_tanker_war_1987.jpg',
     trigger: { month: 5, year: 1987 },
     description: `Comrade General Secretary — the Iran-Iraq War has spilled into the strategic waters of the Persian Gulf. Iran has launched the "Tanker War," indiscriminately attacking commercial vessels belonging to Iraq's Arab allies. Kuwait, desperate to protect its oil lifeline, has approached Moscow to lease Soviet tankers and provide Soviet Navy escorts through the mine-infested waters.
 
@@ -5594,6 +5607,7 @@ This triggered panic in the White House. To prevent a Soviet monopoly on Gulf se
   {
     id: 'sino_soviet_summit_1989',
     name: 'The Sino-Soviet Summit: Normalization in Beijing',
+    image: 'images/sino_soviet_summit_beijing_1989.jpg',
     trigger: { month: 5, year: 1989 },
     description: `Comrade General Secretary — you have been invited to a four-day summit in Beijing with paramount leader Deng Xiaoping — the first meeting between a Soviet and Chinese Communist leader since Khrushchev's visit in 1959, signaling the end of two decades of Sino-Soviet hostility.
 
@@ -5628,6 +5642,7 @@ But the timing is treacherous. Tiananmen Square is occupied by student protester
   {
     id: 'hungary_iron_curtain_1989',
     name: 'The Fall of the Iron Curtain: Hungary Opens Its Border',
+    image: 'images/hungary_border_opening_1989.jpg',
     trigger: { month: 5, year: 1989 },
     description: `Comrade General Secretary — Budapest is slipping the leash. In January, the Hungarian Parliament guaranteed freedom of assembly, association, and commerce — and then officially redefined the 1956 uprising from "counter-revolutionary riot" to "popular uprising." The verdict your tanks delivered in '56 has just been overturned by the people who survived it.
 
@@ -5657,6 +5672,7 @@ Erich Honecker is on the phone from East Berlin, furious. Your generals are in t
   {
     id: 'malta_summit_1989',
     name: 'The Malta Summit: The End of the Cold War',
+    image: 'images/malta_summit_1989.jpg',
     trigger: { month: 12, year: 1989 },
     description: `Comrade General Secretary — the Berlin Wall came down a month ago, and the world is still rearranging itself around the rubble. Helmut Kohl has delivered a Ten-Point Program for German unification to the Bundestag without consulting Moscow, Washington, London, or Paris. A unilateral announcement that the German question is again a German question.
 
