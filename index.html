@@ -1275,6 +1275,59 @@
     .game-layout { padding: 0 0.5rem; }
   }
 
+  /* ── MOBILE STICKY STATUS BAR ─────────────────────────────────────────────
+     Sits just above the game-layout on narrow screens. Hidden on desktop.    */
+  .mobile-status-bar {
+    display: none; /* hidden by default; shown via media query below */
+  }
+  @media(max-width:780px) {
+    .mobile-status-bar {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      position: sticky;
+      top: 0;
+      z-index: 200;
+      background: var(--panel, #1a1008);
+      border-bottom: 1.5px solid var(--rule, rgba(139,26,26,0.35));
+      padding: 7px 14px;
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 13px;
+      color: var(--cream, #f0e8d0);
+      letter-spacing: .04em;
+    }
+    .mobile-status-date {
+      font-weight: 700;
+      color: var(--gold, #c8a84a);
+      font-family: 'Playfair Display', serif;
+    }
+    .mobile-status-sep {
+      opacity: .45;
+    }
+    .mobile-status-capital strong {
+      color: var(--gold, #c8a84a);
+    }
+  }
+
+  /* ── STICKY ACTION BAR ON MOBILE ──────────────────────────────────────────
+     The action bar sticks to the bottom of the viewport on narrow screens
+     so "Enact" and "Advance" are always one thumb-tap away.                  */
+  @media(max-width:780px) {
+    .action-bar {
+      position: sticky;
+      bottom: 0;
+      z-index: 100;
+      background: var(--panel, #1a1008);
+      border-top: 2px solid var(--rule, rgba(139,26,26,0.35));
+      /* override the normal margin-top so it doesn't gap weirdly when stuck */
+      margin-top: 0;
+      padding: 10px 14px 12px;
+      /* safe-area inset for phones with a home indicator */
+      padding-bottom: max(12px, env(safe-area-inset-bottom, 12px));
+      box-shadow: 0 -4px 18px rgba(0,0,0,0.55);
+    }
+  }
+
 /* OVERRIDES: advisor cards */
 .advisor-name{ font-family:'Playfair Display',serif; font-weight:900; font-size:16px; font-style:normal; margin:20px 0 8px; text-align:left; }
 .advisor-grid{ display:grid !important; grid-template-columns:repeat(auto-fill,minmax(140px,1fr)) !important; gap:16px !important; }
@@ -1321,9 +1374,10 @@
   inset: 0;
   z-index: 9500;
   background: rgba(8,5,2,0.90);
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
   overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
   padding: 3vh 1rem 4vh;
   animation: backdropIn 0.35s ease-out forwards;
 }
@@ -1333,6 +1387,9 @@
 #pravda-outcome-modal .outcome-card {
   position: relative;
   width: min(680px, 100%);
+  /* On small screens the card must never exceed the viewport height.
+     The modal itself scrolls, so the button is always reachable. */
+  box-sizing: border-box;
   background:
     repeating-linear-gradient(
       180deg,
@@ -2478,6 +2535,13 @@
  <span style="font-size:.75em;vertical-align:middle;margin-right:.15em;opacity:.85;">&#9773;</span>Red Sunset<span style="font-size:.75em;vertical-align:middle;margin-left:.15em;opacity:.85;">&#9773;</span>
  </p>
   <p class="masthead-sub">Реформа. Гласность. Перестройка.</p>
+</div>
+
+<!-- MOBILE STICKY STATUS BAR — hidden on desktop, shown only when stacked layout kicks in -->
+<div class="mobile-status-bar" id="mobile-status-bar" aria-hidden="true">
+  <span class="mobile-status-date" id="mobile-status-date">March 1985</span>
+  <span class="mobile-status-sep">·</span>
+  <span class="mobile-status-capital">Capital: <strong id="mobile-status-budget">80</strong></span>
 </div>
 
 <!-- GAME LAYOUT -->
@@ -8748,6 +8812,11 @@ function renderDate() {
   if (pDate) pDate.textContent = document.getElementById('current-date')?.textContent || '';
   const pIssue = document.getElementById('pravda-issue');
   if (pIssue) pIssue.textContent = '\u2116 ' + String(gameState.turn) + '.';
+  // Keep the mobile sticky status bar in sync
+  const mDate = document.getElementById('mobile-status-date');
+  if (mDate) mDate.textContent = formatMonthYear(gameState.month, gameState.year);
+  const mBudget = document.getElementById('mobile-status-budget');
+  if (mBudget) mBudget.textContent = String(gameState.budget);
 }
 
 function renderFactions() {
