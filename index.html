@@ -6802,6 +6802,60 @@ function playPaperCrackle() {
   } catch(e) {}
 }
 
+// ── COUP: NATIONAL ANTHEM ────────────────────────────────────────────────────
+let coupAudio = null;
+function playCoupAnthem() {
+  try {
+    if (coupAudio) { coupAudio.pause(); coupAudio.currentTime = 0; }
+    coupAudio = makeAudio('sounds/national_antham.mp3');
+    coupAudio.volume = uiState.audioMuted ? 0 : Math.min(1, uiState.musicVolume ?? 0.7);
+    coupAudio.loop = false;
+    coupAudio.play().catch(() => {});
+  } catch(e) {}
+}
+
+// ── CHERNOBYL: TELEPHONE LOOP ────────────────────────────────────────────────
+let chernobylPhoneAudio = null;
+function startChernobylPhone() {
+  try {
+    if (chernobylPhoneAudio) { chernobylPhoneAudio.pause(); chernobylPhoneAudio.currentTime = 0; }
+    chernobylPhoneAudio = makeAudio('sounds/telephone_Chernobyl_disaster.mp3');
+    chernobylPhoneAudio.volume = uiState.audioMuted ? 0 : Math.min(1, uiState.sfxVolume ?? 0.7);
+    chernobylPhoneAudio.loop = true;
+    chernobylPhoneAudio.play().catch(() => {});
+  } catch(e) {}
+}
+function stopChernobylPhone() {
+  try {
+    if (chernobylPhoneAudio) {
+      chernobylPhoneAudio.pause();
+      chernobylPhoneAudio.currentTime = 0;
+      chernobylPhoneAudio = null;
+    }
+  } catch(e) {}
+}
+
+// ── PRIPYAT EVACUATION AUDIO ─────────────────────────────────────────────────
+let pripyatAudio = null;
+function startPripyatAudio() {
+  try {
+    if (pripyatAudio) { pripyatAudio.pause(); pripyatAudio.currentTime = 0; }
+    pripyatAudio = makeAudio('sounds/Pripyat_evacuation_1986.mp3');
+    pripyatAudio.volume = uiState.audioMuted ? 0 : Math.min(1, uiState.sfxVolume ?? 0.7);
+    pripyatAudio.loop = true;
+    pripyatAudio.play().catch(() => {});
+  } catch(e) {}
+}
+function stopPripyatAudio() {
+  try {
+    if (pripyatAudio) {
+      pripyatAudio.pause();
+      pripyatAudio.currentTime = 0;
+      pripyatAudio = null;
+    }
+  } catch(e) {}
+}
+
 function animatePaperUnfurl(panel) {
   if (!panel) return;
   panel.classList.remove('paper-unfurl');
@@ -6866,6 +6920,10 @@ function displayEvent(event) {
   panel.classList.add('active');
   animatePaperUnfurl(panel);
   playPaperCrackle();
+  // Chernobyl telephone loop — plays until a choice is made
+  if (event.id === 'chernobyl') {
+    startChernobylPhone();
+  }
 }
 
 function resolveEventChoice(choiceIdx) {
@@ -6910,6 +6968,33 @@ function resolveEventChoice(choiceIdx) {
   const followUpEvent = choice.followUp || event.followUp;
   if (followUpEvent) {
     triggerEventQueue.unshift({ ...followUpEvent, id: followUpEvent.id || ('followup_' + Date.now()), trigger: {} });
+  }
+
+  // ── CHERNOBYL AUDIO + CONSEQUENCE REPORT ─────────────────────────
+  if (event.id === 'chernobyl') {
+    stopChernobylPhone(); // always stop the telephone loop when a choice is made
+    if (choiceIdx === 1) {
+      // "Centralised emergency mobilisation — evacuate, contain, and seal the zone"
+      // Show consequence report before normal resolution continues.
+      activeEvent = null;
+      gameState.selectedPolicies = [];
+      document.getElementById('event-panel').classList.remove('active', 'paper-unfurl');
+      showChernobylConsequenceReport(choice, () => {
+        // After the player acknowledges, run the normal post-choice flow
+        if (checkEndConditions()) { render(); renderPolicies(); return; }
+        if (triggerEventQueue.length > 0) {
+          const next = triggerEventQueue.shift();
+          renderEventQueueStatus();
+          setTimeout(() => displayTriggerEvent(next), 200);
+        } else {
+          renderPolicies();
+        }
+        render();
+        renderPolitburoVisual();
+      });
+      render();
+      return; // skip the rest of resolveEventChoice's normal flow
+    }
   }
 
   // ── COUP OUTCOME HOOK ────────────────────────────────────────────
@@ -7965,6 +8050,119 @@ Every collective, every cadre — from the Union level to the enterprise level �
 }
 
 
+// ── CHERNOBYL CONSEQUENCE REPORT MODAL ──────────────────────────────────────
+function showChernobylConsequenceReport(choice, onClose) {
+  startPripyatAudio();
+  // Effects and logging are handled by resolveEventChoice before this function is called.
+
+  const modal = document.createElement('div');
+  modal.id = 'chernobyl-consequence-modal';
+  modal.style.cssText = `
+    position:fixed; inset:0; z-index:9000;
+    background:rgba(10,6,4,0.88);
+    display:flex; align-items:center; justify-content:center;
+    font-family:'IM Fell English',serif;
+    animation: backdropIn 0.4s ease-out forwards;
+  `;
+
+  modal.innerHTML = `
+    <div style="
+      background:#f2ead8;
+      border:2px solid #8b1a1a;
+      border-radius:3px;
+      max-width:640px;
+      width:90%;
+      max-height:88vh;
+      overflow-y:auto;
+      padding:28px 32px 24px;
+      position:relative;
+      box-shadow:0 8px 40px rgba(0,0,0,0.7);
+    ">
+      <!-- Header -->
+      <div style="text-align:center; border-bottom:1px solid rgba(139,26,26,0.35); padding-bottom:12px; margin-bottom:18px;">
+        <div style="font-family:'Playfair Display',serif; font-size:10px; font-weight:700; letter-spacing:.18em; text-transform:uppercase; color:#8b1a1a; margin-bottom:6px;">
+          ЦК КПСС — СОВЕТ МИНИСТРОВ СССР
+        </div>
+        <div style="font-family:'Playfair Display',serif; font-size:18px; font-weight:900; color:#1a0a0a; line-height:1.2;">
+          ОПЕРАТИВНЫЙ ДОКЛАД<br>
+          <span style="font-size:13px; font-weight:700; letter-spacing:.08em;">CONSEQUENCE REPORT — CLASSIFIED</span>
+        </div>
+        <div style="font-family:'IM Fell English',serif; font-size:11px; color:#5a3a2a; margin-top:6px; font-style:italic;">
+          Pripyat Evacuation — 26–27 April 1986 &nbsp;·&nbsp; Eyes Only
+        </div>
+      </div>
+
+      <!-- Body -->
+      <div style="font-size:13.5px; line-height:1.75; color:#1a0a0a;">
+
+        <p style="margin:0 0 12px;"><strong>ORDER OF MOBILISATION EXECUTED.</strong> At 02:00 on the 27th of April, the Chairman of the Council of Ministers issued evacuation orders for the city of Pripyat (population: 49,360). Buses requisitioned from Kyiv arrived at 14:00. The evacuation was declared complete by 16:30. Residents were told to bring documents and food for three days. Most brought less.</p>
+
+        <p style="margin:0 0 12px;">The exclusion zone has been established at a 30-kilometre radius around the plant. Internal troops and militia units are sealing the perimeter. Attempts to enter or leave without authorisation are being repelled.</p>
+
+        <p style="margin:0 0 12px;">Reactor No. 4 continues to burn. The graphite fire cannot be extinguished by conventional means. Helicopter crews are dropping sand, boron, dolomite, and lead onto the open reactor core. Dosimetry readings for pilots on these runs have not been formally recorded. Liquidators in the immediate reactor zone are receiving exposures well beyond permissible limits. The Ministry of Health is advised.</p>
+
+        <p style="margin:0 0 16px;">Military and civil engineering resources are being mobilised to construct an emergency concrete sarcophagus to entomb Reactor No. 4. Cost estimates are not yet available. The timeline is measured in months.</p>
+
+        <div style="
+          border:1px solid rgba(139,26,26,0.5);
+          background:rgba(139,26,26,0.06);
+          border-radius:2px;
+          padding:12px 16px;
+          margin-bottom:16px;
+        ">
+          <div style="font-family:'Playfair Display',serif; font-size:10px; font-weight:700; letter-spacing:.12em; text-transform:uppercase; color:#8b1a1a; margin-bottom:8px;">Projected Metric Adjustments</div>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px 20px; font-size:12px;">
+            <span>Economy</span><span style="font-weight:700; color:#8b1a1a;">−12</span>
+            <span>Stability</span><span style="font-weight:700; color:#2a6a2a;">+5</span>
+            <span>Popular Support</span><span style="font-weight:700; color:#2a6a2a;">+8</span>
+            <span>Party Unity</span><span style="font-weight:700; color:#2a6a2a;">+3</span>
+            <span>Foreign Relations</span><span style="font-weight:700; color:#2a6a2a;">+3</span>
+            <span>Military Readiness</span><span style="font-weight:700; color:#8b1a1a;">−8</span>
+          </div>
+        </div>
+
+        <p style="margin:0 0 6px; font-size:12px; font-style:italic; color:#5a3a2a;">
+          The long-term health and environmental consequences of the incident are not yet calculable. Official radiation figures released to the public have been moderated. The decision to act with transparency — partial though it may have been — has preserved Soviet credibility in circumstances where concealment would eventually have become impossible.
+        </p>
+      </div>
+
+      <!-- Dismiss -->
+      <div style="text-align:center; margin-top:20px; border-top:1px solid rgba(139,26,26,0.25); padding-top:16px;">
+        <button
+          id="chernobyl-report-dismiss"
+          style="
+            font-family:'Playfair Display',serif;
+            font-size:12px; font-weight:700; letter-spacing:.12em;
+            text-transform:uppercase;
+            background:#8b1a1a; color:#f2ead8;
+            border:2px solid #8b1a1a; border-radius:2px;
+            padding:10px 28px; cursor:pointer;
+          "
+          onclick="dismissChernobylConsequenceReport()"
+        >
+          Understood — Proceed
+        </button>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(modal);
+
+  // Store callback so dismiss function can call it
+  window._chernobylReportCallback = onClose;
+}
+
+function dismissChernobylConsequenceReport() {
+  stopPripyatAudio();
+  const modal = document.getElementById('chernobyl-consequence-modal');
+  if (modal) modal.remove();
+  if (typeof window._chernobylReportCallback === 'function') {
+    const cb = window._chernobylReportCallback;
+    window._chernobylReportCallback = null;
+    cb();
+  }
+}
+
 function triggerGameOver(type, message) {
   gameState.gameOver = true;
   activeEvent = null;
@@ -8083,7 +8281,19 @@ function triggerGameOver(type, message) {
   panel.classList.add('active');
   animatePaperUnfurl(panel);
   renderPolicies();
-  
+
+  // ── COUP ENDING: NATIONAL ANTHEM ─────────────────────────────────
+  if (type === 'coup') {
+    // Fade out background music first, then play the anthem
+    try {
+      if (typeof musicAudio !== 'undefined' && musicAudio) {
+        musicAudio.pause();
+        musicAudio.currentTime = 0;
+      }
+    } catch(e) {}
+    playCoupAnthem();
+  }
+
   addLog('GAME OVER: ' + (titles[type] || type), 'crisis');
 }
 
