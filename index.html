@@ -5010,9 +5010,65 @@ Abnormal radiation readings have now been detected by Swedish monitoring station
 
 The situation demands a response. The world is watching.`,
     choices: [
-      { text: 'Suppress the incident — maintain public order and normalcy', effects: { economy: +2, stability: +5, popularAffection: -15, partyUnity: +8, foreignRelations: -15, militaryReadiness: -3 } },
-      { text: 'Centralised emergency mobilisation — evacuate, contain, and seal the zone', effects: { economy: -12, stability: +5, popularAffection: +8, partyUnity: +3, foreignRelations: +3, militaryReadiness: -8 } },
-      { text: 'Full public disclosure and international cooperation', effects: { economy: -7, stability: -8, popularAffection: +10, partyUnity: -15, foreignRelations: +15, militaryReadiness: -3 } },
+      {
+        text: 'Suppress the incident — maintain public order and normalcy',
+        effects: { economy: +2, stability: +5, popularAffection: -15, partyUnity: +8, foreignRelations: -15, militaryReadiness: -3 },
+        outcomeText: `ШИФРТЕЛЕГРАММА — СВЕРХСРОЧНО — СОВЕРШЕННО СЕКРЕТНО
+Из: Аппарат Совета Министров СССР / КГБ СССР
+Кому: ВИКТОРУ
+
+The directive has been received and is being implemented.
+
+All public communications regarding the V. I. Lenin Nuclear Power Station are to be processed through the Department of Information of the Ministry of Medium Machine Building prior to release. Regional party committees in the Ukrainian SSR and the Byelorussian SSR have been instructed that questions from citizens regarding "anomalous environmental conditions" are to be referred to medical personnel and are not to be characterised as radiation-related without prior authorisation from the relevant ministry.
+
+The May Day parade in Kyiv shall proceed as scheduled. The Ukrainian party leadership has been so informed.
+
+Swedish diplomatic pressure over radiation readings detected at the Forsmark installation has been managed through the standard channel. The Ministry of Foreign Affairs has characterised the matter as a routine industrial incident now under control, and has declined to provide specific data on the grounds of sovereign jurisdiction over domestic installations.
+
+It must be noted for the record that this assessment is not universally shared at the level of the Council of Ministers. Comrade Shcherbina, following his return from the Zone, has communicated in terms that do not admit of easy reassurance. His report has been classified at the highest level.
+
+The contamination footprint, per the latest meteorological modelling available to this Directorate, now extends across portions of Sweden, Poland, and the German Democratic Republic. This information has not been released to those governments. It will not remain unreleased indefinitely.
+
+The immediate political position has been maintained. The long-term consequences of the current information posture are beyond the scope of this communication.`,
+      },
+      {
+        text: 'Centralised emergency mobilisation — evacuate, contain, and seal the zone',
+        effects: { economy: -12, stability: +5, popularAffection: +8, partyUnity: +3, foreignRelations: +3, militaryReadiness: -8 },
+        outcomeText: `ШИФРТЕЛЕГРАММА — СВЕРХСРОЧНО — СОВЕРШЕННО СЕКРЕТНО
+Из: Оперативный штаб ликвидации аварии на ЧАЭС
+Кому: ВИКТОРУ
+
+ORDER OF MOBILISATION EXECUTED. At 02:00 on the 27th of April, the Chairman of the Council of Ministers issued evacuation orders for the city of Pripyat (population: 49,360). Buses requisitioned from Kyiv arrived at 14:00. The evacuation was declared complete by 16:30. Residents were told to bring documents and food for three days. Most brought less.
+
+The Zone of Alienation has been established at a radius of thirty kilometres. Internal Troops of the Ministry of Internal Affairs, supplemented by elements of the Civil Defence Forces, are maintaining the perimeter. Civilian movement out of the Zone is being controlled; movement into it is restricted to authorised personnel under dosimetric supervision.
+
+Liquidation operations are proceeding. Reserve units of the Soviet Army, coal miners from the Donbass, and fire crews from across the Union have been committed. Helicopter pilots are conducting drops of boron, sand, clay, and lead over the open reactor core. Flight durations are being limited to two minutes per pass. The cumulative dosimetric records for aircrews are — by directive — not being aggregated in a manner that would produce a single individual total.
+
+The human cost of the operation is not yet calculable. It will be significant.
+
+Budget allocations for the first phase of liquidation are estimated at 14 billion rubles. This figure does not include long-term medical provision, resettlement, or the decommissioning of the remaining three reactor units. The Ministry of Finance has been notified.
+
+The apparatus has performed as directed. The Union has responded as a Union. This was not nothing.`,
+      },
+      {
+        text: 'Full public disclosure and international cooperation',
+        effects: { economy: -7, stability: -8, popularAffection: +10, partyUnity: -15, foreignRelations: +15, militaryReadiness: -3 },
+        outcomeText: `ШИФРТЕЛЕГРАММА — СВЕРХСРОЧНО — СОВЕРШЕННО СЕКРЕТНО
+Из: Министерство иностранных дел СССР / ТАСС
+Кому: ВИКТОРУ
+
+The communiqué has been transmitted. TASS has published a full technical account of the accident at the V. I. Lenin Nuclear Power Station, including the timeline of the initial explosion, the scope of the evacuation, and an acknowledgement that radioactive contamination has crossed the borders of the USSR.
+
+The General Secretary's statement — broadcast on the evening of the 14th of May — has been received in the West with a degree of attention that exceeds all precedent for a Soviet domestic communication. The response from Western governments has been notable. The Director-General of the International Atomic Energy Agency, Hans Blix, has accepted the invitation to lead an international scientific mission to the Zone. Soviet scientists are to present a full technical account at the IAEA conference in Vienna in August.
+
+It is necessary that the domestic reaction also be recorded.
+
+Within the Politburo, the response to the disclosure has not been uniform. Several members of the conservative tendency have communicated their assessment that the publication of the technical data constitutes an inadmissible exposure of the deficiencies of Soviet industrial management to the scrutiny of hostile states. Comrade Ligachev has stated, in terms this communication will not reproduce in full, that the precedent established by voluntary disclosure will prove difficult to contain.
+
+This assessment is noted. It is also noted that the alternative — a concealment already partially penetrated by Swedish instrumentation, Finnish meteorological data, and the satellite reconnaissance assets of two foreign powers — would have constituted not the preservation of Soviet credibility but its final exhaustion.
+
+The world has been told. It has not turned away. That, too, was not nothing.`,
+      },
     ],
   },
   {
@@ -5053,7 +5109,7 @@ What do you say at the podium?`,
   {
     id: 'yeltsin_incident',
     name: 'The Yeltsin Affair',
-    image: 'images/ProfilePlaceholder.jpeg',
+    image: 'images/yeltsin_incident.jpg',
     caption: 'Б. Н. Ельцин на Пленуме ЦК КПСС, октябрь 1987',
     trigger: { month: 10, year: 1987 },
     description: `Comrade General Secretary — following his denunciation at the October Plenum of the Central Committee and your personal rebuke, Boris Nikolayevich Yeltsin, First Secretary of the Moscow City Party Committee, has been found in his office incapacitated and bleeding. He has been conveyed to hospital under medical escort.
