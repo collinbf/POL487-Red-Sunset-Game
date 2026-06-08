@@ -217,11 +217,11 @@
   .event-choices { display:flex; flex-direction:column; gap:6px; }
   .event-btn { background:transparent; border:1px solid var(--red); color:var(--red-dark); padding:6px 10px; font-family:'Cormorant Garamond',serif; font-size:11px; letter-spacing:.08em; text-transform:uppercase; cursor:pointer; border-radius:2px; transition:background .15s,color .15s; text-align:left; }
   .event-btn:hover { background:var(--red); color:var(--cream); }
-  .ending-summary { display:grid; grid-template-columns:repeat(auto-fit,minmax(145px,1fr)); gap:8px; margin:12px 0; }
-  .ending-stat { border:1px solid rgba(139,26,26,.24); background:rgba(242,234,216,.62); padding:8px; }
-  .ending-stat span { display:block; font-family:'IM Fell English',serif; font-size:12px; opacity:.76; }
-  .ending-stat strong { display:block; font-family:'Playfair Display',serif; font-size:18px; color:var(--red-dark); margin-top:2px; }
-  .ending-list { margin:8px 0 0 18px; font-size:13px; line-height:1.45; }
+  .ending-summary { display:grid; grid-template-columns:repeat(auto-fit,minmax(100px,1fr)); gap:5px; margin:10px 0; }
+  .ending-stat { border:1px solid rgba(139,26,26,.24); background:rgba(242,234,216,.62); padding:5px 7px; }
+  .ending-stat span { display:block; font-family:'IM Fell English',serif; font-size:10px; opacity:.76; }
+  .ending-stat strong { display:block; font-family:'Playfair Display',serif; font-size:13px; color:var(--red-dark); margin-top:1px; }
+  .ending-list { margin:6px 0 0 16px; font-size:12px; line-height:1.4; }
 
   /* POLICY MENU */
   .policy-panel { background:rgba(139,26,26,.04); border:1px solid var(--rule); border-radius:3px; padding:12px; margin-bottom:1rem; }
@@ -373,6 +373,11 @@
   .tree-lock-reason { font-size:9px; color:var(--red); margin-top:3px; font-style:italic; opacity:.85; }
   .ending-narrative p { margin-bottom:.8rem; font-family:'IM Fell English',serif; font-size:13.5px; line-height:1.65; }
   .ending-narrative em { font-style:italic; opacity:.85; }
+
+  /* Game-over screen: kill the 2-col newspaper layout, let card scroll freely */
+  .event-panel.pravda.is-ending .pravda-body { column-count:1 !important; }
+  .event-panel.pravda.is-ending .pravda-modal-card { max-height:none !important; overflow-y:visible !important; }
+  .event-panel.pravda.is-ending { overflow-y:auto !important; align-items:flex-start !important; }
   .tree-title { font-family:'Playfair Display',serif; font-size:15px; font-weight:900; color:var(--red-dark); margin-bottom:5px; }
   .tree-meta, .tree-req { font-family:'IM Fell English',serif; font-size:12px; line-height:1.35; }
   .tree-status { display:inline-block; margin-top:8px; padding:3px 7px; border:1px solid currentColor; border-radius:2px; font-size:10px; letter-spacing:.08em; text-transform:uppercase; font-weight:700; }
@@ -1302,115 +1307,212 @@
 
 
 /* === PRAVDA OUTCOME MODAL — secondary narrative popup after a choice === */
+/* ── CIPHER TELEGRAM OUTCOME MODAL ────────────────────────────────────────── */
 #pravda-outcome-modal {
   display: none;
   position: fixed;
   inset: 0;
   z-index: 9500;
-  background: rgba(10,6,3,0.86);
-  align-items: center;
+  background: rgba(8,5,2,0.90);
+  align-items: flex-start;
   justify-content: center;
   overflow-y: auto;
-  padding: 4vh 1rem 4vh;
+  padding: 3vh 1rem 4vh;
   animation: backdropIn 0.35s ease-out forwards;
 }
 #pravda-outcome-modal.active { display: flex; }
+
+/* Paper card — aged cream, horizontal rule lines like real telegraph paper */
 #pravda-outcome-modal .outcome-card {
   position: relative;
   width: min(680px, 100%);
-  background: repeating-linear-gradient(0deg, rgba(0,0,0,0.02) 0px, rgba(0,0,0,0.02) 1px, rgba(255,255,255,0.00) 2px, rgba(255,255,255,0.00) 6px), rgba(246,239,224,0.99);
-  border: 2px solid rgba(0,0,0,0.65);
-  padding: 0;
-  box-shadow: 0 28px 60px rgba(0,0,0,0.70), 0 4px 12px rgba(0,0,0,0.40);
+  background:
+    repeating-linear-gradient(
+      180deg,
+      transparent 0px,
+      transparent 27px,
+      rgba(180,160,120,0.18) 27px,
+      rgba(180,160,120,0.18) 28px
+    ),
+    linear-gradient(160deg, #f0e8d0 0%, #e8dfc0 40%, #ede5cc 100%);
+  border: 1px solid #a89060;
+  box-shadow:
+    0 2px 0 #c8a84a,
+    0 32px 70px rgba(0,0,0,0.80),
+    inset 0 0 40px rgba(160,130,70,0.08);
   animation: paperThrow 0.78s cubic-bezier(0.22, 0.8, 0.32, 1) both;
+  font-family: 'Courier New', Courier, monospace;
 }
+
+/* Red vertical margin rule — identical to the originals */
+#pravda-outcome-modal .outcome-card::before {
+  content: '';
+  position: absolute;
+  top: 0; bottom: 0;
+  left: 72px;
+  width: 1.5px;
+  background: rgba(160,30,30,0.55);
+  pointer-events: none;
+}
+
+/* ── HEADER STRIP ── */
 #pravda-outcome-modal .outcome-masthead {
-  background: #1a0a06;
-  border-bottom: 3px double rgba(200,164,74,0.8);
-  padding: 8px 18px 6px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+  padding: 14px 18px 0 86px;
+  position: relative;
 }
-#pravda-outcome-modal .outcome-masthead-label {
-  font-family: 'Playfair Display', serif;
+
+/* ЛК badge top-left */
+#pravda-outcome-modal .outcome-masthead::before {
+  content: 'ЛК';
+  position: absolute;
+  top: 14px; left: 16px;
+  font-family: 'Courier New', monospace;
   font-size: 11px;
   font-weight: 700;
-  letter-spacing: .22em;
-  text-transform: uppercase;
-  color: rgba(200,164,74,0.85);
+  color: #2b1a0a;
+  letter-spacing: .06em;
 }
-#pravda-outcome-modal .outcome-masthead-date {
+
+/* СОВ. СЕКРЕТНО stamp — top right */
+#pravda-outcome-modal .outcome-masthead-label {
+  position: absolute;
+  top: 12px; right: 18px;
   font-family: 'Courier New', monospace;
   font-size: 10px;
-  letter-spacing: .05em;
-  color: rgba(242,234,216,0.55);
-}
-#pravda-outcome-modal .outcome-banner {
-  background: var(--red-dark, #5c1111);
-  border-bottom: 2px solid rgba(200,164,74,0.5);
-  padding: 7px 18px 6px;
-}
-#pravda-outcome-modal .outcome-choice-label {
-  font-family: 'Playfair Display', serif;
-  font-size: 10px;
   font-weight: 700;
-  letter-spacing: .15em;
+  letter-spacing: .12em;
+  color: #8b1a1a;
   text-transform: uppercase;
-  color: rgba(200,164,74,0.75);
-  margin-bottom: 2px;
+  border: 1.5px solid #8b1a1a;
+  padding: 2px 6px;
+  white-space: nowrap;
 }
-#pravda-outcome-modal .outcome-choice-title {
-  font-family: 'Playfair Display', serif;
-  font-size: 16px;
-  font-weight: 900;
-  color: var(--cream, #f2ead8);
-  line-height: 1.15;
+
+/* ШИФРТЕЛЕГРАММА title */
+#pravda-outcome-modal .outcome-masthead-date {
+  display: block;
+  font-family: 'Courier New', monospace;
+  font-size: 19px;
+  font-weight: 700;
+  color: #8b1a1a;
+  letter-spacing: .10em;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+  padding-top: 4px;
 }
-#pravda-outcome-modal .outcome-body {
-  padding: 16px 20px 12px;
-}
-#pravda-outcome-modal .outcome-text {
-  font-family: Georgia, 'Times New Roman', serif;
-  font-size: 14px;
-  line-height: 1.75;
-  color: var(--ink, #2b1f10);
-}
-#pravda-outcome-modal .outcome-text p { margin-bottom: .7em; }
-#pravda-outcome-modal .outcome-effects {
-  margin: 10px 0 14px;
-  padding: 8px 12px;
-  background: rgba(139,26,26,0.07);
-  border: 1px solid rgba(139,26,26,0.2);
-  border-radius: 2px;
-  font-family: 'Cormorant Garamond', serif;
-  font-size: 13px;
-  color: var(--ink, #2b1f10);
+
+/* Form meta row: Из / date / Расшифр */
+#pravda-outcome-modal .outcome-banner {
+  padding: 4px 18px 6px 86px;
+  border-bottom: 1px solid rgba(139,26,26,0.35);
+  border-top: none;
+  background: none;
   display: flex;
   flex-wrap: wrap;
-  gap: 6px 14px;
+  gap: 2px 18px;
+  align-items: baseline;
 }
-#pravda-outcome-modal .outcome-effect-item { white-space: nowrap; }
-#pravda-outcome-modal .outcome-effect-item.pos { color: var(--green, #2d6e44); font-weight: 700; }
-#pravda-outcome-modal .outcome-effect-item.neg { color: var(--red, #8b1a1a); font-weight: 700; }
+#pravda-outcome-modal .outcome-choice-label {
+  font-family: 'Courier New', monospace;
+  font-size: 10px;
+  font-weight: 400;
+  letter-spacing: .04em;
+  text-transform: none;
+  color: #5a3a1a;
+  margin-bottom: 0;
+}
+#pravda-outcome-modal .outcome-choice-title {
+  font-family: 'Courier New', monospace;
+  font-size: 11px;
+  font-weight: 700;
+  color: #1a0a00;
+  letter-spacing: .04em;
+  line-height: 1.3;
+}
+
+/* ── BODY: two-column with margin annotation + main text ── */
+#pravda-outcome-modal .outcome-body {
+  display: grid;
+  grid-template-columns: 72px 1fr;
+  padding: 0;
+  min-height: 180px;
+}
+
+/* Left margin column — for annotations */
+#pravda-outcome-modal .outcome-effects {
+  grid-column: 1;
+  padding: 12px 6px 12px 10px;
+  border-right: none;
+  background: none;
+  border: none;
+  border-radius: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-items: flex-start;
+  font-family: 'Courier New', monospace;
+  font-size: 9px;
+  color: #8b1a1a;
+  line-height: 1.4;
+  font-style: italic;
+  overflow: hidden;
+}
+#pravda-outcome-modal .outcome-effect-item {
+  white-space: normal;
+  word-break: break-word;
+  font-family: 'Courier New', monospace;
+  font-size: 9px;
+  font-style: normal;
+  display: block;
+}
+#pravda-outcome-modal .outcome-effect-item.pos { color: #1a4a2a; font-weight: 700; }
+#pravda-outcome-modal .outcome-effect-item.neg { color: #8b1a1a; font-weight: 700; }
+
+/* Main text column */
+#pravda-outcome-modal .outcome-text {
+  grid-column: 2;
+  padding: 14px 18px 14px 14px;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 12.5px;
+  line-height: 1.85;
+  color: #1a0f05;
+  text-align: justify;
+  hyphens: auto;
+  border-left: 1.5px solid rgba(160,30,30,0.45);
+}
+#pravda-outcome-modal .outcome-text p { margin-bottom: .8em; }
+
+/* ── FOOTER: form bottom strip ── */
 #pravda-outcome-modal .outcome-close-btn {
   display: block;
   width: 100%;
-  padding: 11px 0;
-  background: var(--red-dark, #5c1111);
-  color: var(--cream, #f2ead8);
-  font-family: 'Playfair Display', serif;
-  font-size: 12px;
+  padding: 10px 18px;
+  background: transparent;
+  color: #8b1a1a;
+  font-family: 'Courier New', monospace;
+  font-size: 10px;
   font-weight: 700;
   letter-spacing: .14em;
   text-transform: uppercase;
   text-align: center;
   border: none;
-  border-top: 2px solid rgba(200,164,74,0.35);
+  border-top: 1px solid rgba(139,26,26,0.40);
   cursor: pointer;
-  transition: background .15s;
+  transition: background .15s, color .15s;
+  position: relative;
 }
-#pravda-outcome-modal .outcome-close-btn:hover { background: #8b1a1a; }
+#pravda-outcome-modal .outcome-close-btn::before {
+  content: 'Снятие копий категорически воспрещается.';
+  display: block;
+  font-size: 8.5px;
+  font-weight: 400;
+  letter-spacing: .06em;
+  color: #8b1a1a;
+  margin-bottom: 8px;
+  text-align: center;
+  font-style: italic;
+}
+#pravda-outcome-modal .outcome-close-btn:hover { background: rgba(139,26,26,0.08); }
 
 /* === PRAVDA PANEL — full-screen modal overlay === */
 .event-panel.pravda{
@@ -1422,10 +1524,10 @@
   /* Backdrop */
   background: rgba(10,6,3,0.82) !important;
   /* Centre the newspaper */
-  align-items: center !important;
+  align-items: flex-start !important;
   justify-content: center !important;
   overflow-y: auto !important;
-  padding: 4vh 1rem 4vh !important;
+  padding: 2vh 1rem 2vh !important;
   /* Reset border/radius from inline mode */
   border: none !important;
   border-radius: 0 !important;
@@ -1442,7 +1544,8 @@
   padding: 18px 20px 22px;
   box-shadow: 0 28px 60px rgba(0,0,0,0.70), 0 4px 12px rgba(0,0,0,0.40);
   transform-origin: top center;
-  overflow: hidden;
+  overflow-y: auto;
+  max-height: 90vh;
 }
 .event-panel.pravda.paper-unfurl .pravda-modal-card {
   animation: paperThrow 0.78s cubic-bezier(0.22, 0.8, 0.32, 1) both;
@@ -8054,113 +8157,27 @@ Every collective, every cadre — from the Union level to the enterprise level �
 function showChernobylConsequenceReport(choice, onClose) {
   startPripyatAudio();
   // Effects and logging are handled by resolveEventChoice before this function is called.
+  // Route through the standard outcome modal so it looks identical to every other consequence report.
+  // Wrap stopPripyatAudio into the callback so the evacuation audio stops when dismissed.
+  const outcomeText = `ORDER OF MOBILISATION EXECUTED. At 02:00 on the 27th of April, the Chairman of the Council of Ministers issued evacuation orders for the city of Pripyat (population: 49,360). Buses requisitioned from Kyiv arrived at 14:00. The evacuation was declared complete by 16:30. Residents were told to bring documents and food for three days. Most brought less.
 
-  const modal = document.createElement('div');
-  modal.id = 'chernobyl-consequence-modal';
-  modal.style.cssText = `
-    position:fixed; inset:0; z-index:9000;
-    background:rgba(10,6,4,0.88);
-    display:flex; align-items:center; justify-content:center;
-    font-family:'IM Fell English',serif;
-    animation: backdropIn 0.4s ease-out forwards;
-  `;
+The exclusion zone has been established at a 30-kilometre radius around the plant. Internal troops and militia units are sealing the perimeter. Attempts to enter or leave without authorisation are being repelled.
 
-  modal.innerHTML = `
-    <div style="
-      background:#f2ead8;
-      border:2px solid #8b1a1a;
-      border-radius:3px;
-      max-width:640px;
-      width:90%;
-      max-height:88vh;
-      overflow-y:auto;
-      padding:28px 32px 24px;
-      position:relative;
-      box-shadow:0 8px 40px rgba(0,0,0,0.7);
-    ">
-      <!-- Header -->
-      <div style="text-align:center; border-bottom:1px solid rgba(139,26,26,0.35); padding-bottom:12px; margin-bottom:18px;">
-        <div style="font-family:'Playfair Display',serif; font-size:10px; font-weight:700; letter-spacing:.18em; text-transform:uppercase; color:#8b1a1a; margin-bottom:6px;">
-          ЦК КПСС — СОВЕТ МИНИСТРОВ СССР
-        </div>
-        <div style="font-family:'Playfair Display',serif; font-size:18px; font-weight:900; color:#1a0a0a; line-height:1.2;">
-          ОПЕРАТИВНЫЙ ДОКЛАД<br>
-          <span style="font-size:13px; font-weight:700; letter-spacing:.08em;">CONSEQUENCE REPORT — CLASSIFIED</span>
-        </div>
-        <div style="font-family:'IM Fell English',serif; font-size:11px; color:#5a3a2a; margin-top:6px; font-style:italic;">
-          Pripyat Evacuation — 26–27 April 1986 &nbsp;·&nbsp; Eyes Only
-        </div>
-      </div>
+Reactor No. 4 continues to burn. The graphite fire cannot be extinguished by conventional means. Helicopter crews are dropping sand, boron, dolomite, and lead onto the open reactor core. Dosimetry readings for pilots on these runs have not been formally recorded. Liquidators in the immediate reactor zone are receiving exposures well beyond permissible limits. The Ministry of Health is advised.
 
-      <!-- Body -->
-      <div style="font-size:13.5px; line-height:1.75; color:#1a0a0a;">
+Military and civil engineering resources are being mobilised to construct an emergency concrete sarcophagus to entomb Reactor No. 4. Cost estimates are not yet available. The timeline is measured in months.
 
-        <p style="margin:0 0 12px;"><strong>ORDER OF MOBILISATION EXECUTED.</strong> At 02:00 on the 27th of April, the Chairman of the Council of Ministers issued evacuation orders for the city of Pripyat (population: 49,360). Buses requisitioned from Kyiv arrived at 14:00. The evacuation was declared complete by 16:30. Residents were told to bring documents and food for three days. Most brought less.</p>
+The long-term health and environmental consequences of the incident are not yet calculable. Official radiation figures released to the public have been moderated. The decision to act with transparency — partial though it may have been — has preserved Soviet credibility in circumstances where concealment would eventually have become impossible.`;
 
-        <p style="margin:0 0 12px;">The exclusion zone has been established at a 30-kilometre radius around the plant. Internal troops and militia units are sealing the perimeter. Attempts to enter or leave without authorisation are being repelled.</p>
-
-        <p style="margin:0 0 12px;">Reactor No. 4 continues to burn. The graphite fire cannot be extinguished by conventional means. Helicopter crews are dropping sand, boron, dolomite, and lead onto the open reactor core. Dosimetry readings for pilots on these runs have not been formally recorded. Liquidators in the immediate reactor zone are receiving exposures well beyond permissible limits. The Ministry of Health is advised.</p>
-
-        <p style="margin:0 0 16px;">Military and civil engineering resources are being mobilised to construct an emergency concrete sarcophagus to entomb Reactor No. 4. Cost estimates are not yet available. The timeline is measured in months.</p>
-
-        <div style="
-          border:1px solid rgba(139,26,26,0.5);
-          background:rgba(139,26,26,0.06);
-          border-radius:2px;
-          padding:12px 16px;
-          margin-bottom:16px;
-        ">
-          <div style="font-family:'Playfair Display',serif; font-size:10px; font-weight:700; letter-spacing:.12em; text-transform:uppercase; color:#8b1a1a; margin-bottom:8px;">Projected Metric Adjustments</div>
-          <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px 20px; font-size:12px;">
-            <span>Economy</span><span style="font-weight:700; color:#8b1a1a;">−12</span>
-            <span>Stability</span><span style="font-weight:700; color:#2a6a2a;">+5</span>
-            <span>Popular Support</span><span style="font-weight:700; color:#2a6a2a;">+8</span>
-            <span>Party Unity</span><span style="font-weight:700; color:#2a6a2a;">+3</span>
-            <span>Foreign Relations</span><span style="font-weight:700; color:#2a6a2a;">+3</span>
-            <span>Military Readiness</span><span style="font-weight:700; color:#8b1a1a;">−8</span>
-          </div>
-        </div>
-
-        <p style="margin:0 0 6px; font-size:12px; font-style:italic; color:#5a3a2a;">
-          The long-term health and environmental consequences of the incident are not yet calculable. Official radiation figures released to the public have been moderated. The decision to act with transparency — partial though it may have been — has preserved Soviet credibility in circumstances where concealment would eventually have become impossible.
-        </p>
-      </div>
-
-      <!-- Dismiss -->
-      <div style="text-align:center; margin-top:20px; border-top:1px solid rgba(139,26,26,0.25); padding-top:16px;">
-        <button
-          id="chernobyl-report-dismiss"
-          style="
-            font-family:'Playfair Display',serif;
-            font-size:12px; font-weight:700; letter-spacing:.12em;
-            text-transform:uppercase;
-            background:#8b1a1a; color:#f2ead8;
-            border:2px solid #8b1a1a; border-radius:2px;
-            padding:10px 28px; cursor:pointer;
-          "
-          onclick="dismissChernobylConsequenceReport()"
-        >
-          Understood — Proceed
-        </button>
-      </div>
-    </div>
-  `;
-
-  document.body.appendChild(modal);
-
-  // Store callback so dismiss function can call it
-  window._chernobylReportCallback = onClose;
+  showPravdaOutcome(choice.text, outcomeText, choice.effects, () => {
+    stopPripyatAudio();
+    if (onClose) onClose();
+  });
 }
 
 function dismissChernobylConsequenceReport() {
-  stopPripyatAudio();
-  const modal = document.getElementById('chernobyl-consequence-modal');
-  if (modal) modal.remove();
-  if (typeof window._chernobylReportCallback === 'function') {
-    const cb = window._chernobylReportCallback;
-    window._chernobylReportCallback = null;
-    cb();
-  }
+  // Legacy no-op — dismissal is now handled by closePravdaOutcome via the standard modal button.
+  closePravdaOutcome();
 }
 
 function triggerGameOver(type, message) {
@@ -8278,7 +8295,7 @@ function triggerGameOver(type, message) {
     ${enactedHtml}
   `;
   document.getElementById('event-choices').innerHTML = '<button class="event-btn" onclick="resetGame()" style="font-size:13px;padding:10px 20px;font-weight:700;letter-spacing:.1em;border-width:2px;">↺ New Game</button>';
-  panel.classList.add('active');
+  panel.classList.add('active', 'is-ending');
   animatePaperUnfurl(panel);
   renderPolicies();
 
@@ -9748,19 +9765,22 @@ document.addEventListener('keydown', function(e) {
 <!-- PRAVDA OUTCOME MODAL — shown after a choice, with the long narrative text -->
 <div id="pravda-outcome-modal" role="dialog" aria-modal="true" aria-labelledby="outcome-choice-title-el" onclick="if(event.target===this)closePravdaOutcome()">
   <div class="outcome-card">
+    <!-- Header: ЛК (via ::before), СОВ. СЕКРЕТНО stamp (via label), ШИФРТЕЛЕГРАММА title -->
     <div class="outcome-masthead">
-      <span class="outcome-masthead-label">ПРАВДА · Consequence Report</span>
-      <span class="outcome-masthead-date" id="outcome-date-el"></span>
+      <span class="outcome-masthead-label">СОВ. СЕКРЕТНО</span>
+      <span class="outcome-masthead-date">ШИФРТЕЛЕГРАММА</span>
     </div>
+    <!-- Meta row: Из / received / decision text -->
     <div class="outcome-banner">
-      <div class="outcome-choice-label">Your decision</div>
+      <span class="outcome-choice-label">Из &nbsp; — &nbsp; Получена: <span id="outcome-date-el"></span> &nbsp;·&nbsp; Куда, кому: ВИКТОРУ</span>
       <div class="outcome-choice-title" id="outcome-choice-title-el"></div>
     </div>
+    <!-- Body: left margin (effects) + right main text -->
     <div class="outcome-body">
       <div class="outcome-effects" id="outcome-effects-el"></div>
       <div class="outcome-text" id="outcome-text-el"></div>
     </div>
-    <button class="outcome-close-btn" onclick="closePravdaOutcome()">Understood — Proceed ⟶</button>
+    <button class="outcome-close-btn" onclick="closePravdaOutcome()">Подлежит возврату через 48 часов — Understood, Proceed ⟶</button>
   </div>
 </div>
 
