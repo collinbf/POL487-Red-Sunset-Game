@@ -7100,6 +7100,37 @@ function stopPripyatAudio() {
   } catch(e) {}
 }
 
+let libyaAudio = null;
+function startLibyaAudio() {
+  try {
+    if (libyaAudio) { libyaAudio.pause(); libyaAudio.currentTime = 0; }
+    if (typeof musicAudio !== 'undefined' && musicAudio && !musicAudio.paused) {
+      musicAudio.pause();
+      musicAudio.dataset.pausedForLibya = 'true';
+    }
+    libyaAudio = makeAudio('sounds/733117__gpag1__military-aircraft-fa-18-flyover-distant-crowd-noise_01.mp3');
+    libyaAudio.volume = uiState.audioMuted ? 0 : Math.min(1, uiState.sfxVolume ?? 0.7);
+    libyaAudio.loop = false;
+    libyaAudio.play().catch(() => {});
+  } catch(e) {}
+}
+function stopLibyaAudio() {
+  try {
+    if (libyaAudio) {
+      libyaAudio.pause();
+      libyaAudio.currentTime = 0;
+      libyaAudio = null;
+    }
+    if (typeof musicAudio !== 'undefined' && musicAudio &&
+        musicAudio.dataset.pausedForLibya === 'true' &&
+        (!chernobylPhoneAudio || chernobylPhoneAudio.paused) &&
+        (!pripyatAudio || pripyatAudio.paused)) {
+      delete musicAudio.dataset.pausedForLibya;
+      if (!uiState.audioMuted && gameStarted) musicAudio.play().catch(() => {});
+    }
+  } catch(e) {}
+}
+
 function animatePaperUnfurl(panel) {
   if (!panel) return;
   panel.classList.remove('paper-unfurl');
@@ -7168,6 +7199,10 @@ function displayEvent(event) {
   if (event.id === 'chernobyl') {
     startChernobylPhone();
   }
+  // Libya bombing flyover — plays once when the event opens
+  if (event.id === 'libya_bombing_1986') {
+    startLibyaAudio();
+  }
 }
 
 function resolveEventChoice(choiceIdx) {
@@ -7212,6 +7247,11 @@ function resolveEventChoice(choiceIdx) {
   const followUpEvent = choice.followUp || event.followUp;
   if (followUpEvent) {
     triggerEventQueue.unshift({ ...followUpEvent, id: followUpEvent.id || ('followup_' + Date.now()), trigger: {} });
+  }
+
+  // ── LIBYA BOMBING AUDIO ───────────────────────────────────────────
+  if (event.id === 'libya_bombing_1986') {
+    stopLibyaAudio();
   }
 
   // ── CHERNOBYL AUDIO + CONSEQUENCE REPORT ─────────────────────────
@@ -9978,7 +10018,7 @@ document.addEventListener('keydown', function(e) {
     </div>
     <!-- Meta row: Из / received / decision text -->
     <div class="outcome-banner">
-      <span class="outcome-choice-label">Из &nbsp; — &nbsp; Получена: <span id="outcome-date-el"></span> &nbsp;·&nbsp; Куда, кому: ВИКТОРУ</span>
+      <span class="outcome-choice-label">Из: &nbsp; Получена: <span id="outcome-date-el"></span> &nbsp;·&nbsp; Кому: ВИКТОРУ</span>
       <div class="outcome-choice-title" id="outcome-choice-title-el"></div>
     </div>
     <!-- Body: left margin (effects) + right main text -->
