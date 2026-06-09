@@ -7168,6 +7168,7 @@ function smartQuotes(str) {
 }
 
 function displayEvent(event) {
+  console.log('[displayEvent] id:', event.id, '| name:', event.name);
   activeEvent = event;
   setupPravdaMasthead(event.image || null, event.caption || null);
   renderEventQueueStatus();
@@ -7200,11 +7201,37 @@ function displayEvent(event) {
   }
   // El Dorado Canyon — military aircraft flyover sound
   if (event.id === 'libya_bombing_1986') {
+    console.log('[ElDorado] event triggered');
+    console.log('[ElDorado] audio object:', eldoradoFlyoverAudio);
+    console.log('[ElDorado] src:', eldoradoFlyoverAudio.src);
+    console.log('[ElDorado] readyState:', eldoradoFlyoverAudio.readyState);
+    console.log('[ElDorado] dataset.missing:', eldoradoFlyoverAudio.dataset.missing);
+    console.log('[ElDorado] audioMuted:', uiState.audioMuted);
+    console.log('[ElDorado] sfxVolume:', uiState.sfxVolume);
     try {
       eldoradoFlyoverAudio.currentTime = 0;
       eldoradoFlyoverAudio.volume = uiState.audioMuted ? 0 : Math.min(1, uiState.sfxVolume ?? 0.7);
-      eldoradoFlyoverAudio.play().catch(() => {});
-    } catch(e) {}
+      console.log('[ElDorado] volume set to:', eldoradoFlyoverAudio.volume);
+      const playPromise = eldoradoFlyoverAudio.play();
+      console.log('[ElDorado] play() called, promise:', playPromise);
+      if (playPromise && playPromise.then) {
+        playPromise.then(() => {
+          console.log('[ElDorado] play() resolved — audio is playing');
+        }).catch(err => {
+          console.error('[ElDorado] play() rejected:', err);
+        });
+      }
+      // Pause music while flyover plays, resume when it ends
+      if (typeof musicAudio !== 'undefined' && musicAudio && !musicAudio.paused) {
+        musicAudio.pause();
+        eldoradoFlyoverAudio.addEventListener('ended', function resumeAfterFlyover() {
+          eldoradoFlyoverAudio.removeEventListener('ended', resumeAfterFlyover);
+          if (!uiState.audioMuted) musicAudio.play().catch(() => {});
+        });
+      }
+    } catch(e) {
+      console.error('[ElDorado] exception:', e);
+    }
   }
 }
 
@@ -8312,7 +8339,7 @@ function displayTriggerEvent(event) {
     triggerEventQueue.push(event);
     renderEventQueueStatus();
   } else {
-    displayEvent({ ...event, id: 'trigger_' + Date.now(), trigger: {} });
+    displayEvent({ ...event, trigger: {} });
   }
 }
 
@@ -9766,7 +9793,8 @@ function startSoundtrack() {
 
 // ── EL DORADO CANYON: FLYOVER SOUND ─────────────────────────────────────────
 const eldoradoFlyoverAudio = makeAudio('sounds/733117__gpag1__military-aircraft-fa-18-flyover-distant-crowd-noise_01.mp3');
-eldoradoFlyoverAudio.preload = 'auto';
+eldoradoFlyoverAudio.preload = 'auto';  // load eagerly — event fires mid-game with no warning
+eldoradoFlyoverAudio.load();            // trigger the network request immediately
 eldoradoFlyoverAudio.loop = false;
 
 // ── SLIDE PROJECTOR SOUND ────────────────────────────────────────────────────
