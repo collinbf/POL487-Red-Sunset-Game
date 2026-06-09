@@ -2314,6 +2314,49 @@
   line-height: 1.7;
   color: var(--ink);
 }
+
+/* ── AUGUST COUP 1991: SOVIET TV + TELEGRAM OVERLAY ─────────────── */
+.coup-overlay { display:flex; flex-direction:column; align-items:center; gap:0; width:100%; background:#1a0a05; padding:24px 20px 28px; border-radius:4px; }
+.coup-tv-wrap { position:relative; width:min(400px,90%); }
+.coup-tv-shell { background:linear-gradient(160deg,#7a4018 0%,#5c2e0e 40%,#3d1e08 100%); border-radius:18px 18px 14px 14px; padding:18px 18px 14px; box-shadow:0 8px 40px rgba(0,0,0,0.8),inset 0 1px 0 rgba(255,255,255,0.12),inset 0 -2px 4px rgba(0,0,0,0.5); position:relative; }
+.coup-tv-shell::before { content:''; position:absolute; inset:0; border-radius:inherit; pointer-events:none; background:repeating-linear-gradient(90deg,transparent,transparent 18px,rgba(0,0,0,0.06) 18px,rgba(0,0,0,0.06) 19px); }
+.coup-tv-screen-bezel { background:#111; border-radius:12px; padding:10px; box-shadow:inset 0 2px 8px rgba(0,0,0,0.9); }
+.coup-tv-screen { position:relative; width:100%; padding-top:73%; background:#000; border-radius:8px; overflow:hidden; }
+.coup-tv-screen img { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; border-radius:8px; filter:saturate(0.7) brightness(0.85) contrast(1.1); }
+.coup-tv-screen::after { content:''; position:absolute; inset:0; border-radius:8px; pointer-events:none; background:repeating-linear-gradient(to bottom,transparent,transparent 3px,rgba(0,0,0,0.15) 3px,rgba(0,0,0,0.15) 4px); z-index:2; }
+.coup-tv-screen::before { content:''; position:absolute; top:-8%; left:-8%; width:50%; height:55%; background:radial-gradient(ellipse,rgba(255,255,255,0.06) 0%,transparent 70%); border-radius:50%; z-index:3; pointer-events:none; }
+.coup-tv-controls { position:absolute; top:18px; right:-42px; width:34px; display:flex; flex-direction:column; gap:8px; align-items:center; background:linear-gradient(180deg,#252525,#1a1a1a); border-radius:0 8px 8px 0; padding:10px 5px; box-shadow:3px 0 8px rgba(0,0,0,0.5); }
+.coup-tv-knob { width:22px; height:22px; background:radial-gradient(circle at 35% 35%,#555,#1a1a1a); border-radius:50%; box-shadow:0 2px 5px rgba(0,0,0,0.7); }
+.coup-tv-slider { width:4px; height:30px; background:#2a2a2a; border-radius:2px; position:relative; }
+.coup-tv-slider::after { content:''; position:absolute; top:35%; left:-3px; width:10px; height:5px; background:#444; border-radius:1px; }
+.coup-tv-led { width:8px; height:8px; border-radius:50%; background:#dd2200; box-shadow:0 0 7px #dd2200; animation:coup-led-blink 1.4s ease-in-out infinite; }
+@keyframes coup-led-blink { 0%,100%{opacity:1} 50%{opacity:0.25} }
+.coup-tv-brand { text-align:center; margin-top:7px; font-family:'Playfair Display',serif; font-size:9px; font-weight:700; letter-spacing:.25em; color:#c8a44a; opacity:.75; text-transform:uppercase; }
+.coup-tv-brand span { font-size:7px; }
+.coup-tv-legs { display:flex; justify-content:space-around; width:65%; margin:0 auto; }
+.coup-tv-leg { width:10px; height:20px; background:linear-gradient(180deg,#3d1e08,#261208); border-radius:0 0 4px 4px; box-shadow:1px 2px 4px rgba(0,0,0,0.6); }
+/* Telegram */
+.coup-telegram { width:min(580px,100%); margin-top:22px; background:#f0e8d0; border:1px solid #b8a070; box-shadow:0 6px 24px rgba(0,0,0,0.55); font-family:'Cormorant Garamond',serif; position:relative; overflow:hidden; }
+.coup-telegram::before { content:''; position:absolute; inset:0; pointer-events:none; background:repeating-linear-gradient(180deg,transparent,transparent 23px,rgba(139,112,64,0.18) 23px,rgba(139,112,64,0.18) 24px); z-index:0; }
+.coup-telegram > * { position:relative; z-index:1; }
+.coup-tg-header { border-bottom:2px solid #8b7040; padding:10px 14px 8px; display:grid; grid-template-columns:130px 1fr 150px; }
+.coup-tg-left { border-right:1px solid #8b7040; padding-right:8px; font-size:8.5px; color:#4a3010; line-height:1.8; }
+.coup-tg-left-row { display:flex; gap:4px; align-items:baseline; }
+.coup-tg-left-row span { flex:1; border-bottom:1px solid #9a8050; }
+.coup-tg-centre { text-align:center; padding:4px 8px; }
+.coup-tg-ministry { font-size:7.5px; letter-spacing:.14em; text-transform:uppercase; color:#4a3010; display:flex; align-items:center; justify-content:center; gap:5px; }
+.coup-tg-seal { font-size:19px; line-height:1; opacity:.65; }
+.coup-tg-title { font-size:20px; font-weight:700; letter-spacing:.28em; color:#1a0e04; margin-top:2px; text-transform:uppercase; }
+.coup-tg-num { font-size:8.5px; color:#4a3010; margin-top:3px; }
+.coup-tg-right { border-left:1px solid #8b7040; padding-left:8px; font-size:8.5px; color:#4a3010; line-height:1.9; }
+.coup-tg-cat { border-bottom:1px solid #8b7040; padding:4px 14px; font-size:8.5px; color:#4a3010; }
+.coup-tg-addr { border-bottom:1px solid #8b7040; padding:5px 14px; font-size:10px; color:#1a0e04; font-weight:600; }
+.coup-tg-body { padding:10px 14px 8px; }
+.coup-tg-body p { font-size:12px; line-height:1.65; color:#140a02; margin-bottom:5px; }
+.coup-tg-sender { padding:4px 14px 8px; font-size:8.5px; color:#4a3010; border-top:1px solid #8b7040; }
+.coup-tg-choices { border-top:2px solid #8b7040; padding:10px 14px; display:flex; flex-direction:column; gap:8px; background:#ede0b8; }
+.coup-tg-choices .event-btn { font-size:12px; padding:9px 14px; text-align:left; }
+.coup-stamp { position:absolute; top:10px; right:12px; border:2px solid rgba(139,26,26,0.65); border-radius:2px; padding:3px 6px; transform:rotate(-5deg); font-family:'Playfair Display',serif; font-size:7.5px; font-weight:700; letter-spacing:.14em; color:rgba(139,26,26,0.7); text-transform:uppercase; white-space:nowrap; pointer-events:none; background:rgba(240,232,208,0.5); }
 </style>
 
 
@@ -7167,9 +7210,166 @@ function smartQuotes(str) {
   return result;
 }
 
+// ── AUGUST COUP 1991: CUSTOM TV + TELEGRAM DISPLAY ──────────────────────────
+function displayCoupEvent(event) {
+  // Pause background music; Swan Lake takes over
+  try {
+    if (typeof musicAudio !== 'undefined' && musicAudio) {
+      musicAudio.pause();
+      musicAudio.dataset.pausedForCoup = 'true';
+    }
+    if (swanLakeAudio && swanLakeAudio.dataset.missing !== 'true') {
+      swanLakeAudio.currentTime = 0;
+      swanLakeAudio.volume = uiState.audioMuted ? 0 : clamp(uiState.musicVolume ?? 0.7, 0, 1);
+      swanLakeAudio.play().catch(() => {});
+    }
+  } catch(e) {}
+
+  const choicesHtml = (event.choices || []).map((c, i) => `
+    <button class="event-btn" onclick="resolveEventChoice(${i})">${escapeHtml(c.text)}</button>
+  `).join('');
+
+  // Format description into paragraphs
+  const paras = (event.description || '').split(/\n+/).filter(Boolean)
+    .map(p => `<p>${escapeHtml(p)}</p>`).join('');
+
+  const card = document.querySelector('.pravda-modal-card');
+  if (card) {
+    card.innerHTML = `
+      <div class="coup-overlay">
+        <div class="coup-tv-wrap">
+          <div class="coup-tv-shell">
+            <div class="coup-tv-screen-bezel">
+              <div class="coup-tv-screen">
+                <img src="images/swan-lake.gif" alt="Soviet television — Swan Lake" />
+              </div>
+            </div>
+            <div class="coup-tv-controls">
+              <div class="coup-tv-led"></div>
+              <div class="coup-tv-slider"></div>
+              <div class="coup-tv-knob"></div>
+              <div class="coup-tv-slider"></div>
+              <div class="coup-tv-knob"></div>
+            </div>
+            <div class="coup-tv-brand">РУБИН 714 <span>&#9632; СССР</span></div>
+          </div>
+          <div class="coup-tv-legs">
+            <div class="coup-tv-leg"></div>
+            <div class="coup-tv-leg"></div>
+          </div>
+        </div>
+
+        <div class="coup-telegram">
+          <div class="coup-stamp">СОВЕРШЕННО СЕКРЕТНО</div>
+          <div class="coup-tg-header">
+            <div class="coup-tg-left">
+              <div class="coup-tg-left-row">Слов <span></span></div>
+              <div class="coup-tg-left-row">руб. <span></span> коп. <span></span></div>
+              <div style="margin-top:4px;">Принял</div>
+              <div class="coup-tg-left-row"><span></span></div>
+            </div>
+            <div class="coup-tg-centre">
+              <div class="coup-tg-ministry">
+                МИНИСТЕРСТВО <span class="coup-tg-seal">☭</span> СВЯЗИ СССР
+              </div>
+              <div class="coup-tg-title">ТЕЛЕГРАММА</div>
+              <div class="coup-tg-num">№ ______ &nbsp;&nbsp; сл. ______ го ______ ч. ______ м.</div>
+            </div>
+            <div class="coup-tg-right">
+              ПЕРЕДАЧА<br>
+              ______ го ______ ч. ______ м.<br>
+              Номер рабочего места<br>
+              <span style="border-bottom:1px solid #8b7040;display:block;width:100%;margin:2px 0;"></span>
+              Передал ______<br>
+              Служебные отметки<br>
+              <span style="border-bottom:1px solid #8b7040;display:block;width:100%;margin:2px 0;"></span>
+            </div>
+          </div>
+          <div class="coup-tg-cat">
+            Категория и отметки особого вида: &nbsp;<strong>МОЛНИЯ — СВЕРХСРОЧНО</strong>
+          </div>
+          <div class="coup-tg-addr">
+            Куда, кому: &nbsp; ВИКТОРУ — ФОРОС — КРЫМ
+          </div>
+          <div class="coup-tg-body">${paras}</div>
+          <div class="coup-tg-sender">
+            Фамилия и адрес отправителя: &nbsp; ГКЧ&nbsp;П — Москва &nbsp;·&nbsp; (не оплачивается и по связям не передаётся)
+          </div>
+          <div class="coup-tg-choices">${choicesHtml}</div>
+        </div>
+      </div>
+    `;
+  }
+
+  const panel = document.getElementById('event-panel');
+  panel.classList.add('active');
+  animatePaperUnfurl(panel);
+  renderEventQueueStatus();
+}
+
+function stopSwanLake() {
+  try {
+    if (swanLakeAudio) { swanLakeAudio.pause(); swanLakeAudio.currentTime = 0; }
+    if (typeof musicAudio !== 'undefined' && musicAudio &&
+        musicAudio.dataset.pausedForCoup === 'true') {
+      delete musicAudio.dataset.pausedForCoup;
+      if (!uiState.audioMuted && gameStarted) musicAudio.play().catch(() => {});
+    }
+  } catch(e) {}
+}
+
+function restoreNormalEventPanel() {
+  // Rebuild the standard Pravda card HTML that displayEvent normally uses
+  const card = document.querySelector('.pravda-modal-card');
+  if (card) {
+    card.innerHTML = `
+      <div class="pravda-masthead">
+        <div class="pravda-mast-top" id="pravda-mast-top"></div>
+        <div class="pravda-mast-name" id="pravda-mast-name">
+          <img id="pravda-logo" class="pravda-logo" alt="PRAVDA" />
+          <div id="izvestiya-sub" class="izvestiya-sub" style="display:none;">
+            <div class="izvestiya-tagline">Информационная гражданская газета</div>
+          </div>
+        </div>
+        <div class="pravda-issue-strip">
+          <span class="pravda-strip-left" id="pravda-issue"></span>
+          <span class="pravda-strip-centre" id="pravda-date"></span>
+          <span class="pravda-strip-right" id="pravda-price-label"></span>
+        </div>
+      </div>
+      <div class="pravda-grid">
+        <div class="pravda-photo" id="pravda-photo">
+          <div class="pravda-photo-frame">
+            <img id="pravda-img" class="pravda-img" alt="Archival photograph" loading="eager" decoding="async" />
+            <div class="pravda-photo-fallback" id="pravda-photo-fallback">ARCHIVAL PHOTOGRAPH</div>
+          </div>
+          <div class="pravda-caption" id="pravda-caption"></div>
+        </div>
+        <div class="pravda-main" id="pravda-main">
+          <div class="pravda-headline" id="event-title"></div>
+          <div class="pravda-body" id="event-desc"></div>
+          <div class="pravda-choices" id="event-choices"></div>
+        </div>
+      </div>
+    `;
+  }
+}
+
 function displayEvent(event) {
   console.log('[displayEvent] id:', event.id, '| name:', event.name);
   activeEvent = event;
+
+  // ── AUGUST COUP 1991: SPECIAL TV + TELEGRAM LAYOUT ───────────────
+  if (event.id === 'august_coup_1991') {
+    displayCoupEvent(event);
+    return;
+  }
+
+  // If we're returning from the coup event, restore the normal panel structure
+  if (!document.getElementById('event-title')) {
+    restoreNormalEventPanel();
+  }
+
   setupPravdaMasthead(event.image || null, event.caption || null);
   renderEventQueueStatus();
   const panel = document.getElementById('event-panel');
@@ -7308,6 +7508,8 @@ function resolveEventChoice(choiceIdx) {
 
   // ── COUP OUTCOME HOOK ────────────────────────────────────────────
   if (event.id === 'august_coup_1991') {
+    stopSwanLake();
+    restoreNormalEventPanel();
     const choiceText = choice.text.toLowerCase();
     if (choiceText.includes('capitulate') || choiceText.includes('sign the emergency')) {
       activeEvent = null;
@@ -9634,6 +9836,7 @@ function applyAudioSettings(){
   try { if (typeof chernobylPhoneAudio  !== 'undefined' && chernobylPhoneAudio)  { chernobylPhoneAudio.muted  = muted; chernobylPhoneAudio.volume  = sfxVol; } } catch(e){}
   try { if (typeof pripyatAudio         !== 'undefined' && pripyatAudio)         { pripyatAudio.muted         = muted; pripyatAudio.volume         = sfxVol; } } catch(e){}
   try { if (typeof eldoradoFlyoverAudio !== 'undefined' && eldoradoFlyoverAudio) { eldoradoFlyoverAudio.muted = muted; eldoradoFlyoverAudio.volume = sfxVol; } } catch(e){}
+  try { if (typeof swanLakeAudio !== 'undefined' && swanLakeAudio) { swanLakeAudio.muted = muted; swanLakeAudio.volume = musicVol; } } catch(e){}
 }
 
 function debugSetValue(group, key, value){
@@ -9806,6 +10009,12 @@ const eldoradoFlyoverAudio = makeAudio('sounds/733117__gpag1__military-aircraft-
 eldoradoFlyoverAudio.preload = 'auto';  // load eagerly — event fires mid-game with no warning
 eldoradoFlyoverAudio.load();            // trigger the network request immediately
 eldoradoFlyoverAudio.loop = false;
+
+// ── AUGUST COUP 1991: SWAN LAKE ───────────────────────────────────────────────
+const swanLakeAudio = makeAudio('sounds/swan_lake.mp3');
+swanLakeAudio.preload = 'auto';
+swanLakeAudio.load();
+swanLakeAudio.loop = true;
 
 // ── SLIDE PROJECTOR SOUND ────────────────────────────────────────────────────
 const projectorAudio = makeAudio('sounds/slideprojector_sounds.wav');
