@@ -2514,11 +2514,12 @@
 </div><!-- /intro-modal -->
 
 <!-- MASTHEAD -->
-<div class="masthead">
+<div class="masthead" style="position:relative;">
   <p class="masthead-title">
  <span style="font-size:.75em;vertical-align:middle;margin-right:.15em;opacity:.85;">&#9773;</span>Red Sunset<span style="font-size:.75em;vertical-align:middle;margin-left:.15em;opacity:.85;">&#9773;</span>
  </p>
   <p class="masthead-sub">Реформа. Гласность. Перестройка.</p>
+  <button id="dev-menu-btn" onclick="toggleDevModal()" title="Developer menu" aria-label="Open developer menu" style="position:absolute;bottom:10px;right:14px;background:rgba(255,255,255,0.10);border:1px solid rgba(200,164,74,0.45);color:#c8a44a;border-radius:3px;padding:3px 8px;font-family:'Playfair Display',serif;font-size:10px;font-weight:700;letter-spacing:.10em;text-transform:uppercase;cursor:pointer;opacity:0.65;transition:opacity .15s,background .15s;" onmouseover="this.style.opacity='1';this.style.background='rgba(255,255,255,0.18)'" onmouseout="this.style.opacity='0.65';this.style.background='rgba(255,255,255,0.10)'">⚙ Dev</button>
 </div>
 
 <!-- MOBILE STICKY STATUS BAR — hidden on desktop, shown only when stacked layout kicks in -->
@@ -2693,7 +2694,7 @@
   <div class="main">
 
     <!-- MAIN TABS -->
-    <div class="main-tabs">  <button class="main-tab active" onclick="switchMainTab('game', this)">Game</button>  <button class="main-tab" onclick="switchMainTab('tree', this)">Reform Tree</button>  <button class="main-tab" onclick="switchMainTab('library', this)">Library</button>  <!-- DEV TEST BUTTON: only shown when ?dev=true -->  <button class="main-tab" id="test-event-btn" onclick="testPravdaEvent(); flashTestButton()" type="button" style="display:none;">    DEV: Test Event  </button>  <button class="main-tab" onclick="switchMainTab('dev', this)">Dev</button></div>
+    <div class="main-tabs">  <button class="main-tab active" onclick="switchMainTab('game', this)">Game</button>  <button class="main-tab" onclick="switchMainTab('tree', this)">Reform Tree</button>  <button class="main-tab" onclick="switchMainTab('library', this)">Library</button>  <!-- DEV TEST BUTTON: only shown when ?dev=true -->  <button class="main-tab" id="test-event-btn" onclick="testPravdaEvent(); flashTestButton()" type="button" style="display:none;">    DEV: Test Event  </button>  </div>
     <!-- GAME TAB -->
     <div id="tab-game" class="main-tab-panel">
 
@@ -8436,11 +8437,20 @@ function triggerGameOver(type, message) {
   `;
   document.getElementById('event-choices').innerHTML = type === 'dissolution'
     ? `<button class="event-btn" onclick="resetGame()" style="font-size:13px;padding:10px 20px;font-weight:700;letter-spacing:.1em;border-width:2px;">↺ New Game</button>
-       <button class="event-btn" id="btn-pizza-hut" onclick="document.getElementById('embed-pizza-hut').style.display='block';this.style.display='none';" style="font-size:13px;padding:10px 20px;font-weight:700;letter-spacing:.1em;border-width:2px;">🍕 Agree to be in a Pizza Hut Commercial</button>
-       <button class="event-btn" id="btn-lv" onclick="document.getElementById('embed-lv').style.display='block';this.style.display='none';" style="font-size:13px;padding:10px 20px;font-weight:700;letter-spacing:.1em;border-width:2px;">👜 Perform in a Louis Vuitton Commercial</button>
-       <div id="embed-pizza-hut" style="display:none;margin-top:12px;"><iframe width="100%" height="315" src="https://www.youtube.com/embed/fgm14D1jHUw?start=8" title="Gorbachev Pizza Hut Commercial" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen style="max-width:560px;display:block;"></iframe></div>
-       <div id="embed-lv" style="display:none;margin-top:12px;"><iframe width="100%" height="315" src="https://www.youtube.com/embed/hHIBWa-2E4k" title="Gorbachev Louis Vuitton Commercial" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen style="max-width:560px;display:block;"></iframe></div>`
+       <button class="event-btn" id="btn-pizza-hut" onclick="openVideoModal('https://www.youtube.com/embed/fgm14D1jHUw?start=8&autoplay=1','Gorbachev Pizza Hut Commercial')" style="font-size:13px;padding:10px 20px;font-weight:700;letter-spacing:.1em;border-width:2px;">🍕 Agree to be in a Pizza Hut Commercial</button>
+       <button class="event-btn" id="btn-lv" onclick="openVideoModal('https://www.youtube.com/embed/hHIBWa-2E4k?autoplay=1','Gorbachev Louis Vuitton Commercial')" style="font-size:13px;padding:10px 20px;font-weight:700;letter-spacing:.1em;border-width:2px;">👜 Perform in a Louis Vuitton Commercial</button>`
     : '<button class="event-btn" onclick="resetGame()" style="font-size:13px;padding:10px 20px;font-weight:700;letter-spacing:.1em;border-width:2px;">↺ New Game</button>';
+  // ── ENDING IMAGES ─────────────────────────────────────────────────
+  const endingImages = {
+    'civil-war':   'images/coup_attempt.jpg',
+    'coup':        'images/coup_attempt.jpg',
+    'revolution':  'images/coup_attempt.jpg',
+    'dissolution': 'images/pravda-placeholder.jpg',
+    'success':     'images/pravda-placeholder.jpg',
+    'bankruptcy':  'images/pravda-placeholder.jpg',
+  };
+  setupPravdaMasthead(endingImages[type] || null, null);
+
   panel.classList.add('active', 'is-ending');
   animatePaperUnfurl(panel);
   renderPolicies();
@@ -9319,7 +9329,7 @@ function unlockAllAudio(){
     // Prime teletype audio
     if (!ttyAudio) {
       ttyAudio = makeAudio('sounds/169260__stratcat322__teletype_fast_speed_01.mp3');
-      ttyAudio.volume = Math.min(0.75, uiState.audioMuted ? 0 : uiState.sfxVolume);
+      ttyAudio.volume = Math.min(0.3, uiState.audioMuted ? 0 : uiState.sfxVolume * 0.4);
       ttyAudio.muted = uiState.audioMuted;
       ttyAudio.loop = true;
     }
@@ -9337,7 +9347,7 @@ function startTtySound() {
   try {
     if (!ttyAudio) {
       ttyAudio = makeAudio('sounds/169260__stratcat322__teletype_fast_speed_01.mp3');
-      ttyAudio.volume = Math.min(0.75, uiState.audioMuted ? 0 : uiState.sfxVolume);
+      ttyAudio.volume = Math.min(0.3, uiState.audioMuted ? 0 : uiState.sfxVolume * 0.4);
       ttyAudio.muted = uiState.audioMuted;
       ttyAudio.loop = true;
     }
@@ -9519,7 +9529,7 @@ function applyAudioSettings(){
   const musicVol = muted ? 0 : uiState.musicVolume;
   // SFX audio (projector, teletype, paper crackle etc.)
   try { if (typeof projectorAudio !== 'undefined' && projectorAudio) { projectorAudio.muted = muted; projectorAudio.volume = sfxVol; } } catch(e){}
-  try { if (ttyAudio) { ttyAudio.muted = muted; ttyAudio.volume = Math.min(0.75, sfxVol); } } catch(e){}
+  try { if (ttyAudio) { ttyAudio.muted = muted; ttyAudio.volume = Math.min(0.3, sfxVol * 0.4); } } catch(e){}
   // Music audio — wire to any audio elements in the music/ folder when ready
   try {
     document.querySelectorAll('audio[data-music]').forEach(el => {
@@ -9918,6 +9928,40 @@ document.addEventListener('keydown', function(e) {
 
 
 <!-- PRAVDA OUTCOME MODAL — shown after a choice, with the long narrative text -->
+<!-- VIDEO LIGHTBOX MODAL -->
+<div id="video-modal-overlay" onclick="if(event.target===this)closeVideoModal()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.88);z-index:9500;align-items:center;justify-content:center;">
+  <div style="position:relative;width:90%;max-width:800px;">
+    <button onclick="closeVideoModal()" aria-label="Close video" style="position:absolute;top:-36px;right:0;background:transparent;border:none;font-size:28px;color:#fff;cursor:pointer;line-height:1;opacity:.8;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.8'">&times;</button>
+    <div style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;border-radius:4px;background:#000;">
+      <iframe id="video-modal-iframe" src="" title="" frameborder="0"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+        allowfullscreen
+        style="position:absolute;top:0;left:0;width:100%;height:100%;border:none;">
+      </iframe>
+    </div>
+  </div>
+</div>
+
+<!-- DEV MENU MODAL -->
+<div id="dev-modal-overlay" onclick="if(event.target===this)closeDevModal()" style="display:none;position:fixed;inset:0;background:rgba(20,10,5,0.72);z-index:8000;align-items:flex-start;justify-content:center;padding:3rem 1rem 1rem;overflow-y:auto;">
+  <div style="background:var(--parchment);border:2px solid rgba(139,26,26,0.45);border-radius:6px;width:100%;max-width:680px;padding:20px;position:relative;box-shadow:0 8px 32px rgba(0,0,0,0.45);">
+    <button onclick="closeDevModal()" aria-label="Close developer menu" style="position:absolute;top:10px;right:12px;background:transparent;border:none;font-size:20px;cursor:pointer;color:var(--ink);opacity:.55;line-height:1;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.55'">&times;</button>
+    <div style="font-family:'Playfair Display',serif;font-size:14px;font-weight:700;letter-spacing:.10em;text-transform:uppercase;color:var(--red-dark);margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid rgba(139,26,26,0.25);">&#9881; Developer Menu</div>
+    <div class="debug-panel" style="margin-bottom:0;">
+      <div class="section-title panel-header">Playtest Tools</div>
+      <div class="debug-row">
+        <button class="btn" onclick="testPravdaEvent()">Test Event</button>
+        <button class="btn" onclick="debugFireNextEvent()">Fire Next Event</button>
+        <button class="btn" onclick="debugAdvanceMonths(6)">+6 Months</button>
+        <button class="btn" onclick="debugForceEnding('coup')">Force Coup</button>
+        <button class="btn" onclick="debugForceEnding('dissolution')">Force Dissolution</button>
+        <button class="btn" onclick="debugForceEnding('success')">Force Success</button>
+      </div>
+      <div class="debug-grid" id="debug-grid-modal"></div>
+    </div>
+  </div>
+</div>
+
 <div id="pravda-outcome-modal" role="dialog" aria-modal="true" aria-labelledby="outcome-choice-title-el" onclick="if(event.target===this)closePravdaOutcome()">
   <div class="outcome-card">
     <!-- Header: ЛК (via ::before), СОВ. СЕКРЕТНО stamp (via label), ШИФРТЕЛЕГРАММА title -->
@@ -9942,3 +9986,57 @@ document.addEventListener('keydown', function(e) {
 </body>
 </html>
  
+
+<script>
+// ── DEV MENU MODAL ───────────────────────────────────────────────────────────
+function openDevModal() {
+  var overlay = document.getElementById('dev-modal-overlay');
+  if (!overlay) return;
+  overlay.style.display = 'flex';
+  var grid = document.getElementById('debug-grid-modal');
+  if (grid && typeof debugMetricRows === 'function') {
+    grid.innerHTML = debugMetricRows().map(function(row) {
+      return '<div class="debug-card"><label><span>' + escapeHtml(row.label) + '</span><strong id="dbm-' + row.group + '-' + row.key + '">' + Math.round(Number(row.value||0)) + '</strong></label><input type="range" min="' + row.min + '" max="' + row.max + '" value="' + row.value + '" oninput="debugSetValue(\'' + row.group + '\',\'' + row.key + '\',this.value);var v=document.getElementById(\'dbm-' + row.group + '-' + row.key + '\');if(v)v.textContent=Math.round(this.value);" /></div>';
+    }).join('');
+  }
+}
+function closeDevModal() {
+  var overlay = document.getElementById('dev-modal-overlay');
+  if (overlay) overlay.style.display = 'none';
+}
+function toggleDevModal() {
+  var overlay = document.getElementById('dev-modal-overlay');
+  if (!overlay) return;
+  if (overlay.style.display === 'none' || overlay.style.display === '') { openDevModal(); } else { closeDevModal(); }
+}
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') {
+    var dev = document.getElementById('dev-modal-overlay');
+    if (dev && dev.style.display !== 'none') { closeDevModal(); }
+  }
+});
+</script>
+
+<script>
+// ── VIDEO LIGHTBOX ───────────────────────────────────────────────────────────
+function openVideoModal(src, title) {
+  var overlay = document.getElementById('video-modal-overlay');
+  var iframe  = document.getElementById('video-modal-iframe');
+  if (!overlay || !iframe) return;
+  iframe.src   = src;
+  iframe.title = title || '';
+  overlay.style.display = 'flex';
+}
+function closeVideoModal() {
+  var overlay = document.getElementById('video-modal-overlay');
+  var iframe  = document.getElementById('video-modal-iframe');
+  if (overlay) overlay.style.display = 'none';
+  if (iframe)  iframe.src = ''; // stop playback
+}
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') {
+    var vm = document.getElementById('video-modal-overlay');
+    if (vm && vm.style.display !== 'none') { closeVideoModal(); }
+  }
+});
+</script>
