@@ -7198,6 +7198,14 @@ function displayEvent(event) {
   if (event.id === 'chernobyl') {
     startChernobylPhone();
   }
+  // El Dorado Canyon — military aircraft flyover sound
+  if (event.id === 'libya_bombing_1986') {
+    try {
+      eldoradoFlyoverAudio.currentTime = 0;
+      eldoradoFlyoverAudio.volume = uiState.audioMuted ? 0 : Math.min(1, uiState.sfxVolume ?? 0.7);
+      eldoradoFlyoverAudio.play().catch(() => {});
+    } catch(e) {}
+  }
 }
 
 function resolveEventChoice(choiceIdx) {
@@ -9359,6 +9367,15 @@ function unlockAllAudio(){
     }
   } catch(e){}
   try {
+    // Prime El Dorado Canyon flyover audio
+    if (typeof eldoradoFlyoverAudio !== 'undefined' && eldoradoFlyoverAudio) {
+      const p = eldoradoFlyoverAudio.play();
+      if (p && p.catch) p.catch(()=>{});
+      eldoradoFlyoverAudio.pause();
+      eldoradoFlyoverAudio.currentTime = 0;
+    }
+  } catch(e){}
+  try {
     // Prime teletype audio
     if (!ttyAudio) {
       ttyAudio = makeAudio('sounds/169260__stratcat322__teletype_fast_speed_01.mp3');
@@ -9746,6 +9763,11 @@ function startSoundtrack() {
     }
   });
 }
+
+// ── EL DORADO CANYON: FLYOVER SOUND ─────────────────────────────────────────
+const eldoradoFlyoverAudio = makeAudio('sounds/733117__gpag1__military-aircraft-fa-18-flyover-distant-crowd-noise_01.mp3');
+eldoradoFlyoverAudio.preload = 'auto';
+eldoradoFlyoverAudio.loop = false;
 
 // ── SLIDE PROJECTOR SOUND ────────────────────────────────────────────────────
 const projectorAudio = makeAudio('sounds/slideprojector_sounds.wav');
