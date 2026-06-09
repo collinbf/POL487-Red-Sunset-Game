@@ -1275,11 +1275,8 @@
     .game-layout { padding: 0 0.5rem; }
   }
 
-  /* ── MOBILE STICKY STATUS BAR ─────────────────────────────────────────────
-     Sits just above the game-layout on narrow screens. Hidden on desktop.    */
-  .mobile-status-bar {
-    display: none; /* hidden by default; shown via media query below */
-  }
+  /* ── MOBILE STICKY STATUS BAR ──────────────────────────────────────────── */
+  .mobile-status-bar { display: none; }
   @media(max-width:780px) {
     .mobile-status-bar {
       display: flex;
@@ -1301,29 +1298,18 @@
       color: var(--gold, #c8a84a);
       font-family: 'Playfair Display', serif;
     }
-    .mobile-status-sep {
-      opacity: .45;
-    }
-    .mobile-status-capital strong {
-      color: var(--gold, #c8a84a);
-    }
-  }
+    .mobile-status-sep { opacity: .45; }
+    .mobile-status-capital strong { color: var(--gold, #c8a84a); }
 
-  /* ── STICKY ACTION BAR ON MOBILE ──────────────────────────────────────────
-     The action bar sticks to the bottom of the viewport on narrow screens
-     so "Enact" and "Advance" are always one thumb-tap away.                  */
-  @media(max-width:780px) {
+    /* ── STICKY ACTION BAR ─────────────────────────────────────────────────── */
     .action-bar {
       position: sticky;
       bottom: 0;
       z-index: 100;
       background: var(--panel, #1a1008);
       border-top: 2px solid var(--rule, rgba(139,26,26,0.35));
-      /* override the normal margin-top so it doesn't gap weirdly when stuck */
       margin-top: 0;
-      padding: 10px 14px 12px;
-      /* safe-area inset for phones with a home indicator */
-      padding-bottom: max(12px, env(safe-area-inset-bottom, 12px));
+      padding: 10px 14px max(12px, env(safe-area-inset-bottom, 12px));
       box-shadow: 0 -4px 18px rgba(0,0,0,0.55);
     }
   }
@@ -1374,12 +1360,17 @@
   inset: 0;
   z-index: 9500;
   background: rgba(8,5,2,0.90);
-  align-items: flex-start;
+  align-items: center;
   justify-content: center;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
   padding: 3vh 1rem 4vh;
   animation: backdropIn 0.35s ease-out forwards;
+}
+/* On mobile the card can exceed the viewport height — anchor to top so
+   the overlay can scroll and the button stays reachable. */
+@media (max-width: 780px) {
+  #pravda-outcome-modal { align-items: flex-start; }
 }
 #pravda-outcome-modal.active { display: flex; }
 
@@ -1387,9 +1378,6 @@
 #pravda-outcome-modal .outcome-card {
   position: relative;
   width: min(680px, 100%);
-  /* On small screens the card must never exceed the viewport height.
-     The modal itself scrolls, so the button is always reachable. */
-  box-sizing: border-box;
   background:
     repeating-linear-gradient(
       180deg,
@@ -5033,7 +5021,7 @@ The eulogy is a political instrument. Choose your emphasis carefully.`,
   {
     id: 'geneva_summit_event',
     name: 'The Geneva Summit',
-    image: 'images/Geneva_summit_1985.jpg',
+    image: 'images/Geneva_Summit.jpg',
     trigger: { month: 11, year: 1985 },
     description: `Comrade General Secretary — you have arrived in Geneva for your first face-to-face meeting with President Ronald Reagan. The Cold War has grown ruinously expensive and both sides know it. Western media portray you as a new kind of Soviet leader; the hardliners in Moscow worry that any concession here will be taken as weakness.
 
@@ -7058,6 +7046,10 @@ let chernobylPhoneAudio = null;
 function startChernobylPhone() {
   try {
     if (chernobylPhoneAudio) { chernobylPhoneAudio.pause(); chernobylPhoneAudio.currentTime = 0; }
+    if (typeof musicAudio !== 'undefined' && musicAudio && !musicAudio.paused) {
+      musicAudio.pause();
+      musicAudio.dataset.pausedForChernobyl = 'true';
+    }
     chernobylPhoneAudio = makeAudio('sounds/telephone_Chernobyl_disaster.mp3');
     chernobylPhoneAudio.volume = uiState.audioMuted ? 0 : Math.min(1, uiState.sfxVolume ?? 0.7);
     chernobylPhoneAudio.loop = true;
@@ -7071,6 +7063,12 @@ function stopChernobylPhone() {
       chernobylPhoneAudio.currentTime = 0;
       chernobylPhoneAudio = null;
     }
+    if (typeof musicAudio !== 'undefined' && musicAudio &&
+        musicAudio.dataset.pausedForChernobyl === 'true' &&
+        (!pripyatAudio || pripyatAudio.paused)) {
+      delete musicAudio.dataset.pausedForChernobyl;
+      if (!uiState.audioMuted && gameStarted) musicAudio.play().catch(() => {});
+    }
   } catch(e) {}
 }
 
@@ -7079,6 +7077,10 @@ let pripyatAudio = null;
 function startPripyatAudio() {
   try {
     if (pripyatAudio) { pripyatAudio.pause(); pripyatAudio.currentTime = 0; }
+    if (typeof musicAudio !== 'undefined' && musicAudio && !musicAudio.paused) {
+      musicAudio.pause();
+      musicAudio.dataset.pausedForPripyat = 'true';
+    }
     pripyatAudio = makeAudio('sounds/Pripyat_evacuation_1986.mp3');
     pripyatAudio.volume = uiState.audioMuted ? 0 : Math.min(1, uiState.sfxVolume ?? 0.7);
     pripyatAudio.loop = true;
@@ -7091,6 +7093,12 @@ function stopPripyatAudio() {
       pripyatAudio.pause();
       pripyatAudio.currentTime = 0;
       pripyatAudio = null;
+    }
+    if (typeof musicAudio !== 'undefined' && musicAudio &&
+        musicAudio.dataset.pausedForPripyat === 'true' &&
+        (!chernobylPhoneAudio || chernobylPhoneAudio.paused)) {
+      delete musicAudio.dataset.pausedForPripyat;
+      if (!uiState.audioMuted && gameStarted) musicAudio.play().catch(() => {});
     }
   } catch(e) {}
 }
@@ -9309,7 +9317,7 @@ function unlockAllAudio(){
   try {
     // Prime teletype audio
     if (!ttyAudio) {
-      ttyAudio = makeAudio('sounds/teletype_sound.mp3');
+      ttyAudio = makeAudio('sounds/169260__stratcat322__teletype_fast_speed_01.mp3');
       ttyAudio.volume = Math.min(0.75, uiState.audioMuted ? 0 : uiState.sfxVolume);
       ttyAudio.muted = uiState.audioMuted;
       ttyAudio.loop = true;
@@ -9327,7 +9335,7 @@ let ttyAudio = null;
 function startTtySound() {
   try {
     if (!ttyAudio) {
-      ttyAudio = makeAudio('sounds/teletype_sound.mp3');
+      ttyAudio = makeAudio('sounds/169260__stratcat322__teletype_fast_speed_01.mp3');
       ttyAudio.volume = Math.min(0.75, uiState.audioMuted ? 0 : uiState.sfxVolume);
       ttyAudio.muted = uiState.audioMuted;
       ttyAudio.loop = true;
@@ -9869,6 +9877,12 @@ function showPravdaOutcome(choiceTitle, outcomeText, effects, onClose) {
 
   _pendingOutcomeCallback = onClose || null;
   modal.classList.add('active');
+  // Play the opening-note sting when the consequence report appears
+  try {
+    const openingNote = makeAudio('sounds/711853__dalexgray__opening_note.mp3');
+    openingNote.volume = uiState.audioMuted ? 0 : Math.min(1, uiState.sfxVolume ?? 0.7);
+    openingNote.play().catch(() => {});
+  } catch(e) {}
 }
 
 function closePravdaOutcome() {
