@@ -1300,8 +1300,6 @@
     }
     .mobile-status-sep { opacity: .45; }
     .mobile-status-capital strong { color: var(--gold, #c8a84a); }
-
-    /* ── STICKY ACTION BAR ─────────────────────────────────────────────────── */
     .action-bar {
       position: sticky;
       bottom: 0;
@@ -1367,8 +1365,6 @@
   padding: 3vh 1rem 4vh;
   animation: backdropIn 0.35s ease-out forwards;
 }
-/* On mobile the card can exceed the viewport height — anchor to top so
-   the overlay can scroll and the button stays reachable. */
 @media (max-width: 780px) {
   #pravda-outcome-modal { align-items: flex-start; }
 }
@@ -8438,7 +8434,13 @@ function triggerGameOver(type, message) {
     <p style="margin-top:1rem;font-family:'Playfair Display',serif;font-weight:700;font-size:12px;letter-spacing:.06em;text-transform:uppercase;">Reform record</p>
     ${enactedHtml}
   `;
-  document.getElementById('event-choices').innerHTML = '<button class="event-btn" onclick="resetGame()" style="font-size:13px;padding:10px 20px;font-weight:700;letter-spacing:.1em;border-width:2px;">↺ New Game</button>';
+  document.getElementById('event-choices').innerHTML = type === 'dissolution'
+    ? `<button class="event-btn" onclick="resetGame()" style="font-size:13px;padding:10px 20px;font-weight:700;letter-spacing:.1em;border-width:2px;">↺ New Game</button>
+       <button class="event-btn" id="btn-pizza-hut" onclick="document.getElementById('embed-pizza-hut').style.display='block';this.style.display='none';" style="font-size:13px;padding:10px 20px;font-weight:700;letter-spacing:.1em;border-width:2px;">🍕 Agree to be in a Pizza Hut Commercial</button>
+       <button class="event-btn" id="btn-lv" onclick="document.getElementById('embed-lv').style.display='block';this.style.display='none';" style="font-size:13px;padding:10px 20px;font-weight:700;letter-spacing:.1em;border-width:2px;">👜 Perform in a Louis Vuitton Commercial</button>
+       <div id="embed-pizza-hut" style="display:none;margin-top:12px;"><iframe width="100%" height="315" src="https://www.youtube.com/embed/fgm14D1jHUw?start=8" title="Gorbachev Pizza Hut Commercial" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen style="max-width:560px;display:block;"></iframe></div>
+       <div id="embed-lv" style="display:none;margin-top:12px;"><iframe width="100%" height="315" src="https://www.youtube.com/embed/hHIBWa-2E4k" title="Gorbachev Louis Vuitton Commercial" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen style="max-width:560px;display:block;"></iframe></div>`
+    : '<button class="event-btn" onclick="resetGame()" style="font-size:13px;padding:10px 20px;font-weight:700;letter-spacing:.1em;border-width:2px;">↺ New Game</button>';
   panel.classList.add('active', 'is-ending');
   animatePaperUnfurl(panel);
   renderPolicies();
@@ -8820,7 +8822,6 @@ function renderDate() {
   if (pDate) pDate.textContent = document.getElementById('current-date')?.textContent || '';
   const pIssue = document.getElementById('pravda-issue');
   if (pIssue) pIssue.textContent = '\u2116 ' + String(gameState.turn) + '.';
-  // Keep the mobile sticky status bar in sync
   const mDate = document.getElementById('mobile-status-date');
   if (mDate) mDate.textContent = formatMonthYear(gameState.month, gameState.year);
   const mBudget = document.getElementById('mobile-status-budget');
@@ -9877,7 +9878,6 @@ function showPravdaOutcome(choiceTitle, outcomeText, effects, onClose) {
 
   _pendingOutcomeCallback = onClose || null;
   modal.classList.add('active');
-  // Play the opening-note sting when the consequence report appears
   try {
     const openingNote = makeAudio('sounds/711853__dalexgray__opening_note.mp3');
     openingNote.volume = uiState.audioMuted ? 0 : Math.min(1, uiState.sfxVolume ?? 0.7);
