@@ -1330,6 +1330,11 @@
 .pravda-mast-top{ font-family:'IM Fell English',serif; font-size:11px; letter-spacing:.06em; text-transform:uppercase; color:rgba(0,0,0,0.80); }
 .pravda-mast-name{ font-family:'Playfair Display',serif; font-weight:900; font-size:34px; letter-spacing:.10em; color:rgba(0,0,0,0.92); margin-top:2px; }
 .pravda-mast-sub{ font-family:'IM Fell English',serif; font-style:italic; font-size:12px; color:rgba(0,0,0,0.75); margin-top:2px; }
+/* Dissolution ending: Izvestiya logo + subtext */
+.pravda-masthead.is-dissolution .pravda-mast-top{ display:none; }
+.pravda-masthead.is-dissolution .pravda-mast-name{ flex-direction:column; align-items:center; gap:0; }
+.izvestiya-sub{ width:100%; text-align:center; }
+.izvestiya-tagline{ font-family:Arial,Helvetica,sans-serif; font-size:11.5px; font-weight:700; font-style:normal; letter-spacing:.02em; color:rgba(0,0,0,0.80); margin-top:4px; }
 .pravda-issue-strip{ display:grid; grid-template-columns:1fr auto 1fr; align-items:center; border-top:2px solid rgba(0,0,0,0.85); border-bottom:2px solid rgba(0,0,0,0.85); padding:6px 0; margin-top:8px; font-family:'IM Fell English',serif; font-size:12px; color:rgba(0,0,0,0.88); }
 .pravda-strip-left{ justify-self:start; padding-left:2px; }
 .pravda-strip-centre{ justify-self:center; }
@@ -1449,7 +1454,7 @@
   padding-top: 4px;
 }
 
-/* Form meta row: Из / date / Расшифр */
+/* Form meta row: Из / date / Расшифровка */
 #pravda-outcome-modal .outcome-banner {
   padding: 4px 18px 6px 86px;
   border-bottom: 1px solid rgba(139,26,26,0.35);
@@ -2705,6 +2710,9 @@
     <div class="pravda-mast-top" id="pravda-mast-top"></div>
     <div class="pravda-mast-name" id="pravda-mast-name">
       <img id="pravda-logo" class="pravda-logo" alt="PRAVDA" />
+      <div id="izvestiya-sub" class="izvestiya-sub" style="display:none;">
+        <div class="izvestiya-tagline">Информационная гражданская газета</div>
+      </div>
     </div>
     <div class="pravda-issue-strip">
       <span class="pravda-strip-left" id="pravda-issue"></span>
@@ -2864,8 +2872,7 @@ const gameState = {
   metrics: {
     economy:            35, // Industrial output, consumer goods
     stability:          65, // Internal order, absence of unrest
-    popularAffection:     60, // Public opinion of Gorbachev (GDD: 60)
-    military: 70,
+    popularAffection:   60, // Public opinion of Gorbachev (GDD: 60)
     partyUnity:         60, // CPSU cohesion
     foreignRelations:   40, // Standing with the West
     militaryReadiness:  70, // Armed forces strength & loyalty
@@ -2895,6 +2902,18 @@ const gameState = {
     yeltsin:     50, // Wild card
     ryzhkov:     60, // PM
     akhromeyev:  65, // Military
+    // Extended roster — previously uninitialised (caused silent failures)
+    aliyev:      65,
+    varennikov:  40,
+    nazarbayev:  75,
+    karimov:     55,
+    boldin:      60,
+    medvedev:    65,
+    raisa:       90,
+    chernyaev:   85,
+    chebrikov:   60,
+    gromyko:     55,
+    kryuchkov:   50, // KGB chief (succeeds Chebrikov 1988); referenced in Afghanistan follow-on
   },
 
   // Faction approval (-10 to +10)
@@ -6989,13 +7008,24 @@ document.addEventListener('keydown', e => {
 });
 
 
-function setupPravdaMasthead(eventImage, eventCaption){
+function setupPravdaMasthead(eventImage, eventCaption, endingType){
   const setText = (id, txt) => { const el = document.getElementById(id); if (el) el.textContent = txt; };
   setText('pravda-mast-top', '\u0415\u0416\u0415\u0414\u041d\u0415\u0412\u041d\u0410\u042f \u0420\u0410\u0411\u041e\u0427\u0410\u042f \u0413\u0410\u0417\u0415\u0422\u0410.');
   setText('pravda-price-label', '\u0426\u0415\u041d\u0410 2 \u043a\u043e\u043f.');
 
+  const masthead = document.querySelector('.pravda-masthead');
   const logo = document.getElementById('pravda-logo');
-  if (logo) logo.src = new URL('images/Pravda_1971.png', document.baseURI).href;
+  const izvestiyaSub = document.getElementById('izvestiya-sub');
+
+  if (endingType === 'dissolution') {
+    if (masthead) masthead.classList.add('is-dissolution');
+    if (logo) logo.src = new URL('images/Izvestiya_Magazine.png', document.baseURI).href;
+    if (izvestiyaSub) izvestiyaSub.style.display = 'block';
+  } else {
+    if (masthead) masthead.classList.remove('is-dissolution');
+    if (logo) logo.src = new URL('images/Pravda_1971.png', document.baseURI).href;
+    if (izvestiyaSub) izvestiyaSub.style.display = 'none';
+  }
 
   try { if (typeof gameState !== 'undefined') setText('pravda-issue', '\u2116 ' + String(gameState.turn) + '.'); } catch(e){}
   const cd = document.getElementById('current-date');
@@ -7100,37 +7130,6 @@ function stopPripyatAudio() {
   } catch(e) {}
 }
 
-let libyaAudio = null;
-function startLibyaAudio() {
-  try {
-    if (libyaAudio) { libyaAudio.pause(); libyaAudio.currentTime = 0; }
-    if (typeof musicAudio !== 'undefined' && musicAudio && !musicAudio.paused) {
-      musicAudio.pause();
-      musicAudio.dataset.pausedForLibya = 'true';
-    }
-    libyaAudio = makeAudio('sounds/733117__gpag1__military-aircraft-fa-18-flyover-distant-crowd-noise_01.mp3');
-    libyaAudio.volume = uiState.audioMuted ? 0 : Math.min(1, uiState.sfxVolume ?? 0.7);
-    libyaAudio.loop = false;
-    libyaAudio.play().catch(() => {});
-  } catch(e) {}
-}
-function stopLibyaAudio() {
-  try {
-    if (libyaAudio) {
-      libyaAudio.pause();
-      libyaAudio.currentTime = 0;
-      libyaAudio = null;
-    }
-    if (typeof musicAudio !== 'undefined' && musicAudio &&
-        musicAudio.dataset.pausedForLibya === 'true' &&
-        (!chernobylPhoneAudio || chernobylPhoneAudio.paused) &&
-        (!pripyatAudio || pripyatAudio.paused)) {
-      delete musicAudio.dataset.pausedForLibya;
-      if (!uiState.audioMuted && gameStarted) musicAudio.play().catch(() => {});
-    }
-  } catch(e) {}
-}
-
 function animatePaperUnfurl(panel) {
   if (!panel) return;
   panel.classList.remove('paper-unfurl');
@@ -7199,10 +7198,6 @@ function displayEvent(event) {
   if (event.id === 'chernobyl') {
     startChernobylPhone();
   }
-  // Libya bombing flyover — plays once when the event opens
-  if (event.id === 'libya_bombing_1986') {
-    startLibyaAudio();
-  }
 }
 
 function resolveEventChoice(choiceIdx) {
@@ -7247,11 +7242,6 @@ function resolveEventChoice(choiceIdx) {
   const followUpEvent = choice.followUp || event.followUp;
   if (followUpEvent) {
     triggerEventQueue.unshift({ ...followUpEvent, id: followUpEvent.id || ('followup_' + Date.now()), trigger: {} });
-  }
-
-  // ── LIBYA BOMBING AUDIO ───────────────────────────────────────────
-  if (event.id === 'libya_bombing_1986') {
-    stopLibyaAudio();
   }
 
   // ── CHERNOBYL AUDIO + CONSEQUENCE REPORT ─────────────────────────
@@ -7415,7 +7405,7 @@ function updateAdvisorLoyaltyForTurn(){
       if (!yState.resigned && !yState.fired) {
         if (gameState.year < 1987 || (gameState.year === 1987 && gameState.month < 10)) {
           // Early phase: loyalty tracks popular support — high reform momentum can keep him onside
-          const supportPull = Math.round((Number(m.popularSupport || 0) - 50) / 15);
+          const supportPull = Math.round((Number(m.popularAffection || 0) - 50) / 15);
           next = clamp(next + supportPull, 0, 100);
         } else if (gameState.year < 1990) {
           // Post-plenum: steady drift down regardless of policy
@@ -7502,11 +7492,11 @@ function checkEndConditions(){
     const score = (
       Number(m.economy || 0) +
       Number(m.stability || 0) +
-      Number(m.popularSupport || 0) +
+      Number(m.popularAffection || 0) +
       Number(m.partyUnity || 0) +
       Number(m.foreignRelations || 0)
     ) / 5;
-    if (score >= 50 && Number(m.stability || 0) >= 40 && Number(m.popularSupport || 0) >= 40) {
+    if (score >= 50 && Number(m.stability || 0) >= 40 && Number(m.popularAffection || 0) >= 40) {
       triggerGameOver('success', 'The Union survived the reform era.');
     } else {
       triggerGameOver('dissolution', 'The Union reached December 1991 but could not hold together.');
@@ -7526,7 +7516,7 @@ function checkEndConditions(){
     triggerGameOver('coup', 'The Party and security organs no longer obey the General Secretary. A hard-line committee seizes power, ends the reform programme, and places Gorbachev under guard.');
     return true;
   }
-  if (m.popularSupport <= 0) {
+  if (m.popularAffection <= 0) {
     triggerGameOver('revolution', 'Public legitimacy has vanished. Demonstrations become a revolutionary wave, and the Soviet centre can no longer command the streets.');
     return true;
   }
@@ -7630,7 +7620,7 @@ function endTurn() {
   //   • Separatism overhead: 1/month per 25pts of separatism above 25
   // Net result: doing nothing is now costly, not free.
   (function applyBudgetIncome() {
-    const support = Number(gameState.metrics.popularSupport || 0);
+    const support = Number(gameState.metrics.popularAffection || 0);
     const unity   = Number(gameState.metrics.partyUnity || 0);
     const avg     = (support + unity) / 2;
     const income  = Math.round(3 + (avg / 100) * 17); // 3–20/month
@@ -7772,9 +7762,9 @@ function endTurn() {
 
     // Popular Support consolidation: 50+ → light; 65+ → full
     // a popular leader finds it easier to maintain their mandate.
-    if (m.popularSupport >= 65 && m.popularSupport < 90) {
+    if (m.popularAffection >= 65 && m.popularAffection < 90) {
       applyMetricChange('popularSupport', 0.5);
-    } else if (m.popularSupport >= 50 && m.popularSupport < 65) {
+    } else if (m.popularAffection >= 50 && m.popularAffection < 65) {
       applyMetricChange('popularSupport', 0.3);
     }
 
@@ -7875,7 +7865,8 @@ function applyMetricChange(metricKey, delta) {
   const mapKey = {
     'economy': 'economy',
     'stability': 'stability',
-    'popularSupport': 'popularSupport',
+    'popularSupport': 'popularAffection', // alias — metric stored as popularAffection
+    'popularAffection': 'popularAffection',
     'partyUnity': 'partyUnity',
     'foreignRelations': 'foreignRelations',
     'militaryReadiness': 'militaryReadiness',
@@ -7893,7 +7884,9 @@ function applyMetricChange(metricKey, delta) {
   if (metricKey === 'reformFaction') { gameState.partyFactions.reform = clamp(Number(gameState.partyFactions.reform||0)+Number(delta||0),0,100); return; }
   if (metricKey === 'moderateFaction') { gameState.partyFactions.moderate = clamp(Number(gameState.partyFactions.moderate||0)+Number(delta||0),0,100); return; }
   if (metricKey === 'hardlinerFaction') { gameState.partyFactions.hardliner = clamp(Number(gameState.partyFactions.hardliner||0)+Number(delta||0),0,100); return; }
-  gameState.metrics[key] = Math.min(100, Math.max(0, gameState.metrics[key] + delta));
+  // Fix #6: guard against unknown keys — silently drop rather than write NaN
+  if (!(key in gameState.metrics)) return;
+  gameState.metrics[key] = Math.min(100, Math.max(0, Number(gameState.metrics[key] || 0) + delta));
 
   // When the headline foreignRelations metric moves, apply a soft proportional
   // nudge to each region rather than the full delta uniformly. Each region is
@@ -7977,11 +7970,11 @@ function checkAllTriggers() {
 
   // ── POPULAR SUPPORT TRIGGERS ──────────────────────────────────────
   // Trigger 1: 45 — cannot resist coup with popular support
-  if (m.popularSupport <= 45 && fireTrigger('popsup_45', 'Popular support low — coup resistance via public appeal no longer viable.')) {
+  if (m.popularAffection <= 45 && fireTrigger('popsup_45', 'Popular support low — coup resistance via public appeal no longer viable.')) {
     gameState.coupResistDisabled = true;
   }
   // Trigger 2: 30 — protests and demonstrations
-  if (m.popularSupport <= 30 && fireTrigger('popsup_30', 'Mass protests erupt across Soviet cities!', 'event')) {
+  if (m.popularAffection <= 30 && fireTrigger('popsup_30', 'Mass protests erupt across Soviet cities!', 'event')) {
     ms.loyalty   = clamp(ms.loyalty   - 4, 0, 100);
     pf.hardliner = clamp(pf.hardliner - 15, 0, 100);
     pf.moderate  = clamp(pf.moderate  - 5, 0, 100);
@@ -7997,7 +7990,7 @@ function checkAllTriggers() {
     });
   }
   // Trigger 3: 5 — revolution or civil war
-  if (m.popularSupport <= 5 && fireTrigger('popsup_5', 'GAME OVER: Revolution — Gorbachev swept from power.')) {
+  if (m.popularAffection <= 5 && fireTrigger('popsup_5', 'GAME OVER: Revolution — Gorbachev swept from power.')) {
     triggerGameOver('revolution', 'The Soviet people have lost all faith in Gorbachev\'s leadership. Mass uprisings and civil unrest sweep the country. The USSR dissolves in chaos.');
   }
 
@@ -8434,7 +8427,7 @@ function triggerGameOver(type, message) {
 <p><em>The Soviet Union will survive this coup. But what survives is not what Gorbachev built. It is something older, and harder, and very tired.</em></p>`;
     })(),
     revolution: (() => {
-      const suppNote = Number(m.popularSupport || 0) < 10
+      const suppNote = Number(m.popularAffection || 0) < 10
         ? 'Legitimacy had not merely eroded — it had inverted. The state was not unpopular; it was invisible, a set of forms and stamps that no longer corresponded to any reality citizens recognised.'
         : 'The promises of glasnost raised expectations that the system could not meet. When people realised this, the disappointment curdled into something harder.';
       return `<p>It begins, as these things often do, not with a speech but with a refusal.</p>
@@ -8489,7 +8482,7 @@ function triggerGameOver(type, message) {
     'success':     'images/pravda-placeholder.jpg',
     'bankruptcy':  'images/pravda-placeholder.jpg',
   };
-  setupPravdaMasthead(endingImages[type] || null, null);
+  setupPravdaMasthead(endingImages[type] || null, null, type);
 
   panel.classList.add('active', 'is-ending');
   animatePaperUnfurl(panel);
@@ -8594,7 +8587,7 @@ function applyPolicyImmediate(policyId) {
     const eff = policy.effects || {};
     let alignment = policy.alignment || null; // explicit tag wins
     if (!alignment) {
-      const liberalSignals  = ['popularSupport', 'foreignRelations', 'glasnost', 'openness'];
+      const liberalSignals  = ['popularSupport', 'popularAffection', 'foreignRelations', 'glasnost', 'openness'];
       const conservativeSignals = ['partyUnity', 'militaryReadiness', 'stability'];
       // Score by effect keys
       let libScore  = 0;
@@ -8723,7 +8716,7 @@ function getReformTrajectory() {
   // Core success metrics (equal weight)
   const economy        = Number(m.economy        || 0);
   const stability      = Number(m.stability      || 0);
-  const popularSupport = Number(m.popularSupport || 0);
+  const popularSupport = Number(m.popularAffection || 0);
   const partyUnity     = Number(m.partyUnity     || 0);
   const foreignRel     = Number(m.foreignRelations || 0);
 
