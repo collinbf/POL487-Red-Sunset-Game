@@ -2316,7 +2316,7 @@
 }
 
 /* ── AUGUST COUP 1991: SOVIET TV + TELEGRAM OVERLAY ─────────────── */
-.coup-overlay { display:flex; flex-direction:column; align-items:center; gap:0; width:100%; background:#1a0a05; padding:24px 20px 28px; border-radius:4px; }
+.coup-overlay { display:flex; flex-direction:column; align-items:center; gap:0; width:100%; max-width:640px; padding:24px 16px 32px; }
 .coup-tv-wrap { position:relative; width:min(400px,90%); }
 .coup-tv-shell { background:linear-gradient(160deg,#7a4018 0%,#5c2e0e 40%,#3d1e08 100%); border-radius:18px 18px 14px 14px; padding:18px 18px 14px; box-shadow:0 8px 40px rgba(0,0,0,0.8),inset 0 1px 0 rgba(255,255,255,0.12),inset 0 -2px 4px rgba(0,0,0,0.5); position:relative; }
 .coup-tv-shell::before { content:''; position:absolute; inset:0; border-radius:inherit; pointer-events:none; background:repeating-linear-gradient(90deg,transparent,transparent 18px,rgba(0,0,0,0.06) 18px,rgba(0,0,0,0.06) 19px); }
@@ -7229,79 +7229,86 @@ function displayCoupEvent(event) {
     <button class="event-btn" onclick="resolveEventChoice(${i})">${escapeHtml(c.text)}</button>
   `).join('');
 
-  // Format description into paragraphs
   const paras = (event.description || '').split(/\n+/).filter(Boolean)
     .map(p => `<p>${escapeHtml(p)}</p>`).join('');
 
-  const card = document.querySelector('.pravda-modal-card');
-  if (card) {
-    card.innerHTML = `
-      <div class="coup-overlay">
-        <div class="coup-tv-wrap">
-          <div class="coup-tv-shell">
-            <div class="coup-tv-screen-bezel">
-              <div class="coup-tv-screen">
-                <img src="images/swan-lake.gif" alt="Soviet television — Swan Lake" />
-              </div>
-            </div>
-            <div class="coup-tv-controls">
-              <div class="coup-tv-led"></div>
-              <div class="coup-tv-slider"></div>
-              <div class="coup-tv-knob"></div>
-              <div class="coup-tv-slider"></div>
-              <div class="coup-tv-knob"></div>
-            </div>
-            <div class="coup-tv-brand">РУБИН 714 <span>&#9632; СССР</span></div>
-          </div>
-          <div class="coup-tv-legs">
-            <div class="coup-tv-leg"></div>
-            <div class="coup-tv-leg"></div>
+  const panel = document.getElementById('event-panel');
+
+  // Hide the normal pravda card
+  const card = panel.querySelector('.pravda-modal-card');
+  if (card) card.style.display = 'none';
+
+  // Remove any existing coup overlay
+  const existing = panel.querySelector('.coup-overlay');
+  if (existing) existing.remove();
+
+  // Inject coup layout as direct sibling of pravda-modal-card
+  const overlay = document.createElement('div');
+  overlay.className = 'coup-overlay';
+  overlay.innerHTML = `
+    <div class="coup-tv-wrap">
+      <div class="coup-tv-shell">
+        <div class="coup-tv-screen-bezel">
+          <div class="coup-tv-screen">
+            <img src="images/swan-lake.gif" alt="Soviet television — Swan Lake" />
           </div>
         </div>
+        <div class="coup-tv-controls">
+          <div class="coup-tv-led"></div>
+          <div class="coup-tv-slider"></div>
+          <div class="coup-tv-knob"></div>
+          <div class="coup-tv-slider"></div>
+          <div class="coup-tv-knob"></div>
+        </div>
+        <div class="coup-tv-brand">РУБИН 714 <span>&#9632; СССР</span></div>
+      </div>
+      <div class="coup-tv-legs">
+        <div class="coup-tv-leg"></div>
+        <div class="coup-tv-leg"></div>
+      </div>
+    </div>
 
-        <div class="coup-telegram">
-          <div class="coup-stamp">СОВЕРШЕННО СЕКРЕТНО</div>
-          <div class="coup-tg-header">
-            <div class="coup-tg-left">
-              <div class="coup-tg-left-row">Слов <span></span></div>
-              <div class="coup-tg-left-row">руб. <span></span> коп. <span></span></div>
-              <div style="margin-top:4px;">Принял</div>
-              <div class="coup-tg-left-row"><span></span></div>
-            </div>
-            <div class="coup-tg-centre">
-              <div class="coup-tg-ministry">
-                МИНИСТЕРСТВО <span class="coup-tg-seal">☭</span> СВЯЗИ СССР
-              </div>
-              <div class="coup-tg-title">ТЕЛЕГРАММА</div>
-              <div class="coup-tg-num">№ ______ &nbsp;&nbsp; сл. ______ го ______ ч. ______ м.</div>
-            </div>
-            <div class="coup-tg-right">
-              ПЕРЕДАЧА<br>
-              ______ го ______ ч. ______ м.<br>
-              Номер рабочего места<br>
-              <span style="border-bottom:1px solid #8b7040;display:block;width:100%;margin:2px 0;"></span>
-              Передал ______<br>
-              Служебные отметки<br>
-              <span style="border-bottom:1px solid #8b7040;display:block;width:100%;margin:2px 0;"></span>
-            </div>
+    <div class="coup-telegram">
+      <div class="coup-stamp">СОВЕРШЕННО СЕКРЕТНО</div>
+      <div class="coup-tg-header">
+        <div class="coup-tg-left">
+          <div class="coup-tg-left-row">Слов <span></span></div>
+          <div class="coup-tg-left-row">руб. <span></span> коп. <span></span></div>
+          <div style="margin-top:4px;">Принял</div>
+          <div class="coup-tg-left-row"><span></span></div>
+        </div>
+        <div class="coup-tg-centre">
+          <div class="coup-tg-ministry">
+            МИНИСТЕРСТВО <span class="coup-tg-seal">☭</span> СВЯЗИ СССР
           </div>
-          <div class="coup-tg-cat">
-            Категория и отметки особого вида: &nbsp;<strong>МОЛНИЯ — СВЕРХСРОЧНО</strong>
-          </div>
-          <div class="coup-tg-addr">
-            Куда, кому: &nbsp; ВИКТОРУ — ФОРОС — КРЫМ
-          </div>
-          <div class="coup-tg-body">${paras}</div>
-          <div class="coup-tg-sender">
-            Фамилия и адрес отправителя: &nbsp; ГКЧ&nbsp;П — Москва &nbsp;·&nbsp; (не оплачивается и по связям не передаётся)
-          </div>
-          <div class="coup-tg-choices">${choicesHtml}</div>
+          <div class="coup-tg-title">ТЕЛЕГРАММА</div>
+          <div class="coup-tg-num">№ ______ &nbsp;&nbsp; сл. ______ го ______ ч. ______ м.</div>
+        </div>
+        <div class="coup-tg-right">
+          ПЕРЕДАЧА<br>
+          ______ го ______ ч. ______ м.<br>
+          Номер рабочего места<br>
+          <span style="border-bottom:1px solid #8b7040;display:block;width:100%;margin:2px 0;"></span>
+          Передал ______<br>
+          Служебные отметки<br>
+          <span style="border-bottom:1px solid #8b7040;display:block;width:100%;margin:2px 0;"></span>
         </div>
       </div>
-    `;
-  }
+      <div class="coup-tg-cat">
+        Категория и отметки особого вида: &nbsp;<strong>МОЛНИЯ — СВЕРХСРОЧНО</strong>
+      </div>
+      <div class="coup-tg-addr">
+        Куда, кому: &nbsp; ВИКТОРУ — ФОРОС — КРЫМ
+      </div>
+      <div class="coup-tg-body">${paras}</div>
+      <div class="coup-tg-sender">
+        Фамилия и адрес отправителя: &nbsp; ГКЧ&nbsp;П — Москва &nbsp;·&nbsp; (не оплачивается и по связям не передаётся)
+      </div>
+      <div class="coup-tg-choices">${choicesHtml}</div>
+    </div>
+  `;
+  panel.appendChild(overlay);
 
-  const panel = document.getElementById('event-panel');
   panel.classList.add('active');
   animatePaperUnfurl(panel);
   renderEventQueueStatus();
@@ -7319,40 +7326,13 @@ function stopSwanLake() {
 }
 
 function restoreNormalEventPanel() {
-  // Rebuild the standard Pravda card HTML that displayEvent normally uses
-  const card = document.querySelector('.pravda-modal-card');
-  if (card) {
-    card.innerHTML = `
-      <div class="pravda-masthead">
-        <div class="pravda-mast-top" id="pravda-mast-top"></div>
-        <div class="pravda-mast-name" id="pravda-mast-name">
-          <img id="pravda-logo" class="pravda-logo" alt="PRAVDA" />
-          <div id="izvestiya-sub" class="izvestiya-sub" style="display:none;">
-            <div class="izvestiya-tagline">Информационная гражданская газета</div>
-          </div>
-        </div>
-        <div class="pravda-issue-strip">
-          <span class="pravda-strip-left" id="pravda-issue"></span>
-          <span class="pravda-strip-centre" id="pravda-date"></span>
-          <span class="pravda-strip-right" id="pravda-price-label"></span>
-        </div>
-      </div>
-      <div class="pravda-grid">
-        <div class="pravda-photo" id="pravda-photo">
-          <div class="pravda-photo-frame">
-            <img id="pravda-img" class="pravda-img" alt="Archival photograph" loading="eager" decoding="async" />
-            <div class="pravda-photo-fallback" id="pravda-photo-fallback">ARCHIVAL PHOTOGRAPH</div>
-          </div>
-          <div class="pravda-caption" id="pravda-caption"></div>
-        </div>
-        <div class="pravda-main" id="pravda-main">
-          <div class="pravda-headline" id="event-title"></div>
-          <div class="pravda-body" id="event-desc"></div>
-          <div class="pravda-choices" id="event-choices"></div>
-        </div>
-      </div>
-    `;
-  }
+  const panel = document.getElementById('event-panel');
+  // Remove coup overlay
+  const overlay = panel ? panel.querySelector('.coup-overlay') : null;
+  if (overlay) overlay.remove();
+  // Restore the pravda-modal-card
+  const card = panel ? panel.querySelector('.pravda-modal-card') : null;
+  if (card) card.style.display = '';
 }
 
 function displayEvent(event) {
