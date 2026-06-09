@@ -1580,10 +1580,15 @@
   align-items: center !important;
   justify-content: center !important;
   overflow-y: auto !important;
-  padding: 2vh 1rem 2vh !important;
+  padding: 5vh 1rem 4vh !important;
   /* Reset border/radius from inline mode */
   border: none !important;
   border-radius: 0 !important;
+}
+/* Coup event: tall content — anchor to top so TV is always visible */
+.event-panel.pravda.coup-active {
+  align-items: flex-start !important;
+  padding-top: 5vh !important;
 }
 .event-panel.pravda.active{
   display: flex !important;
@@ -2316,25 +2321,13 @@
 }
 
 /* ── AUGUST COUP 1991: SOVIET TV + TELEGRAM OVERLAY ─────────────── */
-.coup-overlay { display:flex; flex-direction:column; align-items:center; gap:0; width:100%; max-width:640px; padding:24px 16px 32px; }
-.coup-tv-wrap { position:relative; width:min(400px,90%); }
-.coup-tv-shell { background:linear-gradient(160deg,#7a4018 0%,#5c2e0e 40%,#3d1e08 100%); border-radius:18px 18px 14px 14px; padding:18px 18px 14px; box-shadow:0 8px 40px rgba(0,0,0,0.8),inset 0 1px 0 rgba(255,255,255,0.12),inset 0 -2px 4px rgba(0,0,0,0.5); position:relative; }
-.coup-tv-shell::before { content:''; position:absolute; inset:0; border-radius:inherit; pointer-events:none; background:repeating-linear-gradient(90deg,transparent,transparent 18px,rgba(0,0,0,0.06) 18px,rgba(0,0,0,0.06) 19px); }
-.coup-tv-screen-bezel { background:#111; border-radius:12px; padding:10px; box-shadow:inset 0 2px 8px rgba(0,0,0,0.9); }
-.coup-tv-screen { position:relative; width:100%; padding-top:73%; background:#000; border-radius:8px; overflow:hidden; }
-.coup-tv-screen img { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; border-radius:8px; filter:saturate(0.7) brightness(0.85) contrast(1.1); }
-.coup-tv-screen::after { content:''; position:absolute; inset:0; border-radius:8px; pointer-events:none; background:repeating-linear-gradient(to bottom,transparent,transparent 3px,rgba(0,0,0,0.15) 3px,rgba(0,0,0,0.15) 4px); z-index:2; }
-.coup-tv-screen::before { content:''; position:absolute; top:-8%; left:-8%; width:50%; height:55%; background:radial-gradient(ellipse,rgba(255,255,255,0.06) 0%,transparent 70%); border-radius:50%; z-index:3; pointer-events:none; }
-.coup-tv-controls { position:absolute; top:18px; right:-42px; width:34px; display:flex; flex-direction:column; gap:8px; align-items:center; background:linear-gradient(180deg,#252525,#1a1a1a); border-radius:0 8px 8px 0; padding:10px 5px; box-shadow:3px 0 8px rgba(0,0,0,0.5); }
-.coup-tv-knob { width:22px; height:22px; background:radial-gradient(circle at 35% 35%,#555,#1a1a1a); border-radius:50%; box-shadow:0 2px 5px rgba(0,0,0,0.7); }
-.coup-tv-slider { width:4px; height:30px; background:#2a2a2a; border-radius:2px; position:relative; }
-.coup-tv-slider::after { content:''; position:absolute; top:35%; left:-3px; width:10px; height:5px; background:#444; border-radius:1px; }
-.coup-tv-led { width:8px; height:8px; border-radius:50%; background:#dd2200; box-shadow:0 0 7px #dd2200; animation:coup-led-blink 1.4s ease-in-out infinite; }
-@keyframes coup-led-blink { 0%,100%{opacity:1} 50%{opacity:0.25} }
-.coup-tv-brand { text-align:center; margin-top:7px; font-family:'Playfair Display',serif; font-size:9px; font-weight:700; letter-spacing:.25em; color:#c8a44a; opacity:.75; text-transform:uppercase; }
-.coup-tv-brand span { font-size:7px; }
-.coup-tv-legs { display:flex; justify-content:space-around; width:65%; margin:0 auto; }
-.coup-tv-leg { width:10px; height:20px; background:linear-gradient(180deg,#3d1e08,#261208); border-radius:0 0 4px 4px; box-shadow:1px 2px 4px rgba(0,0,0,0.6); }
+.coup-overlay { display:flex; flex-direction:column; align-items:center; gap:0; width:100%; max-width:760px; padding:36px 24px 32px; }
+.coup-tv-wrap { position:relative; width:min(640px,96%); }
+.coup-tv-svg { width:100%; height:auto; display:block; filter:drop-shadow(0 10px 40px rgba(0,0,0,0.75)); }
+@keyframes coup-led-blink { 0%,100%{opacity:1} 50%{opacity:0.2} }
+.coup-led-dot { animation:coup-led-blink 1.4s ease-in-out infinite; }
+/* scanline overlay sits on top of foreignObject screen */
+.coup-scanlines { pointer-events:none; }
 /* Telegram */
 .coup-telegram { width:min(580px,100%); margin-top:22px; background:#f0e8d0; border:1px solid #b8a070; box-shadow:0 6px 24px rgba(0,0,0,0.55); font-family:'Cormorant Garamond',serif; position:relative; overflow:hidden; }
 .coup-telegram::before { content:''; position:absolute; inset:0; pointer-events:none; background:repeating-linear-gradient(180deg,transparent,transparent 23px,rgba(139,112,64,0.18) 23px,rgba(139,112,64,0.18) 24px); z-index:0; }
@@ -2352,10 +2345,10 @@
 .coup-tg-cat { border-bottom:1px solid #8b7040; padding:4px 14px; font-size:8.5px; color:#4a3010; }
 .coup-tg-addr { border-bottom:1px solid #8b7040; padding:5px 14px; font-size:10px; color:#1a0e04; font-weight:600; }
 .coup-tg-body { padding:10px 14px 8px; }
-.coup-tg-body p { font-size:12px; line-height:1.65; color:#140a02; margin-bottom:5px; }
-.coup-tg-sender { padding:4px 14px 8px; font-size:8.5px; color:#4a3010; border-top:1px solid #8b7040; }
-.coup-tg-choices { border-top:2px solid #8b7040; padding:10px 14px; display:flex; flex-direction:column; gap:8px; background:#ede0b8; }
-.coup-tg-choices .event-btn { font-size:12px; padding:9px 14px; text-align:left; }
+.coup-tg-body p { font-size:15px; line-height:1.65; color:#140a02; margin-bottom:5px; }
+.coup-tg-sender { padding:4px 14px 8px; font-size:10px; color:#4a3010; border-top:1px solid #8b7040; }
+.coup-tg-choices { border-top:2px solid #8b7040; padding:10px 14px; display:flex; flex-direction:column; gap:8px; background:#f0e8d0; }
+.coup-tg-choices .event-btn { font-size:12px; padding:9px 14px; text-align:left; background:#f0e8d0; }
 .coup-stamp { position:absolute; top:10px; right:12px; border:2px solid rgba(139,26,26,0.65); border-radius:2px; padding:3px 6px; transform:rotate(-5deg); font-family:'Playfair Display',serif; font-size:7.5px; font-weight:700; letter-spacing:.14em; color:rgba(139,26,26,0.7); text-transform:uppercase; white-space:nowrap; pointer-events:none; background:rgba(240,232,208,0.5); }
 </style>
 
@@ -7247,25 +7240,369 @@ function displayCoupEvent(event) {
   overlay.className = 'coup-overlay';
   overlay.innerHTML = `
     <div class="coup-tv-wrap">
-      <div class="coup-tv-shell">
-        <div class="coup-tv-screen-bezel">
-          <div class="coup-tv-screen">
-            <img src="images/swan-lake.gif" alt="Soviet television — Swan Lake" />
+      <!-- Rubin 714 SVG — rectangular cabinet, left speaker, right control panel, chrome top strip, small feet -->
+      <!-- viewBox: 620 wide × 340 tall
+           Layout zones (x):
+             0–10   : left margin
+             10–116 : speaker grille (106px)
+             116–498: screen+bezel  (382px → 4:3-ish screen inside)
+             498–610: control panel (112px)
+             610–620: right margin
+      -->
+      <svg class="coup-tv-svg" viewBox="0 0 620 340" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Rubin 714 Soviet television">
+        <defs>
+          <linearGradient id="wood-face" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%"   stop-color="#8b4c1a"/>
+            <stop offset="30%"  stop-color="#7a3e14"/>
+            <stop offset="70%"  stop-color="#6b3410"/>
+            <stop offset="100%" stop-color="#5a2b0d"/>
+          </linearGradient>
+          <linearGradient id="wood-top" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%"   stop-color="#a05820"/>
+            <stop offset="100%" stop-color="#7a3e14"/>
+          </linearGradient>
+          <pattern id="grain" x="0" y="0" width="6" height="340" patternUnits="userSpaceOnUse">
+            <rect width="6" height="340" fill="none"/>
+            <line x1="3" y1="0" x2="3" y2="340" stroke="rgba(0,0,0,0.05)" stroke-width="1"/>
+          </pattern>
+          <linearGradient id="ctrl-panel" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%"   stop-color="#1e1e1e"/>
+            <stop offset="100%" stop-color="#111111"/>
+          </linearGradient>
+          <linearGradient id="chrome" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%"   stop-color="#e8e8e8"/>
+            <stop offset="40%"  stop-color="#c0c0c0"/>
+            <stop offset="60%"  stop-color="#a0a0a0"/>
+            <stop offset="100%" stop-color="#d0d0d0"/>
+          </linearGradient>
+          <linearGradient id="bezel" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%"   stop-color="#1a1a1a"/>
+            <stop offset="100%" stop-color="#0a0a0a"/>
+          </linearGradient>
+          <radialGradient id="glare" cx="35%" cy="30%" r="55%">
+            <stop offset="0%"  stop-color="rgba(255,255,255,0.08)"/>
+            <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
+          </radialGradient>
+          <radialGradient id="knob-grad" cx="35%" cy="30%" r="65%">
+            <stop offset="0%"   stop-color="#5a5a5a"/>
+            <stop offset="60%"  stop-color="#2a2a2a"/>
+            <stop offset="100%" stop-color="#111111"/>
+          </radialGradient>
+          <radialGradient id="crt-vignette" cx="50%" cy="50%" r="50%">
+            <stop offset="60%"  stop-color="rgba(0,0,0,0)"/>
+            <stop offset="100%" stop-color="rgba(0,0,0,0.55)"/>
+          </radialGradient>
+          <linearGradient id="slat-grad" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0%"   stop-color="rgba(0,0,0,0.5)"/>
+            <stop offset="40%"  stop-color="rgba(0,0,0,0.15)"/>
+            <stop offset="100%" stop-color="rgba(0,0,0,0.05)"/>
+          </linearGradient>
+          <!-- screen clip uses new screen coords: x=120 y=42 w=372 h=236 rx=28 -->
+          <clipPath id="screen-clip">
+            <rect x="120" y="42" width="372" height="236" rx="28" ry="28"/>
+          </clipPath>
+          <pattern id="scanlines" x="0" y="0" width="1" height="4" patternUnits="userSpaceOnUse">
+            <rect width="1" height="4" fill="none"/>
+            <rect y="3" width="1" height="1" fill="rgba(0,0,0,0.18)"/>
+          </pattern>
+        </defs>
+
+        <!-- ── CABINET BODY ── -->
+        <rect x="10" y="18" width="600" height="290" fill="url(#wood-face)" rx="3" ry="3"/>
+        <rect x="10" y="18" width="600" height="290" fill="url(#grain)" rx="3" ry="3" opacity="0.6"/>
+        <rect x="10" y="18" width="600" height="290" fill="none" stroke="rgba(0,0,0,0.4)" stroke-width="3" rx="3" ry="3"/>
+        <rect x="10" y="12" width="600" height="10" fill="url(#wood-top)" rx="2" ry="2"/>
+
+        <!-- ── LEFT SPEAKER GRILLE (x 16–112) ── -->
+        <rect x="16" y="30" width="96" height="265" fill="rgba(0,0,0,0.18)" rx="2"/>
+        <g id="speaker-slats">
+          <rect x="18" y="35"  width="92" height="7" fill="rgba(0,0,0,0.55)" rx="1"/>
+          <rect x="18" y="43"  width="92" height="5" fill="rgba(120,65,20,0.5)" rx="1"/>
+          <rect x="18" y="49"  width="92" height="7" fill="rgba(0,0,0,0.55)" rx="1"/>
+          <rect x="18" y="57"  width="92" height="5" fill="rgba(120,65,20,0.5)" rx="1"/>
+          <rect x="18" y="63"  width="92" height="7" fill="rgba(0,0,0,0.55)" rx="1"/>
+          <rect x="18" y="71"  width="92" height="5" fill="rgba(120,65,20,0.5)" rx="1"/>
+          <rect x="18" y="77"  width="92" height="7" fill="rgba(0,0,0,0.55)" rx="1"/>
+          <rect x="18" y="85"  width="92" height="5" fill="rgba(120,65,20,0.5)" rx="1"/>
+          <rect x="18" y="91"  width="92" height="7" fill="rgba(0,0,0,0.55)" rx="1"/>
+          <rect x="18" y="99"  width="92" height="5" fill="rgba(120,65,20,0.5)" rx="1"/>
+          <rect x="18" y="105" width="92" height="7" fill="rgba(0,0,0,0.55)" rx="1"/>
+          <rect x="18" y="113" width="92" height="5" fill="rgba(120,65,20,0.5)" rx="1"/>
+          <rect x="18" y="119" width="92" height="7" fill="rgba(0,0,0,0.55)" rx="1"/>
+          <rect x="18" y="127" width="92" height="5" fill="rgba(120,65,20,0.5)" rx="1"/>
+          <rect x="18" y="133" width="92" height="7" fill="rgba(0,0,0,0.55)" rx="1"/>
+          <rect x="18" y="141" width="92" height="5" fill="rgba(120,65,20,0.5)" rx="1"/>
+          <rect x="18" y="147" width="92" height="7" fill="rgba(0,0,0,0.55)" rx="1"/>
+          <rect x="18" y="155" width="92" height="5" fill="rgba(120,65,20,0.5)" rx="1"/>
+          <rect x="18" y="161" width="92" height="7" fill="rgba(0,0,0,0.55)" rx="1"/>
+          <rect x="18" y="169" width="92" height="5" fill="rgba(120,65,20,0.5)" rx="1"/>
+          <rect x="18" y="175" width="92" height="7" fill="rgba(0,0,0,0.55)" rx="1"/>
+          <rect x="18" y="183" width="92" height="5" fill="rgba(120,65,20,0.5)" rx="1"/>
+          <rect x="18" y="189" width="92" height="7" fill="rgba(0,0,0,0.55)" rx="1"/>
+          <rect x="18" y="197" width="92" height="5" fill="rgba(120,65,20,0.5)" rx="1"/>
+          <rect x="18" y="203" width="92" height="7" fill="rgba(0,0,0,0.55)" rx="1"/>
+          <rect x="18" y="211" width="92" height="5" fill="rgba(120,65,20,0.5)" rx="1"/>
+          <rect x="18" y="217" width="92" height="7" fill="rgba(0,0,0,0.55)" rx="1"/>
+          <rect x="18" y="225" width="92" height="5" fill="rgba(120,65,20,0.5)" rx="1"/>
+          <rect x="18" y="231" width="92" height="7" fill="rgba(0,0,0,0.55)" rx="1"/>
+          <rect x="18" y="239" width="92" height="5" fill="rgba(120,65,20,0.5)" rx="1"/>
+          <rect x="18" y="245" width="92" height="7" fill="rgba(0,0,0,0.55)" rx="1"/>
+          <rect x="18" y="253" width="92" height="5" fill="rgba(120,65,20,0.5)" rx="1"/>
+          <rect x="18" y="259" width="92" height="7" fill="rgba(0,0,0,0.55)" rx="1"/>
+          <rect x="18" y="267" width="92" height="5" fill="rgba(120,65,20,0.5)" rx="1"/>
+          <rect x="18" y="273" width="92" height="7" fill="rgba(0,0,0,0.55)" rx="1"/>
+          <rect x="18" y="281" width="92" height="5" fill="rgba(120,65,20,0.5)" rx="1"/>
+          <rect x="18" y="35" width="92" height="253" fill="url(#slat-grad)" rx="1"/>
+        </g>
+
+        <!-- ── RIGHT CONTROL PANEL — Rubin 714 accurate layout ── -->
+        <!-- Black control strip: x 498–583; wood strip: x 583–610 -->
+        <rect x="498" y="18" width="85"  height="290" fill="url(#ctrl-panel)"/>
+        <!-- Wood strip to the right of controls (visible beside the panel in photos) -->
+        <rect x="583" y="18" width="27"  height="290" fill="url(#wood-face)"/>
+        <rect x="583" y="18" width="27"  height="290" fill="url(#grain)" opacity="0.5"/>
+        <!-- Left chrome separator line -->
+        <rect x="498" y="18" width="2"   height="290" fill="url(#chrome)" opacity="0.7"/>
+        <!-- Thin chrome line between black strip and wood -->
+        <rect x="582" y="18" width="1.5" height="290" fill="url(#chrome)" opacity="0.45"/>
+
+        <!-- ─── 1. POWER ROCKER SWITCH (top) ─── -->
+        <!-- ВКЛ label -->
+        <text x="540" y="30" text-anchor="middle" font-family="sans-serif" font-size="5" fill="#888" letter-spacing="0.4">ВКЛ</text>
+        <!-- Rocker body -->
+        <rect x="526" y="32" width="28" height="14" fill="#1c1c1c" rx="2" stroke="#555" stroke-width="0.7"/>
+        <!-- pivot divider -->
+        <line x1="526" y1="39" x2="554" y2="39" stroke="#555" stroke-width="0.5"/>
+        <!-- ON half (top) — lighter/raised -->
+        <rect x="527" y="33" width="26" height="5.5" fill="#303030" rx="1.5"/>
+        <!-- OFF half (bottom) — darker/depressed -->
+        <rect x="527" y="39.5" width="26" height="5.5" fill="#181818" rx="1.5"/>
+        <!-- ВЫКЛ label -->
+        <text x="540" y="52" text-anchor="middle" font-family="sans-serif" font-size="5" fill="#555" letter-spacing="0.4">ВЫКЛ</text>
+
+        <!-- ─── 2. FIRST GROUP: 3 vertical sliders + coloured indicator squares ─── -->
+        <line x1="500" y1="57" x2="581" y2="57" stroke="#2a2a2a" stroke-width="0.8"/>
+
+        <!-- Slider G1-1 (left) — track -->
+        <rect x="507" y="60" width="5" height="52" fill="#0d0d0d" rx="2.5" stroke="#3a3a3a" stroke-width="0.5"/>
+        <!-- tick marks -->
+        <line x1="504" y1="66" x2="507" y2="66" stroke="#333" stroke-width="0.6"/>
+        <line x1="504" y1="74" x2="507" y2="74" stroke="#333" stroke-width="0.6"/>
+        <line x1="504" y1="82" x2="507" y2="82" stroke="#333" stroke-width="0.6"/>
+        <line x1="504" y1="90" x2="507" y2="90" stroke="#333" stroke-width="0.6"/>
+        <line x1="504" y1="98" x2="507" y2="98" stroke="#333" stroke-width="0.6"/>
+        <line x1="504" y1="106" x2="507" y2="106" stroke="#333" stroke-width="0.6"/>
+        <!-- thumb -->
+        <rect x="504" y="76" width="11" height="8" fill="#3c3c3c" rx="1.5" stroke="#606060" stroke-width="0.5"/>
+        <line x1="508" y1="79" x2="512" y2="79" stroke="#888" stroke-width="0.8"/>
+        <line x1="508" y1="81" x2="512" y2="81" stroke="#888" stroke-width="0.8"/>
+
+        <!-- Slider G1-2 (centre) — track -->
+        <rect x="527" y="60" width="5" height="52" fill="#0d0d0d" rx="2.5" stroke="#3a3a3a" stroke-width="0.5"/>
+        <line x1="524" y1="66" x2="527" y2="66" stroke="#333" stroke-width="0.6"/>
+        <line x1="524" y1="74" x2="527" y2="74" stroke="#333" stroke-width="0.6"/>
+        <line x1="524" y1="82" x2="527" y2="82" stroke="#333" stroke-width="0.6"/>
+        <line x1="524" y1="90" x2="527" y2="90" stroke="#333" stroke-width="0.6"/>
+        <line x1="524" y1="98" x2="527" y2="98" stroke="#333" stroke-width="0.6"/>
+        <line x1="524" y1="106" x2="527" y2="106" stroke="#333" stroke-width="0.6"/>
+        <rect x="524" y="87" width="11" height="8" fill="#3c3c3c" rx="1.5" stroke="#606060" stroke-width="0.5"/>
+        <line x1="528" y1="90" x2="532" y2="90" stroke="#888" stroke-width="0.8"/>
+        <line x1="528" y1="92" x2="532" y2="92" stroke="#888" stroke-width="0.8"/>
+
+        <!-- Slider G1-3 (right) — track -->
+        <rect x="547" y="60" width="5" height="52" fill="#0d0d0d" rx="2.5" stroke="#3a3a3a" stroke-width="0.5"/>
+        <line x1="544" y1="66" x2="547" y2="66" stroke="#333" stroke-width="0.6"/>
+        <line x1="544" y1="74" x2="547" y2="74" stroke="#333" stroke-width="0.6"/>
+        <line x1="544" y1="82" x2="547" y2="82" stroke="#333" stroke-width="0.6"/>
+        <line x1="544" y1="90" x2="547" y2="90" stroke="#333" stroke-width="0.6"/>
+        <line x1="544" y1="98" x2="547" y2="98" stroke="#333" stroke-width="0.6"/>
+        <line x1="544" y1="106" x2="547" y2="106" stroke="#333" stroke-width="0.6"/>
+        <rect x="544" y="65" width="11" height="8" fill="#3c3c3c" rx="1.5" stroke="#606060" stroke-width="0.5"/>
+        <line x1="548" y1="68" x2="552" y2="68" stroke="#888" stroke-width="0.8"/>
+        <line x1="548" y1="70" x2="552" y2="70" stroke="#888" stroke-width="0.8"/>
+
+        <!-- Coloured indicator squares — column to the right of all 3 sliders -->
+        <!-- Square 1: teal/green -->
+        <rect x="558" y="62" width="8" height="8" fill="#115544" rx="1" stroke="#0a3a2e" stroke-width="0.5"/>
+        <rect x="559" y="63" width="6" height="6" fill="#1aaa7a" rx="0.5" opacity="0.75"/>
+        <!-- Square 2: white/grey -->
+        <rect x="558" y="74" width="8" height="8" fill="#252525" rx="1" stroke="#444" stroke-width="0.5"/>
+        <rect x="559" y="75" width="6" height="6" fill="#d0d0d0" rx="0.5" opacity="0.6"/>
+        <!-- Square 3: blue -->
+        <rect x="558" y="86" width="8" height="8" fill="#0e1f55" rx="1" stroke="#091540" stroke-width="0.5"/>
+        <rect x="559" y="87" width="6" height="6" fill="#3355cc" rx="0.5" opacity="0.75"/>
+
+        <!-- ─── 3. SECOND GROUP: 3 vertical sliders + coloured indicator squares ─── -->
+        <line x1="500" y1="118" x2="581" y2="118" stroke="#2a2a2a" stroke-width="0.8"/>
+
+        <!-- Small icon pairs above each slider (printed indicators) -->
+        <rect x="505" y="120" width="5" height="5" fill="#1e1e1e" rx="0.5" stroke="#3a3a3a" stroke-width="0.4"/>
+        <rect x="511" y="120" width="5" height="5" fill="#1e1e1e" rx="0.5" stroke="#3a3a3a" stroke-width="0.4"/>
+        <rect x="525" y="120" width="5" height="5" fill="#1e1e1e" rx="0.5" stroke="#3a3a3a" stroke-width="0.4"/>
+        <rect x="531" y="120" width="5" height="5" fill="#1e1e1e" rx="0.5" stroke="#3a3a3a" stroke-width="0.4"/>
+        <rect x="545" y="120" width="5" height="5" fill="#1e1e1e" rx="0.5" stroke="#3a3a3a" stroke-width="0.4"/>
+        <rect x="551" y="120" width="5" height="5" fill="#1e1e1e" rx="0.5" stroke="#3a3a3a" stroke-width="0.4"/>
+
+        <!-- Slider G2-1 -->
+        <rect x="507" y="128" width="5" height="46" fill="#0d0d0d" rx="2.5" stroke="#3a3a3a" stroke-width="0.5"/>
+        <line x1="504" y1="134" x2="507" y2="134" stroke="#333" stroke-width="0.6"/>
+        <line x1="504" y1="142" x2="507" y2="142" stroke="#333" stroke-width="0.6"/>
+        <line x1="504" y1="150" x2="507" y2="150" stroke="#333" stroke-width="0.6"/>
+        <line x1="504" y1="158" x2="507" y2="158" stroke="#333" stroke-width="0.6"/>
+        <line x1="504" y1="166" x2="507" y2="166" stroke="#333" stroke-width="0.6"/>
+        <rect x="504" y="144" width="11" height="8" fill="#3c3c3c" rx="1.5" stroke="#606060" stroke-width="0.5"/>
+        <line x1="508" y1="147" x2="512" y2="147" stroke="#888" stroke-width="0.8"/>
+        <line x1="508" y1="149" x2="512" y2="149" stroke="#888" stroke-width="0.8"/>
+
+        <!-- Slider G2-2 -->
+        <rect x="527" y="128" width="5" height="46" fill="#0d0d0d" rx="2.5" stroke="#3a3a3a" stroke-width="0.5"/>
+        <line x1="524" y1="134" x2="527" y2="134" stroke="#333" stroke-width="0.6"/>
+        <line x1="524" y1="142" x2="527" y2="142" stroke="#333" stroke-width="0.6"/>
+        <line x1="524" y1="150" x2="527" y2="150" stroke="#333" stroke-width="0.6"/>
+        <line x1="524" y1="158" x2="527" y2="158" stroke="#333" stroke-width="0.6"/>
+        <line x1="524" y1="166" x2="527" y2="166" stroke="#333" stroke-width="0.6"/>
+        <rect x="524" y="155" width="11" height="8" fill="#3c3c3c" rx="1.5" stroke="#606060" stroke-width="0.5"/>
+        <line x1="528" y1="158" x2="532" y2="158" stroke="#888" stroke-width="0.8"/>
+        <line x1="528" y1="160" x2="532" y2="160" stroke="#888" stroke-width="0.8"/>
+
+        <!-- Slider G2-3 -->
+        <rect x="547" y="128" width="5" height="46" fill="#0d0d0d" rx="2.5" stroke="#3a3a3a" stroke-width="0.5"/>
+        <line x1="544" y1="134" x2="547" y2="134" stroke="#333" stroke-width="0.6"/>
+        <line x1="544" y1="142" x2="547" y2="142" stroke="#333" stroke-width="0.6"/>
+        <line x1="544" y1="150" x2="547" y2="150" stroke="#333" stroke-width="0.6"/>
+        <line x1="544" y1="158" x2="547" y2="158" stroke="#333" stroke-width="0.6"/>
+        <line x1="544" y1="166" x2="547" y2="166" stroke="#333" stroke-width="0.6"/>
+        <rect x="544" y="132" width="11" height="8" fill="#3c3c3c" rx="1.5" stroke="#606060" stroke-width="0.5"/>
+        <line x1="548" y1="135" x2="552" y2="135" stroke="#888" stroke-width="0.8"/>
+        <line x1="548" y1="137" x2="552" y2="137" stroke="#888" stroke-width="0.8"/>
+
+        <!-- Coloured indicator squares — group 2, same column -->
+        <!-- Square 4: teal -->
+        <rect x="558" y="130" width="8" height="8" fill="#115544" rx="1" stroke="#0a3a2e" stroke-width="0.5"/>
+        <rect x="559" y="131" width="6" height="6" fill="#1aaa7a" rx="0.5" opacity="0.65"/>
+        <!-- Square 5: blue -->
+        <rect x="558" y="142" width="8" height="8" fill="#0e1f55" rx="1" stroke="#091540" stroke-width="0.5"/>
+        <rect x="559" y="143" width="6" height="6" fill="#3355cc" rx="0.5" opacity="0.65"/>
+        <!-- Square 6: grey -->
+        <rect x="558" y="154" width="8" height="8" fill="#252525" rx="1" stroke="#444" stroke-width="0.5"/>
+        <rect x="559" y="155" width="6" height="6" fill="#c0c0c0" rx="0.5" opacity="0.5"/>
+
+        <!-- ─── 4. LARGE ROTARY DIAL with degree arc markings ─── -->
+        <line x1="500" y1="180" x2="581" y2="180" stroke="#2a2a2a" stroke-width="0.8"/>
+
+        <!-- Degree labels printed on panel around the dial arc -->
+        <text x="500" y="213" font-family="sans-serif" font-size="4.2" fill="#5a5a5a">60</text>
+        <text x="503" y="202" font-family="sans-serif" font-size="4.2" fill="#5a5a5a">55</text>
+        <text x="510" y="193" font-family="sans-serif" font-size="4.2" fill="#5a5a5a">50</text>
+        <text x="520" y="188" font-family="sans-serif" font-size="4.2" fill="#5a5a5a">45</text>
+        <text x="531" y="186" font-family="sans-serif" font-size="4.2" fill="#5a5a5a">40</text>
+        <text x="542" y="189" font-family="sans-serif" font-size="4.2" fill="#5a5a5a">35</text>
+        <text x="551" y="196" font-family="sans-serif" font-size="4.2" fill="#5a5a5a">30</text>
+        <!-- Arc tick marks -->
+        <line x1="503" y1="217" x2="505" y2="213" stroke="#444" stroke-width="0.7"/>
+        <line x1="507" y1="207" x2="509" y2="204" stroke="#444" stroke-width="0.7"/>
+        <line x1="513" y1="199" x2="515" y2="196" stroke="#444" stroke-width="0.7"/>
+        <line x1="521" y1="193" x2="523" y2="191" stroke="#444" stroke-width="0.7"/>
+        <line x1="530" y1="191" x2="531" y2="188" stroke="#444" stroke-width="0.7"/>
+        <line x1="539" y1="192" x2="540" y2="189" stroke="#444" stroke-width="0.7"/>
+        <line x1="548" y1="197" x2="550" y2="194" stroke="#444" stroke-width="0.7"/>
+        <line x1="555" y1="205" x2="557" y2="202" stroke="#444" stroke-width="0.7"/>
+        <line x1="560" y1="215" x2="562" y2="212" stroke="#444" stroke-width="0.7"/>
+
+        <!-- Large rotary knob — centred at 531, 226 -->
+        <circle cx="531" cy="226" r="20" fill="#181818" stroke="#404040" stroke-width="1.2"/>
+        <circle cx="531" cy="226" r="17" fill="url(#knob-grad)"/>
+        <!-- Knurling -->
+        <circle cx="531" cy="226" r="18.5" fill="none" stroke="#505050" stroke-width="1.2" stroke-dasharray="1.6 2.0"/>
+        <!-- Pointer at ~40° position -->
+        <line x1="531" y1="226" x2="539" y2="210" stroke="#cccccc" stroke-width="2" stroke-linecap="round"/>
+        <!-- Centre cap -->
+        <circle cx="531" cy="226" r="3.5" fill="#282828" stroke="#505050" stroke-width="0.5"/>
+
+        <!-- LED power indicator dot (to the right of the dial) -->
+        <circle class="coup-led-dot" cx="561" cy="218" r="4" fill="#dd2200"/>
+        <circle cx="561" cy="218" r="4" fill="none" stroke="#aa1800" stroke-width="0.6"/>
+        <circle class="coup-led-dot" cx="561" cy="218" r="7" fill="rgba(221,34,0,0.15)"/>
+
+        <!-- ─── 5. SMALL ROCKER SWITCH ─── -->
+        <line x1="500" y1="248" x2="581" y2="248" stroke="#2a2a2a" stroke-width="0.8"/>
+        <!-- Small rocker body — centred in strip -->
+        <rect x="521" y="252" width="24" height="11" fill="#1c1c1c" rx="2" stroke="#505050" stroke-width="0.6"/>
+        <line x1="521" y1="257.5" x2="545" y2="257.5" stroke="#505050" stroke-width="0.5"/>
+        <rect x="522" y="253" width="22" height="4" fill="#2a2a2a" rx="1.2"/>
+        <rect x="522" y="258" width="22" height="4" fill="#181818" rx="1.2"/>
+
+        <!-- ─── 6. SMALLER ROTARY KNOB (channel selector) ─── -->
+        <line x1="500" y1="267" x2="581" y2="267" stroke="#2a2a2a" stroke-width="0.8"/>
+
+        <!-- Channel numbers arc around knob -->
+        <text x="503" y="294" font-family="sans-serif" font-size="4" fill="#505050">8</text>
+        <text x="509" y="282" font-family="sans-serif" font-size="4" fill="#505050">9</text>
+        <text x="519" y="275" font-family="sans-serif" font-size="4" fill="#505050">10</text>
+        <text x="530" y="272" font-family="sans-serif" font-size="4" fill="#505050">11</text>
+        <text x="541" y="274" font-family="sans-serif" font-size="4" fill="#505050">12</text>
+        <text x="549" y="281" font-family="sans-serif" font-size="4" fill="#505050">1</text>
+        <text x="554" y="292" font-family="sans-serif" font-size="4" fill="#505050">2</text>
+        <!-- Small tick marks -->
+        <line x1="506" y1="297" x2="508" y2="294" stroke="#3a3a3a" stroke-width="0.6"/>
+        <line x1="511" y1="286" x2="513" y2="284" stroke="#3a3a3a" stroke-width="0.6"/>
+        <line x1="520" y1="278" x2="521" y2="275" stroke="#3a3a3a" stroke-width="0.6"/>
+        <line x1="531" y1="274" x2="531" y2="271" stroke="#3a3a3a" stroke-width="0.6"/>
+        <line x1="542" y1="277" x2="543" y2="274" stroke="#3a3a3a" stroke-width="0.6"/>
+        <line x1="550" y1="284" x2="552" y2="282" stroke="#3a3a3a" stroke-width="0.6"/>
+        <line x1="555" y1="294" x2="557" y2="292" stroke="#3a3a3a" stroke-width="0.6"/>
+
+        <!-- Small rotary knob — centred at 531, 298 -->
+        <circle cx="531" cy="298" r="12" fill="#181818" stroke="#404040" stroke-width="1"/>
+        <circle cx="531" cy="298" r="9.5" fill="url(#knob-grad)"/>
+        <circle cx="531" cy="298" r="11" fill="none" stroke="#505050" stroke-width="0.8" stroke-dasharray="1.4 1.8"/>
+        <!-- Pointer pointing to "11" -->
+        <line x1="531" y1="298" x2="531" y2="289" stroke="#aaaaaa" stroke-width="1.5" stroke-linecap="round"/>
+        <circle cx="531" cy="298" r="2.5" fill="#282828" stroke="#505050" stroke-width="0.4"/>
+
+        <!-- Brand plate — bottom-left of screen bezel, not on control panel -->
+        <rect x="117" y="302" width="102" height="14" fill="rgba(0,0,0,0.5)" rx="1.5"/>
+        <rect x="118" y="303" width="100" height="12" fill="none" stroke="#7a6030" stroke-width="0.6" rx="1.5"/>
+        <text x="168" y="312" text-anchor="middle" font-family="serif" font-size="7.5" fill="#c8a44a" letter-spacing="1.5" font-weight="bold">РУБИН 714</text>
+
+        <!-- ── SCREEN AREA (x 116–498, y 30–308) ── -->
+        <!-- Outer bezel -->
+        <rect x="114" y="28" width="380" height="250" fill="url(#bezel)" rx="5"/>
+        <!-- Inner bezel -->
+        <rect x="116" y="30" width="376" height="246" fill="#0a0a0a" rx="4"/>
+        <!-- CRT screen — heavily rounded corners, characteristic of era -->
+        <rect x="120" y="42" width="372" height="236" fill="#050a08" rx="28" ry="28"/>
+
+        <!-- Screen image -->
+        <foreignObject x="120" y="42" width="372" height="236" clip-path="url(#screen-clip)">
+          <div xmlns="http://www.w3.org/1999/xhtml" style="width:100%;height:100%;overflow:hidden;border-radius:28px;background:#000;">
+            <img src="images/swan-lake.gif" alt="Soviet television — Swan Lake"
+                 style="width:100%;height:100%;object-fit:cover;display:block;filter:saturate(0.65) brightness(0.88) contrast(1.12);"/>
           </div>
-        </div>
-        <div class="coup-tv-controls">
-          <div class="coup-tv-led"></div>
-          <div class="coup-tv-slider"></div>
-          <div class="coup-tv-knob"></div>
-          <div class="coup-tv-slider"></div>
-          <div class="coup-tv-knob"></div>
-        </div>
-        <div class="coup-tv-brand">РУБИН 714 <span>&#9632; СССР</span></div>
-      </div>
-      <div class="coup-tv-legs">
-        <div class="coup-tv-leg"></div>
-        <div class="coup-tv-leg"></div>
-      </div>
+        </foreignObject>
+
+        <!-- CRT vignette -->
+        <rect x="120" y="42" width="372" height="236" fill="url(#crt-vignette)" rx="28" ry="28"/>
+        <!-- Scanlines -->
+        <rect class="coup-scanlines" x="120" y="42" width="372" height="236" fill="url(#scanlines)" rx="28" ry="28" opacity="0.7"/>
+        <!-- Glare -->
+        <rect x="120" y="42" width="372" height="236" fill="url(#glare)" rx="28" ry="28"/>
+        <!-- Bezel top highlight -->
+        <rect x="116" y="30" width="376" height="2" fill="rgba(255,255,255,0.06)" rx="1"/>
+
+        <!-- ── FEET ── -->
+        <rect x="80"  y="306" width="20" height="16" fill="#3d1e08" rx="0 0 3 3"/>
+        <rect x="80"  y="320" width="20" height="4"  fill="#261208" rx="0 0 3 3"/>
+        <rect x="520" y="306" width="20" height="16" fill="#3d1e08" rx="0 0 3 3"/>
+        <rect x="520" y="320" width="20" height="4"  fill="#261208" rx="0 0 3 3"/>
+
+        <!-- Cabinet shadow -->
+        <ellipse cx="310" cy="328" rx="270" ry="6" fill="rgba(0,0,0,0.4)"/>
+
+        <!-- Chrome strips drawn LAST so they overlay the control panel and span full width -->
+        <rect x="10" y="18" width="600" height="6" fill="url(#chrome)"/>
+        <rect x="10" y="302" width="600" height="6" fill="url(#chrome)"/>
+      </svg>
     </div>
 
     <div class="coup-telegram">
@@ -7309,7 +7646,7 @@ function displayCoupEvent(event) {
   `;
   panel.appendChild(overlay);
 
-  panel.classList.add('active');
+  panel.classList.add('active', 'coup-active');
   animatePaperUnfurl(panel);
   renderEventQueueStatus();
 }
@@ -7330,6 +7667,8 @@ function restoreNormalEventPanel() {
   // Remove coup overlay
   const overlay = panel ? panel.querySelector('.coup-overlay') : null;
   if (overlay) overlay.remove();
+  // Remove coup-specific modal alignment
+  if (panel) panel.classList.remove('coup-active');
   // Restore the pravda-modal-card
   const card = panel ? panel.querySelector('.pravda-modal-card') : null;
   if (card) card.style.display = '';
