@@ -5173,6 +5173,7 @@ let events = [
   {
     id: 'warsaw_pact_renewal_1985',
     name: 'The Warsaw Pact Renewal',
+    image: 'images/Warsaw-pact-logo-01.png',
     trigger: { month: 5, year: 1985 },
     condition: (state) => {
       const enacted = new Set(state.enactedPolicies || []);
@@ -6433,6 +6434,7 @@ The Ministry of Foreign Affairs and the Department of International Information 
   {
     id: 'sandinista_crisis_1985',
     name: 'The Sandinista Question — Report from Managua',
+    image: 'images/Flag_of_the_FSLN.svg.png',
     trigger: { month: 9, year: 1985 },
     condition: (state) => Number((state.intlRelations && state.intlRelations.us) || 0) <= 30 || Number(state.budget || 0) <= 45,
     description: `Comrade General Secretary — materials received from Managua indicate that the Nicaraguan revolution is under mounting pressure. The American embargo restricts trade; contra formations, supplied and encouraged by Washington, continue operations in the countryside; Mexican oil shipments are uncertain; inflation and scarcity are weakening confidence in the Sandinista administration.
@@ -6448,6 +6450,7 @@ The comrades in Managua request assistance, but assistance is not a slogan. It i
   {
     id: 'rajiv_gandhi_visit_1985',
     name: 'Visit of Rajiv Gandhi — Asian Friendship Under Review',
+    image: 'images/Rajiv_Gandhi_in_1985_(cropped).jpg',
     trigger: { month: 11, year: 1985 },
     condition: (state) => Number((state.intlRelations && state.intlRelations.us) || 0) >= 20 || Number((state.specialMetrics && state.specialMetrics.asiaInfluence) || 50) >= 45,
     description: `Comrade General Secretary — Rajiv Gandhi, the new Prime Minister of India, arrives in Moscow under conditions requiring careful handling. India remains the Soviet Union's most important Asian partner, but the new leadership in New Delhi speaks the language of technology, modernisation, and wider diplomatic room.
