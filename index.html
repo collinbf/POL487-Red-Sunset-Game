@@ -308,83 +308,18 @@
   .radio-icon-btn .icon{opacity:1!important;color:inherit!important;filter:none!important;font-family:Arial,Helvetica,sans-serif;font-weight:900;}
 
 
-  /* FINAL RADIO CONTROL TUNING */
-  .soviet-radio .volume-wrap{
-    grid-template-columns:58px 116px !important;
-    justify-content:center;
-    column-gap:10px !important;
-    margin:6px auto 0 !important;
-    width:220px !important;
-    max-width:calc(100% - 34px) !important;
-  }
-  .soviet-radio .volume-wrap input{
-    width:116px !important;
-    max-width:116px !important;
-    justify-self:end !important;
-  }
-  .radio-icon-btn,
-  .radio-icon-btn:hover,
-  .radio-icon-btn:focus,
-  .radio-icon-btn:active,
-  .radio-icon-btn.muted{
-    background:#d7cdb2 !important;
-    background-image:linear-gradient(180deg,#eee7d4 0%,#d7cdb2 54%,#bdb193 100%) !important;
-    border-color:#efe6cd !important;
-    color:#1b1108 !important;
-    opacity:1 !important;
-    text-shadow:none !important;
-    filter:none !important;
-  }
-  .radio-icon-btn .icon{
-    color:#1b1108 !important;
-    opacity:1 !important;
-    filter:none !important;
-    text-shadow:none !important;
-  }
-
-  /* WOVEN CLOTH SPEAKER GRILLE — inspired by the reference radio fabric */
-  .radio-speaker-grille{
-    position:relative !important;
-    overflow:hidden !important;
-    height:52px !important;
-    margin:7px 26px 8px !important;
-    border:2px solid rgba(70,32,12,.86) !important;
-    border-radius:7px !important;
-    background-color:#c7ad8d !important;
-    background-image:
-      linear-gradient(180deg,rgba(255,246,224,.30),rgba(97,61,33,.24)),
-      repeating-linear-gradient(90deg,rgba(246,232,206,.58) 0 6px,rgba(142,105,72,.28) 6px 9px,rgba(199,173,141,.16) 9px 18px),
-      repeating-linear-gradient(0deg,rgba(255,255,255,.20) 0 1px,rgba(78,50,31,.18) 1px 2px,transparent 2px 7px),
-      repeating-linear-gradient(60deg,transparent 0 10px,rgba(82,55,38,.36) 10px 12px,transparent 12px 22px),
-      repeating-linear-gradient(120deg,transparent 0 10px,rgba(82,55,38,.34) 10px 12px,transparent 12px 22px) !important;
-    background-size:auto,24px 100%,100% 8px,28px 18px,28px 18px !important;
-    box-shadow:
-      inset 0 2px 6px rgba(255,236,197,.26),
-      inset 0 -5px 10px rgba(55,31,14,.36),
-      inset 0 0 0 1px rgba(245,221,178,.16),
-      0 1px 0 rgba(255,221,150,.22) !important;
-  }
-  .radio-speaker-grille::before{
-    content:"";
-    position:absolute;
-    inset:5px 7px;
-    pointer-events:none;
-    background-image:
-      repeating-linear-gradient(90deg,transparent 0 15px,rgba(255,245,220,.40) 15px 20px,transparent 20px 30px),
-      repeating-linear-gradient(0deg,transparent 0 8px,rgba(85,54,34,.28) 8px 10px,transparent 10px 18px);
-    mix-blend-mode:screen;
-    opacity:.62;
-  }
-  .radio-speaker-grille::after{
-    content:"";
-    position:absolute;
-    inset:0;
-    pointer-events:none;
-    background:
-      radial-gradient(ellipse at center,rgba(255,244,218,.18),transparent 62%),
-      linear-gradient(90deg,rgba(58,29,10,.30),transparent 12%,transparent 88%,rgba(58,29,10,.30));
-    box-shadow:inset 0 0 16px rgba(35,18,8,.38);
-  }
+  /* FINAL RADIO CONTROL TUNING - consolidated */
+  .utility-panel.soviet-radio{padding:10px 12px 12px !important;min-height:0 !important;}
+  .soviet-radio .section-title{padding-bottom:3px !important;margin-bottom:0 !important;}
+  .radio-speaker-grille{position:relative !important;overflow:hidden !important;height:52px !important;margin:7px 26px 8px !important;border:2px solid rgba(70,32,12,.86) !important;border-radius:7px !important;background-color:#c7ad8d !important;background-image:linear-gradient(180deg,rgba(255,246,224,.30),rgba(97,61,33,.24)),repeating-linear-gradient(90deg,rgba(246,232,206,.58) 0 6px,rgba(142,105,72,.28) 6px 9px,rgba(199,173,141,.16) 9px 18px),repeating-linear-gradient(0deg,rgba(255,255,255,.20) 0 1px,rgba(78,50,31,.18) 1px 2px,transparent 2px 7px),repeating-linear-gradient(60deg,transparent 0 10px,rgba(82,55,38,.36) 10px 12px,transparent 12px 22px),repeating-linear-gradient(120deg,transparent 0 10px,rgba(82,55,38,.34) 10px 12px,transparent 12px 22px) !important;background-size:auto,24px 100%,100% 8px,28px 18px,28px 18px !important;box-shadow:inset 0 2px 6px rgba(255,236,197,.26),inset 0 -5px 10px rgba(55,31,14,.36),inset 0 0 0 1px rgba(245,221,178,.16),0 1px 0 rgba(255,221,150,.22) !important;}
+  .radio-speaker-grille::before{content:"";position:absolute;inset:5px 7px;pointer-events:none;background-image:repeating-linear-gradient(90deg,transparent 0 15px,rgba(255,245,220,.40) 15px 20px,transparent 20px 30px),repeating-linear-gradient(0deg,transparent 0 8px,rgba(85,54,34,.28) 8px 10px,transparent 10px 18px);mix-blend-mode:screen;opacity:.62;}
+  .radio-speaker-grille::after{content:"";position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at center,rgba(255,244,218,.18),transparent 62%),linear-gradient(90deg,rgba(58,29,10,.30),transparent 12%,transparent 88%,rgba(58,29,10,.30));box-shadow:inset 0 0 16px rgba(35,18,8,.38);}
+  .radio-tuning-scale{margin:0 16px 7px !important;padding:4px 8px 3px !important;}.radio-scale-lines{height:18px !important;}.radio-scale-lines::before{font-size:7px !important;bottom:-2px !important;}.radio-scale-lines::after{height:16px !important;top:1px !important;}
+  .soviet-radio .volume-wrap{grid-template-columns:58px 116px !important;justify-content:center !important;column-gap:10px !important;margin:6px auto 0 !important;width:220px !important;max-width:calc(100% - 34px) !important;padding:4px 6px !important;font-size:11px !important;}
+  .soviet-radio .volume-wrap input{width:116px !important;max-width:116px !important;justify-self:end !important;}
+  .radio-controls{gap:7px !important;margin-top:8px !important;flex-wrap:nowrap !important;}
+  .radio-icon-btn,.radio-icon-btn:hover,.radio-icon-btn:focus,.radio-icon-btn:active,.radio-icon-btn.muted{width:32px !important;height:27px !important;padding:0 !important;background:#d7cdb2 !important;background-image:linear-gradient(180deg,#eee7d4 0%,#d7cdb2 54%,#bdb193 100%) !important;border-color:#efe6cd !important;color:#1b1108 !important;opacity:1 !important;text-shadow:none !important;filter:none !important;font-size:15px !important;}
+  .radio-icon-btn .icon{color:#1b1108 !important;opacity:1 !important;filter:none !important;text-shadow:none !important;font-family:Arial,Helvetica,sans-serif !important;font-weight:900 !important;}
   .policy-tree {
     display:flex;
     flex-direction:column;
@@ -482,6 +417,13 @@
   .event-panel.pravda.is-ending .pravda-body { column-count:1 !important; }
   .event-panel.pravda.is-ending .pravda-modal-card { max-height:none !important; overflow-y:visible !important; }
   .event-panel.pravda.is-ending { overflow-y:auto !important; align-items:flex-start !important; }
+
+
+  /* ENDING BACKDROP: cover the full window like normal event modals */
+  .event-panel.pravda.active.is-ending{position:fixed !important;inset:0 !important;width:100vw !important;height:100vh !important;min-height:100vh !important;min-height:100dvh !important;z-index:1900 !important;display:flex !important;align-items:flex-start !important;justify-content:center !important;overflow-y:auto !important;overflow-x:hidden !important;padding:18px max(12px, env(safe-area-inset-right)) 36px max(12px, env(safe-area-inset-left)) !important;margin:0 !important;border:0 !important;border-radius:0 !important;background:rgba(10,5,2,0.82) !important;box-sizing:border-box !important;}
+  .event-panel.pravda.active.is-ending .pravda-modal-card{margin:0 auto 42px !important;max-height:none !important;overflow-y:visible !important;}
+  .event-panel.pravda.active.is-ending .pravda-body{column-count:1 !important;}
+
   .tree-title { font-family:'Playfair Display',serif; font-size:15px; font-weight:900; color:var(--red-dark); margin-bottom:5px; }
   .tree-meta, .tree-req { font-family:'IM Fell English',serif; font-size:12px; line-height:1.35; }
   .tree-status { display:inline-block; margin-top:8px; padding:3px 7px; border:1px solid currentColor; border-radius:2px; font-size:10px; letter-spacing:.08em; text-transform:uppercase; font-weight:700; }
@@ -3048,7 +2990,7 @@ const gameState = {
     ligachev:    55, // Conservative
     yeltsin:     50, // Wild card
     ryzhkov:     60, // PM
-    akhromeyev:  65, // Military
+    akhromeyev:  50, // Military
     // Extended roster — previously uninitialised (caused silent failures)
     aliyev:      65,
     varennikov:  40,
@@ -3124,6 +3066,7 @@ function checkPolicyVisible(policy) {
 
   if (v.minYear  !== undefined && y < v.minYear)  return false;
   if (v.maxYear  !== undefined && y > v.maxYear)  return false;
+  if (v.minBudget !== undefined && Number(gameState.budget || 0) < v.minBudget) return false;
 
   if (v.minSeparatism     !== undefined && sep                    < v.minSeparatism)     return false;
   if (v.maxStability      !== undefined && m.stability            > v.maxStability)      return false;
@@ -3478,40 +3421,57 @@ let policies = [
     visibleIf: { maxYear: 1988 }, // Irrelevant once withdrawal begins
   },
   {
-    id: 'akhromeyev_weapons_development',
-    name: 'Develop New Mid-Range Missile Platform',
-    category: 'Domestic',
-    cost: 15,
-    description: 'Direct and fund the development of a new mid-range missile platform to counter American deployment.',
-    effects: { militaryReadiness: +15, economy: -5, popularAffection: -5, foreignRelations: -10 },
-    duration: 'permanent',
+    id: 'akhromeyev_afghanistan_surge',
+    name: 'Ramp Up the War in Afghanistan',
+    category: 'Foreign',
+    cost: 3,
+    description: 'Deploy additional troops to crack down on the Islamist insurgency in Afghanistan, displaying strength both at home and abroad.',
+    effects: { popularSupport: -5, economy: +10, hardlinersApproval: +10, reformersApproval: -5, us: -2 },
+    duration: '1 year',
     advisorRequired: 'akhromeyev',
-    advisorOpposition: ['shevardnadze'],
-    visibleIf: { maxYear: 1987 }, // Pre-INF Treaty window only
+    advisorSupport: ['gromyko'],
+    advisorOpposition: ['raisa'],
+    visibleIf: { minBudget: 3 },
+    outcomeText: '“Liberate the Afghan population from religious oppression and ensure their safety from it.” The military-industrial engine roars to life, but international patience wears thinner.',
+  },
+  {
+    id: 'akhromeyev_weapons_development',
+    name: 'Weapons Development',
+    category: 'Domestic',
+    cost: 3,
+    description: 'Direct and fund the development of a new mid-range missile platform. The Americans should tread carefully in their proxy conflicts.',
+    effects: { popularSupport: -5, economy: -5, hardlinersApproval: +10, us: -3, eastEu: -3, westEu: -3, nonAlign: -3 },
+    duration: '2 years',
+    advisorRequired: 'akhromeyev',
+    advisorOpposition: ['gromyko'],
+    visibleIf: { minBudget: 3 },
   },
   {
     id: 'akhromeyev_inf_treaty',
-    name: 'INF Treaty — Intermediate-Range Nuclear Forces',
+    name: 'Intermediate-Range Nuclear Forces Treaty',
     category: 'Foreign',
     cost: 0,
-    description: 'Sign the historic INF Treaty with the United States, eliminating an entire class of nuclear weapons and easing global tensions.',
-    effects: { foreignRelations: +15, popularAffection: +5, economy: +5, partyUnity: -8 },
+    description: 'Ease global tensions through an arms-control treaty that eliminates an entire class of nuclear weapons. We can all take a breath.',
+    effects: { popularSupport: +5, economy: +5, budgetBalance: +5, stability: +2, us: +2, china: +2, eastEu: +2, westEu: +2, nonAlign: +2, hardlinersApproval: -5 },
     duration: 'permanent',
     advisorRequired: 'akhromeyev',
+    advisorSupport: ['gromyko'],
     advisorOpposition: ['varennikov'],
-    visibleIf: { minYear: 1987, maxYear: 1988 },
+    visibleIf: { minYear: 1987, maxYear: 1987 },
   },
   {
     id: 'akhromeyev_eastern_bloc_crackdown',
     name: 'Tighten Control on Eastern Bloc Dissent',
     category: 'Foreign',
-    cost: 5,
-    description: 'Deploy Soviet forces to quell protests in the Eastern Bloc, keeping satellite states stable and intact.',
-    effects: { stability: +8, foreignRelations: -10, popularAffection: -5, partyUnity: +8 },
+    cost: 3,
+    description: 'Quell protests in the Eastern Bloc. No more threat of revolution: the Eastern Bloc remains stable and intact.',
+    effects: { eastEu: +4, separatism: -4, popularSupport: -5, reformersApproval: -15, hardlinersApproval: +15 },
     duration: 'permanent',
     advisorRequired: 'akhromeyev',
+    advisorSupport: ['medvedev', 'kryuchkov'],
     advisorOpposition: ['shevardnadze'],
-    visibleIf: { minSeparatism: 30 },
+    visibleIf: { minBudget: 3 },
+    delayedEffectNote: 'Template calls for Popular Approval +3 next year; delayed one-year rebound is not currently modelled by the policy engine.',
   },
 
   // ── ALIYEV POLICIES ────────────────────────────────────────────────
@@ -5356,30 +5316,7 @@ Gosplan has prepared three courses of action for your consideration.`,
       { text: 'Reduce production to preserve equipment and defer capital expenditure', effects: { budget: -18, economy: +3 } },
     ],
   },
-  {
-    id: 'moscow-coup',
-    name: 'Hardliner Faction Demands Action',
-    image: 'images/hardliner_coup_threat.jpg',
-    trigger: { month: 8, year: 1990 },
-    condition: (gs) => (
-      gs.year >= 1990 &&
-      gs.metrics.partyUnity <= 40 &&
-      gs.metrics.stability <= 45 &&
-      gs.partyFactions.hardliner < 60
-    ),
-    description: `Comrade General Secretary — representatives of the conservative wing of the Central Committee, elements within the Ministry of Defence, and senior officers of the Committee for State Security have communicated their position in terms that admit no ambiguity.
 
-The course of reform has produced economic disorder, national separatism, ideological confusion, and the erosion of Party authority. The Union is bleeding. They demand a return to order. The language in circulation among certain senior figures — "state of emergency," "temporary stabilisation measures," "constitutional protection of socialist gains" — is not unfamiliar to students of Soviet history.
-
-Glasnost, Perestroika, and political reform have divided the Party into increasingly hostile factions. Meetings of the Politburo are consumed by confrontation. Ministries pursue their own agendas. Within the military, the security services, and the bureaucracy, influential figures are quietly organising to defend their vision of the Soviet future.
-
-You must respond. Silence is itself a choice, and they will interpret it accordingly.`,
-    choices: [
-      { text: 'Accommodate the hardliners — implement stabilisation measures and slow the reform programme', effects: { stability: +5, partyUnity: +8, popularAffection: -10 } },
-      { text: 'Reaffirm the reform course and resist the pressure', effects: { partyUnity: -10, stability: -5, popularAffection: +5 } },
-      { text: 'Seek a negotiated compromise — partial concessions in exchange for continued loyalty', effects: { partyUnity: -3, stability: +2, popularAffection: 0 } },
-    ],
-  },
   {
     id: 'economics-collapse',
     name: 'Deepening Economic Crisis',
@@ -6202,6 +6139,221 @@ The Ministry of Foreign Affairs and the Department of International Information 
     ],
   },
 
+  // ── EVENTS TEAM PACKAGE: 1990–1991 FOREIGN AND UNION EVENTS ─────────────
+  {
+    id: 'iraq_invades_kuwait',
+    name: "Iraq Invades Kuwait",
+    image: "images/An_Iraqi_Army_T-72_main_battle_tank_firing_during_the_invasion_of_Kuwait,_August_1990.jpg",
+    trigger: { month: 8, year: 1990 },
+    description: "On August 2nd, Iraqi forces under Saddam Hussein have invaded and occupied Kuwait in a rapid military operation that overwhelmed Kuwaiti defenses within hours. The move has stunned the international community. President Bush has condemned the invasion in the strongest terms and is already assembling a broad international coalition (Operation Desert Shield) to deter any further Iraqi advance into Saudi Arabia and to lay the groundwork for reversing the occupation. Washington is seeking Soviet cooperation, or at least non-interference, through the UN Security Council, where you hold a permanent veto. The Cold War logic that would have made this an automatic superpower confrontation no longer applies in the same way, and Bush has personally reached out to you in the spirit of the new bilateral relationship. But Iraq has historically been a Soviet client state: Moscow supplied Baghdad with arms, advisors, and diplomatic cover for decades, and there are thousands of Soviet citizens currently working in Iraq. Abandoning that relationship entirely carries its own costs. You must decide where the Soviet Union stands.",
+    choices: [
+      {
+        text: "Co-sponsor the UN Resolution",
+        effects: { us: +3, westEu: +2, budget: +1, hardlinersApproval: -2, reformersApproval: +1 },
+        outcomeText: "Co-sponsoring the UN resolutions with the United States is a landmark moment in post-Cold War cooperation. Bush publicly praises your leadership, and the gesture earns significant diplomatic goodwill as well as quiet economic benefits as Western governments signal openness to financial support for Soviet reforms. The hardliners view this as an historic betrayal of a Soviet ally.",
+      },
+      {
+        text: "Abstain and Offer Mediation",
+        effects: { us: -1, westEu: -1, nonAlign: +2, moderatesApproval: +1 },
+        outcomeText: "You position the Soviet Union as a neutral mediator, protecting your relationship with Iraq and your standing among non-aligned states. Washington is disappointed and the mediation effort goes nowhere as Saddam refuses to negotiate. You avoid openly antagonizing Iraq but gain little in return.",
+      },
+      {
+        text: "Quietly Support Iraq",
+        effects: { us: -3, westEu: -2, nonAlign: +1, budget: -2, hardlinersApproval: +2 },
+        outcomeText: "Your covert support for Iraq is eventually exposed through intelligence channels, causing a serious rupture in US-Soviet relations. Bush personally expresses his disappointment to you in a tense call. The moment of post-Cold War partnership that was within reach slips away, and the economic benefits of Western goodwill evaporate.",
+      },
+    ],
+  },
+  {
+    id: 'gorbachev_visits_beijing_1990',
+    name: "Gorbachev Visits Beijing",
+    image: "images/Chien-Gorbachev,_1994-03-21.jpg",
+    trigger: { month: 4, year: 1990 },
+    condition: (state) => Number((state.intlRelations && state.intlRelations.china) || 0) > 40,
+    description: "Your historic May 1989 visit to Beijing normalized Sino-Soviet relations after thirty years of estrangement. However, the Tiananmen Square massacre overshadowed the summit. Now, in 1990, Beijing is watching how Moscow handles its own internal unrest. China's leaders are deeply alarmed by your reform program and see it as a cautionary tale. You must decide how to manage this ideologically complicated relationship.",
+    choices: [
+      {
+        text: "Deepen Economic Cooperation with China",
+        effects: { china: +3, budget: +1, us: -1 },
+        outcomeText: "Expanded economic ties with China bring tangible trade benefits.",
+      },
+      {
+        text: "Maintain Correct but Cool Relations",
+        effects: { china: +1, westEu: +1, us: +1, reformersApproval: +1 },
+        outcomeText: "A posture of diplomatic correctness preserves relations without ideological alignment.",
+      },
+      {
+        text: "No Diplomatic Visit to China",
+        effects: { china: -1 },
+        outcomeText: "You decide to not visit Beijing, prioritizing other domestic and foreign exploits that require your attention. China takes this somewhat coldly, as the taste of Tiananmen Square still lingers in the mouths of both parties.",
+      },
+    ],
+  },
+  {
+    id: 'romania_after_ceausescu',
+    name: "Romania After Ceausescu",
+    image: "images/Revolutia_Bucuresti_1989_000.JPG",
+    trigger: { month: 1, year: 1990 },
+    description: "After ruling Romania with an iron fist for 24 years, Nicolae Ceausescu has been executed by firing squad on Christmas Day following a hasty revolutionary trial lasting barely two hours. The National Salvation Front, led by Ion Iliescu (himself a former Communist Party official who fell out of favor with Ceausescu) has seized power in Bucharest amid ongoing street violence and confused gunfights. Romania's new government is ambiguous in its orientation, as Iliescu is neither a liberal democrat, nor a reliable Soviet ally. He has (perhaps duplicitously) spoken the language of reform while consolidating power in ways that concern Western observers. Moscow must decide quickly how to engage with this new and unpredictable power on the Soviet Union's southwestern frontier, before others move to fill the vacuum.",
+    choices: [
+      {
+        text: "Extend Immediate Recognition",
+        effects: { eastEu: +2, budget: -1, reformersApproval: +1 },
+        outcomeText: "Swift recognition of the new Romanian government signals Soviet flexibility and earns goodwill in Bucharest. Economic assistance strains the budget but gives Moscow a degree of influence in the new government. Romania remains in a murky middle ground, but ties are preserved.",
+      },
+      {
+        text: "Observe and Wait",
+        effects: { eastEu: -1 },
+        outcomeText: "A cautious wait-and-see approach preserves your options but signals indifference to Bucharest. Romania drifts further toward Western orientation in the absence of Soviet engagement. The opportunity to shape Romanian foreign policy in this critical window passes.",
+      },
+    ],
+  },
+  {
+    id: 'future_soviet_german_relations',
+    name: "The Future of Soviet-German Relations",
+    image: "images/KAS-Deutsche_Einheit-Bild-11015-7.jpg",
+    trigger: { month: 10, year: 1990 },
+    description: "On October 3rd, 1990, Germany is officially reunified for the first time since the end of the Second World War. The process that began with the fall of the Berlin Wall has concluded with incredible speed, less than a year from protest to unification. For the Soviet Union, the implications are profound. A unified Germany is now the most populous and economically powerful state in Western Europe, a full member of NATO, and the dominant force within the European Community. The Two Plus Four Agreement, signed in September, formally ended Soviet occupation rights in eastern Germany and committed all parties to a unified Germany within NATO, which is a concession that still sits uneasily with much of the Politburo. Helmut Kohl has privately signaled his gratitude and his interest in a strong bilateral relationship with\n\nMoscow going forward. You now have an opportunity to shape what that relationship looks like.",
+    choices: [
+      {
+        text: "Pursue a Strategic Relationship with Germany",
+        effects: { us: +1, westEu: +2, budget: +3, hardlinersApproval: -2, reformersApproval: +2 },
+        outcomeText: "You move quickly to convert Kohl's goodwill into a concrete strategic partnership. Germany agrees to substantial financial assistance for Soviet economic reforms, and the Deutsche Mark becomes a lifeline for your struggling budget. Western Europe takes note of the close Moscow-Bonn axis and broadly welcomes it. The hardliners are appalled, viewing the entire arrangement as ratifying a historic defeat. But the economic benefits are immediate and real.",
+      },
+      {
+        text: "Establish Normal Diplomatic Relations",
+        effects: { westEu: +1, moderatesApproval: +1 },
+        outcomeText: "A measured, businesslike approach to the new Germany avoids the appearance of desperation while keeping the relationship on stable footing. Kohl is mildly disappointed that his overtures were not more warmly received, but the bilateral relationship proceeds normally. Trade ties develop gradually. The moderates in the Politburo appreciate the lack of drama.",
+      },
+      {
+        text: "Demand Compensation for Occupation Costs",
+        effects: { us: -1, westEu: -2, budget: +1, hardlinersApproval: +2, moderatesApproval: -1 },
+        outcomeText: "You instruct Soviet negotiators to press Germany for financial compensation under the framework of the Two Plus Four Agreement, arguing that the Soviet military presence in eastern Germany for 45 years entitles Moscow to settlement payments. The Germans and their Western allies react with irritation, viewing the demand as revisionist and petty. The budget sees a modest one-time gain from the eventual negotiated settlement, but the goodwill Kohl had offered evaporates, and your reputation in Western Europe takes a meaningful hit.",
+      },
+    ],
+  },
+  {
+    id: 'lithuania_declares_independence',
+    name: "Lithuania Declares Independence",
+    image: "images/Day_of_Lithuanian_independence_in_Šiauliai,_Lithuania,_attended_by_the_Latvian_political_party_LNNK.jpg",
+    trigger: { month: 3, year: 1990 },
+    description: "The Lithuanian Supreme Soviet, led by Vytautas Landsbergis, has voted to restore Lithuanian independence. Lithuania is the first Soviet republic to do so. The declaration is legally provocative and could possibly set a dangerous precedent. A response is necessary, as other Soviet Republics and the rest of the world will gain valuable information from how this situation is dealt with.",
+    choices: [
+      {
+        text: "Economic Blockade",
+        effects: { us: -2, westEu: -2, budget: -2, hardlinersApproval: +2, popularSupport: -1 },
+        outcomeText: "An economic blockade is placed on Lithuania, cutting off critical supplies. The Lithuanians refuse to capitulate, and the standoff drags on for months. Western governments condemn the pressure as coercion, straining your relationship with Europe and America. The hardliners are satisfied, but popular sympathy for the Lithuanians grows at home and abroad.",
+      },
+      {
+        text: "Open Negotiations",
+        effects: { us: +1, westEu: +1, hardlinersApproval: -1, reformersApproval: +1, separatism: +1 },
+        outcomeText: "You agree to a negotiating track, gaining goodwill from the West. Lithuania agrees to a temporary suspension of the declaration to allow talks to proceed. The underlying tensions remain unresolved, and other republics take note that cracking down violently is not your first instinct. The hardliners in the Politburo are uneasy.",
+      },
+      {
+        text: "Declare the Vote Illegal",
+        effects: { westEu: -1, hardlinersApproval: +1, moderatesApproval: +1, separatism: +1 },
+        outcomeText: "You issue a legal decree nullifying the Lithuanian declaration, buying time without escalating to force. The West registers its displeasure diplomatically. The Politburo moderates and hardliners appreciate the firm legal stance, but the issue is far from resolved, as Vilnius simply ignores the decree.",
+      },
+    ],
+  },
+  {
+    id: 'baker_shevardnadze_meeting',
+    name: "Baker-Shevardnadze Meeting",
+    image: "images/Baker-Shevardnadze-Translator-White-House-Cabinet-Room-June-1990.jpg",
+    trigger: { month: 2, year: 1990 },
+    description: "Foreign Minister Shevardnadze and US Secretary of State James Baker are meeting in Moscow to accelerate negotiations on the START treaty, conventional forces in Europe, and NATO expansion. There is an opportunity to move quickly toward a landmark agreement, but the military establishment and hardliners fear concessions are being made too rapidly.",
+    choices: [
+      {
+        text: "Accelerate the Negotiations",
+        effects: { us: +2, westEu: +1, budget: +1, hardlinersApproval: -2, reformersApproval: +2, militaryReadiness: -1, militaryLoyalty: -2 },
+        outcomeText: "A landmark arms control deal is reached, earning you enormous international prestige and a Nobel Peace Prize nomination. Defense spending reductions give the budget a modest boost. However, the military brass and Politburo hardliners are furious at the pace of concessions, viewing the treaty as a strategic defeat. Their resentment will fester.",
+      },
+      {
+        text: "Pace the Negotiations",
+        effects: { us: -1, hardlinersApproval: +1, moderatesApproval: +1, militaryLoyalty: +1 },
+        outcomeText: "A more cautious negotiating posture delays the treaty but preserves unity within the Politburo and prevents a military backlash. Bush's team is frustrated by the slower pace, but the bilateral relationship remains intact. The deal will come, just not yet.",
+      },
+      {
+        text: "Propose a Broader Security Framework",
+        effects: { us: +1, westEu: +1, reformersApproval: +1, moderatesApproval: +1, militaryLoyalty: -1 },
+        outcomeText: "You instruct Shevardnadze to table a bold proposal: rather than negotiating arms reductions in isolation, why not embed them within a comprehensive new bilateral security framework that addresses the full range of post-Cold War concerns, like regional conflicts, economic cooperation, and European security architecture? Baker is intrigued but cautious, and the Americans are not ready to move at the pace you are proposing. Progress on the arms treaty itself slows as the broader agenda complicates the negotiating table. The reformers and moderates in the Politburo appreciate the vision, but the military establishment bristles at the implication that Soviet security policy is being redesigned in consultation with Washington.",
+      },
+      {
+        text: "Walk out of the Talks",
+        effects: { us: -3, westEu: -2, hardlinersApproval: +3, reformersApproval: -2, moderatesApproval: -1, militaryReadiness: +1, militaryLoyalty: +2 },
+        outcomeText: "You instruct Shevardnadze to suspend the talks indefinitely, publicly accusing Washington of negotiating in bad faith and using the arms control process as a vehicle for extracting unilateral concessions from a weakened Soviet Union. The military establishment is jubilant and the hardliners consolidate around you, sensing a shift in direction. But the fallout is severe. Western European governments, who had been enthusiastic supporters of the arms control process, react with alarm. Shevardnadze privately tells you this is a catastrophic mistake and that the window for a landmark agreement may not reopen. The reformers in the Politburo are demoralized. The talks will eventually resume,  but the trust that Baker and Shevardnadze had painstakingly built over months is gone, and the Americans will negotiate far more coldly from this point forward.",
+      },
+    ],
+  },
+  {
+    id: 'desert_storm_ultimatum',
+    name: "Desert Storm Ultimatum",
+    image: "images/Saddam_Hussein.jpg",
+    trigger: { month: 1, year: 1991 },
+    description: "Only days before the US-led coalition is set to launch an operation to expel Iraq from Kuwait, you are personally delivered a letter from Saddam Hussein himself. It reads:\n\nTo His Excellency Mikhail Sergeyevich Gorbachev, President of the Union of Soviet\n\nSocialist Republics, Moscow\n\nYour Excellency,\n\nI write to you in this grave hour as one leader to another, and as a friend to a friend whose counsel I have long valued.\n\nThe forces of American imperialism and their collaborators stand poised on the borders of Iraq, prepared to unleash destruction upon our people under the false banner of international law. We both know that what is truly at stake here is not the sovereignty of Kuwait, a fiction invented by British colonial cartographers, but the ambitions of Washington to establish permanent military dominance over the Arab world and its resources, ambitions that should concern Moscow no less than they concern Baghdad.\n\nIraq has not forgotten who stood with us during the long years of her development. Soviet arms, Soviet expertise, and Soviet friendship built the foundations of the modern Iraqi state. Thousands of your citizens have lived and worked among our people as brothers. Are these bonds of thirty years to be discarded at the demand of George Bush?\n\nI put it to you plainly, Your Excellency: if the Soviet Union permits this coalition to proceed, it will not be Kuwait that is liberated. It will be the entire Middle East that is delivered into American hands, and the voice of Moscow in this region will fall silent for a generation. The United States does not seek a new world order. It seeks its own order, and it is using your goodwill and your signature to build it.\n\nIraq is prepared to discuss a framework for the resolution of this dispute through any channel you propose. We ask only that you use the full weight of Soviet authority to halt this aggression before it begins. A Soviet guarantee of Iraqi sovereignty and a commitment to a regional conference on the Palestinian question and Gulf security would provide the framework within which Iraq could consider a withdrawal that preserves the dignity of all parties.\n\nThe next hours will determine not only the fate of Iraq but the shape of the world your children and mine will inherit. History will record whether the Soviet Union stood as a great and independent power in this moment, or whether it stepped aside and allowed one nation to remake the world in its own image.\n\nI await your response with urgency.\n\nSaddam Hussein President of the Republic of Iraq Commander in Chief of the Armed Forces\n\nYou have a narrow window to either make a final diplomatic push or step back and allow the coalition to proceed.",
+    choices: [
+      {
+        text: "Make a Final Diplomatic Push",
+        effects: { us: +1, westEu: +1, nonAlign: +2, moderatesApproval: +1 },
+        outcomeText: "Your last-ditch diplomatic effort fails to move Saddam, but it enhances your international image as a leader who exhausted every peaceful option. The coalition proceeds with the operation. Non-aligned states appreciate the gesture, and Washington views it as a responsible move by a reliable partner.",
+      },
+      {
+        text: "Stand Aside",
+        effects: { us: +2, westEu: +1, nonAlign: -1, hardlinersApproval: -1 },
+        outcomeText: "Your decision to stand aside is quietly welcomed by Washington and London. The coalition operation proceeds without Soviet interference. Non-aligned states are disappointed that Moscow made no effort to prevent the war, but US-Soviet relations reach a new high-water mark.",
+      },
+      {
+        text: "Intervene on Iraq’s Behalf",
+        effects: { us: -4, westEu: -3, budget: -2, hardlinersApproval: +3, reformersApproval: -3, moderatesApproval: -2, militaryReadiness: -2, militaryLoyalty: +2 },
+        outcomeText: "Moved by Saddam's appeal (or by the arguments of the hardliners who have been pushing back against your accommodation of Washington for months) you make the fateful decision to intervene on Iraq's behalf. Soviet naval assets in the Mediterranean are placed on alert and you issue a stark public warning that any coalition military action against Iraq will be considered a threat to Soviet strategic interests. The announcement sends shockwaves through Western capitals. Bush, who had spoken of a genuine post-Cold War partnership with Moscow, is privately furious. The coalition does not stand down, as American and British forces proceed with the operation regardless, calling what they see as a bluff. The relationship between Moscow and Washington is shattered. The economic consequences are immediate and severe: Western governments freeze discussions on financial assistance, trade agreements stall, and the budget hemorrhages as the Soviet economy loses access to Western markets and credit. At home, the reformers are in open despair and Shevardnadze, watching from the sidelines, tells associates that the Soviet Union has just made the worst foreign policy decision since the invasion of Afghanistan. The hardliners are euphoric.",
+      },
+    ],
+  },
+  {
+    id: 'dissolution_of_warsaw_pact',
+    name: "The Dissolution of the Warsaw Pact",
+    image: "images/Foundation_of_the_Visegrád_Group.tiff",
+    trigger: { month: 2, year: 1991 },
+    description: "Poland, Czechoslovakia, and Hungary, three states that have borne the brunt of Soviet military intervention, have jointly announced their intention to withdraw from the Warsaw Pact by the end of 1991. Meeting in Visegrád, the three nations have also signaled their intention to eventually seek membership in Western institutions, representing a seismic shift in European security architecture. The withdrawal does not come as a complete surprise, as the revolutions of 1989 made it inevitable in the long run, but the coordinated, joint nature of the announcement is a deliberate signal that these states are acting in concert and do not fear a Soviet response. Military planners in Moscow are already warning that the loss of the Pact's western buffer states fundamentally alters the strategic calculus on the European continent. You must determine the Soviet response to this formal unraveling of your alliance system before the announcement hardens into irreversible momentum.",
+    choices: [
+      {
+        text: "Accept the Withdrawals Gracefully",
+        effects: { us: +1, westEu: +2, eastEu: +2, hardlinersApproval: -2, reformersApproval: +2 },
+        outcomeText: "Your graceful acceptance of the Warsaw Pact's dissolution earns enormous goodwill across Europe and signals a genuine commitment to the new post-Cold War order. The hardliners in the Politburo are appalled, viewing this as a historic capitulation. While the Soviet defense perimeter contracts, you gain significantly in diplomatic standing.",
+      },
+      {
+        text: "Demand a Transition Period",
+        effects: { westEu: -1, eastEu: -1, hardlinersApproval: +1, moderatesApproval: +1 },
+        outcomeText: "You push back on the timeline, demanding a negotiated transition period. The\n\nEastern European states are frustrated, viewing this as a delaying tactic, and their Western partners echo the complaint. The hardliners appreciate the show of resolve, but it seems that the outcome is inevitable and you have only postponed the reckoning.",
+      },
+      {
+        text: "Threaten Economic Consequences",
+        effects: { westEu: -2, eastEu: -3, budget: +1, hardlinersApproval: +2, separatism: +1 },
+        outcomeText: "Threatening economic consequences provokes outrage across Eastern Europe and in Western capitals. Far from halting the withdrawals, the pressure accelerates them. Several Eastern European states fast-track applications to Western\n\ninstitutions. The short-term budget gains from renegotiating trade deals are more than offset by lasting diplomatic damage.",
+      },
+    ],
+  },
+  {
+    id: 'bloody_sunday_vilnius',
+    name: "Bloody Sunday in Vilnius",
+    image: "images/Unarmed_Lithuanian_citizen_standing_against_Soviet_tank,_Vilnius,_January_13,_1991.jpg",
+    trigger: { month: 1, year: 1991 },
+    description: "Soviet troops and KGB special forces, acting without your explicit authorization, have stormed the Vilnius TV Tower in an attempt to seize control of Lithuanian broadcasting infrastructure. In the chaos, 14 civilians were killed and hundreds more wounded after soldiers opened fire on an unarmed crowd. Amateur footage of the crackdown has been broadcast worldwide within hours, and the images are devastating. Western governments are already issuing statements of condemnation. Landsbergis has gone on air to rally his people and call the attack a Soviet war crime. Whether or not you ordered it, the world holds you personally responsible. Moscow has only hours before the international response hardens into something irreversible. You must respond immediately.",
+    choices: [
+      {
+        text: "Condemn the Violence Publicly",
+        effects: { us: +1, westEu: +1, hardlinersApproval: -2, reformersApproval: +2, moderatesApproval: -1, popularSupport: +1 },
+        outcomeText: "You issue a public condemnation of the violence and promise accountability. The West partially accepts your statement, stabilizing diplomatic relations. However, the hardliners in the Politburo view your words as a betrayal of state authority, and your internal position weakens considerably.",
+      },
+      {
+        text: "Defend the Operation",
+        effects: { us: -2, westEu: -3, hardlinersApproval: +2, reformersApproval: -2, separatism: +3, popularSupport: -1 },
+        outcomeText: "You defend the crackdown as a lawful security operation. The West responds with fury in the form of sanctions threats and public denunciations. Far from deterring independence movements, the crackdown galvanizes separatists across all the republics. Your international standing suffers its worst blow in years.",
+      },
+    ],
+  },
+
+
 ];
 
 let advisors = [
@@ -6284,13 +6436,13 @@ let advisors = [
   {
     id: 'akhromeyev',
     name: 'Sergey Akhromeyev',
-    role: 'Chief of the General Staff',
+    role: 'Red Army Chief of Staff',
     faction: 'Hardliner',
     loyalty: 50,
     effectiveness: 90,
     image: 'images/Sergey_Akhromeyev_1.jpg',
-    description: 'A loyal believer in Soviet Communism who favours reduced tensions with Washington yet remains unwavering in his commitment to the Soviet cause. His effective relationship with his US counterpart gives him unusual credibility in arms control.',
-    specialty: 'Oversees military readiness and arms control implementation. Opposes all liberalisation.',
+    description: 'A loyal believer in Soviet Communism, Akhromeyev favours reduced tensions with Washington yet remains unwavering in his commitment to the Soviet cause. As the face of Soviet military might in the 1980s, he is the advisor to use when projecting strength for global security or internal stability. He initially opposed the invasion of Afghanistan but dutifully oversaw much of the occupation, always toeing the Kremlin line. His effective relationship with his US counterpart on arms reductions gives him unusual credibility in the West.',
+    specialty: 'Oversees military readiness along the Iron Curtain and on the Afghan front; ensures successful implementation of arms control.',
     reactionLiberal: -5,
     reactionConservative: +15,
     threshold: 10,
@@ -7210,14 +7362,16 @@ function playPaperCrackle() {
 
 // ── COUP: NATIONAL ANTHEM ────────────────────────────────────────────────────
 let coupAudio = null;
-function playCoupAnthem() {
+function playCoupAnthem(options = {}) {
+  const resumeAfter = options.resumeAfter !== false;
+  const pauseReason = options.reason || 'coup-anthem';
   try {
-    pauseBackgroundMusic('coup-anthem');
+    pauseBackgroundMusic(pauseReason);
     if (coupAudio) { coupAudio.pause(); coupAudio.currentTime = 0; }
     coupAudio = makeAudio('sounds/national_antham.mp3');
     coupAudio.volume = uiState.audioMuted ? 0 : Math.min(1, uiState.musicVolume ?? 0.7);
     coupAudio.loop = false;
-    coupAudio.addEventListener('ended', () => resumeBackgroundMusic('coup-anthem'), { once:true });
+    if (resumeAfter) coupAudio.addEventListener('ended', () => resumeBackgroundMusic(pauseReason), { once:true });
     coupAudio.play().catch(() => {});
   } catch(e) {}
 }
@@ -7761,12 +7915,10 @@ function displayEvent(event) {
           console.error('[ElDorado] play() rejected:', err);
         });
       }
-      // Pause background music while flyover plays, resume when it ends
+      // Pause background music while flyover plays, resume when it naturally ends.
+      // Use onended rather than addEventListener so repeated displays do not stack listeners.
       pauseBackgroundMusic('eldorado');
-      eldoradoFlyoverAudio.addEventListener('ended', function resumeAfterFlyover() {
-        eldoradoFlyoverAudio.removeEventListener('ended', resumeAfterFlyover);
-        resumeBackgroundMusic('eldorado');
-      });
+      eldoradoFlyoverAudio.onended = () => resumeBackgroundMusic('eldorado');
     } catch(e) {
       console.error('[ElDorado] exception:', e);
     }
@@ -7777,6 +7929,11 @@ function resolveEventChoice(choiceIdx) {
   const event = activeEvent;
   if (!event || !event.choices || !event.choices[choiceIdx]) return;
   const choice = event.choices[choiceIdx];
+
+  // Stop one-shot event audio as soon as a choice is made.
+  if (event.id === 'libya_bombing_1986') {
+    stopEldoradoFlyoverAudio();
+  }
   // Apply effects (skip special 'ir' null entries used in trigger events)
   Object.entries(choice.effects || {}).forEach(([key, val]) => {
     if (val === null) return;
@@ -8447,6 +8604,15 @@ function applyMetricChange(metricKey, delta) {
   if (metricKey === 'budgetBalance') { gameState.economySub.budgetBalance = clamp(Number(gameState.economySub.budgetBalance||0)+Number(delta||0),-100,100); return; }
   if (metricKey === 'budget') { gameState.budget = clamp(Number(gameState.budget||0)+Number(delta||0),0,9999); return; }
   if (metricKey === 'separatism') { gameState.separatism = clamp(Number(gameState.separatism||0)+Number(delta||0),0,100); return; }
+  if (['us','china','eastEu','westEu','nonAlign'].includes(metricKey)) {
+    gameState.intlRelations[metricKey] = clamp(Number(gameState.intlRelations[metricKey]||0)+Number(delta||0),0,100);
+    const vals = Object.values(gameState.intlRelations).map(Number);
+    gameState.metrics.foreignRelations = clamp(Math.round(vals.reduce((a,b)=>a+b,0) / vals.length),0,100);
+    return;
+  }
+  if (metricKey === 'reformersApproval') { gameState.factionApproval.reformers = clamp(Number(gameState.factionApproval.reformers||0)+Number(delta||0),-100,100); return; }
+  if (metricKey === 'moderatesApproval') { gameState.factionApproval.moderates = clamp(Number(gameState.factionApproval.moderates||0)+Number(delta||0),-100,100); return; }
+  if (metricKey === 'hardlinersApproval') { gameState.factionApproval.hardliners = clamp(Number(gameState.factionApproval.hardliners||0)+Number(delta||0),-100,100); return; }
   if (metricKey === 'combatReadiness') { gameState.militarySub.combatReadiness = clamp(Number(gameState.militarySub.combatReadiness||0)+Number(delta||0),0,100); return; }
   if (metricKey === 'militaryLoyalty') { gameState.militarySub.loyalty = clamp(Number(gameState.militarySub.loyalty||0)+Number(delta||0),0,100); return; }
   if (metricKey === 'reformFaction') { gameState.partyFactions.reform = clamp(Number(gameState.partyFactions.reform||0)+Number(delta||0),0,100); return; }
@@ -9056,16 +9222,15 @@ function triggerGameOver(type, message) {
   animatePaperUnfurl(panel);
   renderPolicies();
 
-  // ── COUP ENDING: NATIONAL ANTHEM ─────────────────────────────────
-  if (type === 'coup') {
-    // Fade out background music first, then play the anthem
+  // ── ENDING ANTHEM ────────────────────────────────────────────────
+  if (type === 'coup' || type === 'success') {
     try {
       if (typeof musicAudio !== 'undefined' && musicAudio) {
         musicAudio.pause();
         musicAudio.currentTime = 0;
       }
     } catch(e) {}
-    playCoupAnthem();
+    playCoupAnthem({ resumeAfter: type !== 'success', reason: type === 'success' ? 'success-anthem' : 'coup-anthem' });
   }
 
   addLog('GAME OVER: ' + (titles[type] || type), 'crisis');
@@ -10416,6 +10581,17 @@ eldoradoFlyoverAudio.preload = 'auto';  // load eagerly — event fires mid-game
 eldoradoFlyoverAudio.load();            // trigger the network request immediately
 eldoradoFlyoverAudio.loop = false;
 
+function stopEldoradoFlyoverAudio() {
+  try {
+    if (typeof eldoradoFlyoverAudio !== 'undefined' && eldoradoFlyoverAudio) {
+      eldoradoFlyoverAudio.onended = null;
+      eldoradoFlyoverAudio.pause();
+      eldoradoFlyoverAudio.currentTime = 0;
+    }
+  } catch(e) {}
+  try { if (typeof resumeBackgroundMusic === 'function') resumeBackgroundMusic('eldorado'); } catch(e) {}
+}
+
 // ── AUGUST COUP 1991: SWAN LAKE ───────────────────────────────────────────────
 const swanLakeAudio = makeAudio('sounds/swan_lake.mp3');
 swanLakeAudio.preload = 'auto';
@@ -10695,7 +10871,6 @@ document.addEventListener('keydown', function(e) {
           <option value="october_revolution_70">70th Anniversary of the October Revolution</option>
           <option value="yeltsin_incident">The Yeltsin Affair</option>
           <option value="oil_crash">Collapse of Oil Revenue</option>
-          <option value="moscow-coup">Hardliner Faction Demands Action</option>
           <option value="economics-collapse">Deepening Economic Crisis</option>
           <option value="free_talk_show">Vzglyad — TV Authorisation</option>
           <option value="law_on_cooperatives">Law on Cooperatives</option>
