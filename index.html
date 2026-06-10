@@ -152,13 +152,12 @@
   .faction-name.reform { color:var(--green); }
   .faction-name.moderate { color:#8b5a0a; }
   .faction-name.hard { color:var(--red); }
-  .faction-bar { height:6px; background:rgba(139,26,26,.08); border:.5px solid rgba(139,26,26,.15); overflow:hidden; position:relative; }
-  .faction-bar::after { content:''; position:absolute; left:50%; top:-2px; bottom:-2px; width:1.5px; background:var(--rule); opacity:.85; }
-  .faction-fill { position:absolute; top:0; height:100%; width:var(--fill-width, 0%); transition:width .8s cubic-bezier(.4,0,.2,1), left .8s cubic-bezier(.4,0,.2,1), right .8s cubic-bezier(.4,0,.2,1); }
+  .faction-bar { height:6px; background:rgba(139,26,26,.08); border:.5px solid rgba(139,26,26,.15); overflow:visible; position:relative; }
+  .faction-fill { height:100%; transition:width .8s cubic-bezier(.4,0,.2,1); }
   .faction-fill.reform { --fill-color:var(--green); }
   .faction-fill.moderate { --fill-color:var(--gold); }
   .faction-fill.hard { --fill-color:var(--red); }
-  .zero-line { display:none; }
+  .zero-line { position:absolute; left:50%; top:-2px; bottom:-2px; width:1.5px; background:var(--rule); }
   .approval-val { font-family:'Playfair Display',serif; font-size:13px; font-weight:700; text-align:right; }
   .approval-val.pos { color:var(--green); }
   .approval-val.neg { color:var(--red); }
@@ -1781,11 +1780,10 @@
   .pravda-choices .event-btn{ flex:0 0 auto !important; max-height:none !important; }
 }
 
-/* === FACTION APPROVAL (-10–+10 centred bars) === */
+/* === FACTION STRENGTH (0–100 left-anchored bars) === */
 .faction-bar{ position:relative; overflow:hidden; }
-.faction-bar::after{ content:''; position:absolute; left:50%; top:-2px; bottom:-2px; width:1.5px; background:var(--rule); opacity:.85; }
-.faction-fill{ position:absolute; top:0; height:100%; width:var(--fill-width,0%); }
-.zero-line{ display:none; }
+.faction-fill{ position:absolute; top:0; left:0; height:100%; }
+.zero-line{ display:none; } /* no longer used — bars are 0-100, not centered */
 
 /* ── LAUNCHER SCREEN ─────────────────────────────────────────── */
 .launcher-overlay {
@@ -2402,6 +2400,20 @@
 .coup-tg-choices { border-top:2px solid #8b7040; padding:10px 14px; display:flex; flex-direction:column; gap:8px; background:#f0e8d0; }
 .coup-tg-choices .event-btn { font-size:12px; padding:9px 14px; text-align:left; background:#f0e8d0; }
 .coup-stamp { position:absolute; top:10px; right:12px; border:2px solid rgba(139,26,26,0.65); border-radius:2px; padding:3px 6px; transform:rotate(-5deg); font-family:'Playfair Display',serif; font-size:7.5px; font-weight:700; letter-spacing:.14em; color:rgba(139,26,26,0.7); text-transform:uppercase; white-space:nowrap; pointer-events:none; background:rgba(240,232,208,0.5); }
+
+/* === cumulative faction approval bar behaviour === */
+.faction-bar{ position:relative; overflow:hidden !important; }
+.faction-bar::after{ content:''; position:absolute; left:50%; top:-2px; bottom:-2px; width:1.5px; background:var(--rule); opacity:.85; }
+.faction-fill{ position:absolute !important; top:0; height:100%; width:var(--fill-width,0%); }
+.zero-line{ display:none !important; }
+
+
+/* === FIX 17: solid full-window black backdrop for events and endings === */
+.event-panel.pravda,.event-panel.pravda.active,.event-panel.pravda.active.is-ending{position:fixed!important;inset:0!important;left:0!important;top:0!important;width:100vw!important;min-width:100vw!important;height:100vh!important;min-height:100vh!important;min-height:100dvh!important;margin:0!important;border:0!important;border-radius:0!important;background:#000!important;z-index:9000!important;overflow-x:hidden!important;overflow-y:auto!important;box-sizing:border-box!important;}
+.event-panel.pravda.active{display:flex!important;align-items:flex-start!important;justify-content:center!important;}
+.event-panel.pravda::before,.event-panel.pravda.active::before,.event-panel.pravda.active.is-ending::before{content:''!important;position:fixed!important;inset:0!important;width:100vw!important;height:100vh!important;min-height:100dvh!important;background:#000!important;opacity:1!important;z-index:0!important;pointer-events:none!important;}
+.event-panel.pravda>*,.event-panel.pravda .pravda-modal-card,.event-panel.pravda .coup-overlay{position:relative!important;z-index:1!important;}
+
 </style>
 
 
@@ -2491,6 +2503,15 @@
   .card-modal-close-btn:hover{background:rgba(92,17,17,0.07);}
 </style>
 
+<script id="launcher-start-failsafe-head">
+window.launcherStartGame = function(){
+  try { if (typeof unlockAllAudio === 'function') unlockAllAudio(); } catch(e) {}
+  try { if (typeof projectorAudio !== 'undefined' && projectorAudio) { projectorAudio.currentTime = 0; if (projectorAudio.play) projectorAudio.play().catch(function(){}); } } catch(e) {}
+  var launcher = document.getElementById('launcher-modal');
+  if (launcher) { launcher.classList.add('divorced'); setTimeout(function(){ launcher.style.display = 'none'; }, 650); }
+  setTimeout(function(){ var modal = document.getElementById('intro-modal'); if (modal) { modal.style.display = 'flex'; modal.style.opacity = '1'; } else if (typeof startGame === 'function') { try { startGame(); } catch(e) { console.error(e); } } }, 250);
+};
+</script>
 </head>
 <body>
 
@@ -2523,7 +2544,7 @@
         </div>
       </div>
       <div class="launcher-btn-row">
-        <button class="launcher-btn launcher-btn-primary" onclick="launcherStartGame()">
+        <button class="launcher-btn launcher-btn-primary" onclick="window.launcherStartGame()">
           <span class="play-icon"></span>
           Start Game
         </button>
@@ -5150,6 +5171,28 @@ let policies = [
 
 let events = [
   {
+    id: 'warsaw_pact_renewal_1985',
+    name: 'The Warsaw Pact Renewal',
+    trigger: { month: 5, year: 1985 },
+    condition: (state) => {
+      const enacted = new Set(state.enactedPolicies || []);
+      const reformMomentum = Number(state.partyFactions?.reform || 0);
+      const hardlinerApproval = Number(state.factionApproval?.hardliners || 0);
+      const majorReformBegun = enacted.has('uskoreniye') || enacted.has('glasnost') || enacted.has('perestroika');
+      return !majorReformBegun || reformMomentum <= 50 || hardlinerApproval >= 0;
+    },
+    description: `The Warsaw Pact treaty needs renewal. For decades, Moscow has controlled Eastern Europe like puppets. But Poland remembers Solidarity, Hungary is trying new ideas, Romania defies Moscow, and East Germany's leadership grows old and stubborn.
+
+Your advisors are split between tightening control and giving the allies more freedom. The world is watching. You must decide how to renew the Pact.`,
+    choices: [
+      { text: 'The Iron Fist — tighten control and demand absolute loyalty.', effects: { hardlinersApproval: +3, reformMomentum: -2, us: -1, eastEu: +1 }, outcome: `You tell all Warsaw Pact members they must obey Moscow completely. Eastern European leaders are scared and nod, but Hungary and Romania quietly begin looking for Western friends. You have control today, but create future problems.` },
+      { text: 'The Gentle Hand — allow allies more economic freedom.', effects: { hardlinersApproval: -2, reformMomentum: +3, us: +1, eastEu: -1 }, outcome: `You tell Warsaw Pact leaders that they can experiment with small economic reforms as long as they stay in the alliance. Hungary and Poland are pleased. The alliance stays together, but cracks begin to show.` },
+      { text: 'The Bold Gamble — offer true independence in exchange for friendship.', effects: { hardlinersApproval: -5, reformMomentum: +4, us: +2, eastEu: -3, coupProbability: +10 }, outcome: `You shock everyone by suggesting that Warsaw Pact members can choose their own paths, and even leave peacefully if they want. The West praises you, but hardliners in Moscow begin plotting against you.` },
+      { text: 'Strategic Patience — renew the treaty but change nothing.', effects: { hardlinersApproval: +1 }, outcome: `You renew the Warsaw Pact with no major changes. Nothing gets better, but nothing gets worse yet. You avoid making enemies today, but also avoid solving any problems.` }
+    ]
+  },
+
+  {
     id: 'chernenko_funeral',
     name: 'State Funeral: Comrade Chernenko',
     image: 'images/Konstantin_Chernenko.jpg',
@@ -5969,7 +6012,7 @@ The address you deliver today will constitute the operative political line of th
   // ── NINA ANDREEVA LETTER ─────────────────────────────────────────
   {
     id: 'nina_andreeva_letter',
-    name: 'Nina Andreyeva\'s Letter — "I Cannot Forsake My Principles"',
+    name: "Nina Andreyeva’s Letter — \"I Cannot Forsake My Principles\"",
     image: 'images/Nina_Andreyeva.jpg',
     caption: 'Советская Россия, 13 марта 1988 — письмо Нины Андреевой',
     trigger: { month: 3, year: 1988 },
@@ -6420,285 +6463,6 @@ The Indian delegation seeks advanced machinery, military technology, and economi
 
 
 ];
-
-
-/* ── REGISTERED TRIGGER EVENTS ────────────────────────────────────────────────
-   Crisis/threshold events formerly created inline. Kept in a shared registry so
-   developer tooling can list and fire them without drifting from trigger logic. */
-const triggerEventRegistry = {
-  early_coup: {
-    id: 'early_coup',
-    name: 'State Committee on the State of Emergency — Internal Memorandum',
-    build: function() {
-      const _coupYear = gameState.year;
-      const _coupMonth = gameState.month;
-      const _monthName = ['January','February','March','April','May','June','July','August','September','October','November','December'][_coupMonth - 1] || '';
-      const _isEarly = _coupYear <= 1987;
-      const _isMid   = _coupYear >= 1988 && _coupYear <= 1989;
-      const _coupContext = _isEarly
-        ? `It is ${_monthName} ${_coupYear}. The reform programme is barely underway. In the corridors of the Central Committee, the hardliners have been watching — and they have decided they have seen enough.
-
-The Politburo session that was supposed to discuss the coming economic programme did not go as planned. The conservative faction arrived with a document already prepared: a resolution declaring the General Secretary unfit to lead under the conditions of accelerating instability. The vote was brief. The KGB Chairman endorsed it. The Defence Minister signed it. Two marshals who might have objected were not in the room.
-
-The tanks have not moved yet. But the order has been given.`
-        : _isMid
-        ? `It is ${_monthName} ${_coupYear}. Three years of glasnost and perestroika have shaken the foundations of the Party apparatus. Some comrades call this progress. Others call it something else.
-
-The Central Committee emergency session was convened under the pretext of reviewing economic stabilisation measures. The real business was different. A memorandum, signed by the heads of the KGB, the Ministry of Defence, and the Council of Ministers, has been placed before the Politburo. It characterises the reform programme as a threat to the constitutional order. It requests that authority be transferred, temporarily, to a State Committee capable of restoring discipline.
-
-The document is on the table. The room is waiting.`
-        : `It is ${_monthName} ${_coupYear}. The Union is fraying at every seam. The hardliners have concluded that Gorbachev cannot — or will not — hold it together, and they have decided to act.
-
-The KGB Chairman has convened a private meeting at the Defence Ministry. Vice President Yanayev, Prime Minister Pavlov, and Marshal Yazov were present. The meeting produced a document: a declaration that the General Secretary is unable to perform his duties, and that a State Committee on the State of Emergency will assume temporary authority.
-
-Communications to your office are being quietly rerouted. The garrison commanders have received sealed orders. The decision has been made — the question is only whether you will contest it.`;
-      return {
-      id: 'early_coup',
-      name: 'State Committee on the State of Emergency — Internal Memorandum',
-      image: 'images/coup_attempt.jpg',
-      caption: `${_monthName} ${_coupYear} — Государственный комитет по чрезвычайному положению`,
-      description: _coupContext,
-      choices: [
-        {
-          text: 'Refuse to recognise the committee — declare the action illegal and call on the army and people to resist',
-          effects: { popularAffection: +12, partyUnity: -5, stability: -15, foreignRelations: +8 },
-          outcomeText: `Gorbachev records a statement declaring the committee's actions unconstitutional and calling for resistance. The statement is broadcast — partially. Some units refuse orders. Others do not. In the streets, a crowd gathers outside the seat of the Russian government. Whether it will be enough is a question that history will answer over the next seventy-two hours.`,
-        },
-        {
-          text: 'Negotiate — seek a face-saving arrangement that preserves some form of the reform programme',
-          effects: { partyUnity: +5, popularAffection: -10, stability: -5 },
-          outcomeText: `Gorbachev attempts to negotiate. The committee listens, politely, and agrees to nothing. The offer of compromise is read as an admission of weakness. The apparatus that has already moved against the General Secretary is not interested in arrangements — it is interested in outcomes.`,
-        },
-        {
-          text: 'Capitulate — sign the emergency decrees; the alternative is something worse',
-          effects: { partyUnity: +15, popularAffection: -20, stability: +5, foreignRelations: -12 },
-          outcomeText: `The signature is given. The committee's declaration goes out over state television. Swan Lake plays on every channel. In Moscow, the tanks that had been sitting at their barracks are now moving. The reform era is over — not with an argument, but with a document.`,
-        },
-      ],
-    };
-    }
-  },
-  budget_crisis_1: {
-    id: 'budget_crisis_1',
-          name: 'Exhaustion of the Political Mandate',
-          image: 'images/iron_market.jpg',
-          description: 'Comrade General Secretary — the political capital of the General Secretary\'s office has been expended without sufficient renewal. The reformist tendency within the leading organs has lost forward momentum; the conservative tendency has registered a corresponding consolidation of its position. The Politburo has entered a condition of procedural deadlock in which no initiative of consequence can be advanced through the apparatus without prior restoration of the executive mandate.\n\nThe situation does not admit of passive resolution. A directive is required.',
-          choices: [
-            { text: 'Address the population directly — transmit a general appeal through Soviet television, bypassing the Politburo and invoking the authority of the General Secretary over the heads of the party apparatus', effects: { popularAffection: +12, partyUnity: -8 }, budgetGain: 20 },
-            { text: 'Extend concessions to the conservative tendency — restore the conditions for Politburo consensus through measured accommodation of the positions of the hardliner faction', effects: { partyUnity: +10, popularAffection: -8 }, budgetGain: 15 },
-            { text: 'Advance a single measure of visible consequence — demonstrate the operative authority of the General Secretary\'s office through the unilateral enactment of a high-profile reform', effects: { popularAffection: +6, stability: -5 }, budgetGain: 10 },
-          ],
-        },
-  social_parasitism_crisis: {
-    id: 'social_parasitism_crisis',
-      name: 'Social Parasitism Crisis',
-      image: 'images/social_parasitism.png',
-      description: 'Comrade General Secretary — the All-Union Central Council of Trade Unions, in coordination with the Ministry of Internal Affairs and the People\'s Control Committee, submits the following assessment of labour discipline conditions across the Union for the current reporting period.\n\nThe rate of unexcused absence from the workplace has increased for the fourth consecutive quarter. In certain branches of light industry, the figure now exceeds twelve percent of the scheduled workforce on any given shift. Inspectors of the People\'s Control Committee report a corresponding expansion of so-called "left-hand" activity — the manufacture and exchange of goods and services outside the planned economy — in urban residential districts in eleven of fifteen Union Republics. In several enterprises of the Donetsk coal basin, workers have been found to spend a significant portion of the working day in a condition incompatible with productive labour.\n\nThe relevant statutes remain in force. The problem is not the absence of legal instruments. The problem, as the Ministry of Internal Affairs has noted in a separate communication, is that enforcement requires a level of popular cooperation with state authority that cannot presently be assumed.\n\nThe socialist obligation to labour is a founding principle of the Union of Soviet Socialist Republics. The current situation is inconsistent with that principle.',
-      choices: [
-        { text: 'Launch anti-parasitism campaign', effects: { stability: +5, popularAffection: -8, partyUnity: +3 } },
-        { text: 'Ignore the problem', effects: { economy: -5, stability: -3 } },
-        { text: 'Offer economic incentives', effects: { economy: +3, popularAffection: +5, budget: -10 } },
-      ]
-    },
-  mass_protests: {
-    id: 'mass_protests',
-      name: 'Mass Protests',
-      image: 'images/Mass_Protests.jpg',
-      description: 'Crowds of hooligans, provocateurs, and — let us be honest — Western-funded agitators have gathered in the squares of Moscow, Leningrad, Kyiv, and eleven other cities. They carry signs. They shout. TASS has not reported this. CNN has. The workers and peasants of the Soviet Union — the real Soviet people — did not ask for this. These are not the masses. These are elements. Nevertheless, there are rather a lot of them, the Politburo has been in emergency session since 6 a.m., and your press secretary is, technically, still waiting for guidance.',
-      choices: [
-        { text: 'Address the nation. Announce reforms. Remind them you are on their side.', effects: { popularAffection: +8, partyUnity: -5 } },
-        { text: 'Restore order. The Ministry of Interior knows what to do.', budgetCost: 10, effects: { stability: +5, popularAffection: -15, foreignRelations: -8 } },
-        { text: 'Declare emergency powers. Public assembly suspended until further notice.', budgetCost: 15, effects: { stability: +8, popularAffection: -20, partyUnity: -10 } },
-      ]
-    },
-  yeltsin_break: {
-    id: 'yeltsin_break',
-      name: 'Yeltsin\'s Break with Gorbachev',
-      description: 'Boris Yeltsin publicly denounces the pace of reform and resigns from the Politburo. His dramatic departure signals a fracturing of the reformist coalition and a growing rival power centre.',
-      choices: [
-        { text: 'Attempt reconciliation', effects: { partyUnity: +5, popularAffection: +3, stability: -3 } },
-        { text: 'Denounce Yeltsin publicly', effects: { partyUnity: -8, popularAffection: -5, stability: +2 } },
-        { text: 'Ignore the rupture', effects: { partyUnity: -5, stability: -2 } },
-      ]
-    },
-  afghan_withdrawal_followon: {
-    id: 'afghan_withdrawal_followon',
-      name: 'The Boys Come Home',
-      image: 'images/Afghan_withdrawal.jpg',
-      description: `Comrade General Secretary — the last Soviet troops have crossed the Amu Darya river back into Soviet territory. General Boris Gromov, commander of the 40th Army, walked across the Friendship Bridge alone. He told waiting reporters: "There is not a single Soviet soldier or officer left behind me." Nine years, fifty-one days. Fifteen thousand dead.
-
-The homecoming is not a triumph. The veterans return to a country that has no language for what happened — the official narrative of "internationalist duty" has collapsed, and the new glasnost press is already running first-person accounts from wounded soldiers and mothers of the dead. Pamyat nationalists are furious. Reformers are vindicated. The generals are silent.
-
-The world has taken notice. Reagan's team signals that the Geneva Process can now accelerate.`,
-      choices: [
-        {
-          text: 'National ceremony of honour — receive the troops publicly and acknowledge their sacrifice, however painful the truth of the war',
-          effects: { popularAffection: +12, foreignRelations: +5, partyUnity: -8, stability: +3 },
-        },
-        {
-          text: 'Quiet reintegration — no ceremony, no headlines; redirect the defence budget savings into consumer goods and social programmes',
-          effects: { economy: +8, popularAffection: +4, stability: +5, partyUnity: +3 },
-        },
-        {
-          text: 'Commission a public inquiry into the conduct of the war — names, decisions, and failures on the record',
-          effects: { popularAffection: +15, foreignRelations: +8, partyUnity: -15, militaryReadiness: -5 },
-        },
-      ],
-    },
-  republic_independence_movements: {
-    id: 'republic_independence_movements',
-      name: 'Republic Independence Movements',
-      image: 'images/Republic_Independence_Movements.jpg',
-      description: 'Comrade General Secretary — the Department of Party Organisational Work submits the following summary of conditions in the Union Republics for the period under review.\n\nIn the Lithuanian, Latvian, and Estonian Soviet Socialist Republics, formations styling themselves as popular fronts have adopted resolutions calling for the restoration of so-called sovereignty. These formations enjoy a degree of mass participation that the relevant republican Party organs have proved unable to contain through existing organisational means. In the Georgian SSR, the Supreme Soviet has issued a declaration characterising the 1921 incorporation into the Union as an act of annexation. In the Armenian SSR, ongoing mobilisation over the Nagorno-Karabakh question has rendered normal Party functioning impossible in several raions.\n\nThe common thread in these developments is not, as certain comrades have suggested, the malign influence of foreign anti-Soviet centres — though such influence exists and is being monitored. The common thread is a crisis of confidence in the Union itself. Republican Party organisations are requesting guidance. Several first secretaries have indicated, in private communication, that they cannot guarantee compliance with central directives if the present situation continues.\n\nThe Union Treaty, in its current form, no longer commands the consent it requires.',
-      choices: [
-        { text: 'Offer genuine autonomy', effects: { stability: +5, partyUnity: -10, foreignRelations: +5 } },
-        { text: 'Military intervention', effects: { stability: +8, popularAffection: -15, foreignRelations: -15, militaryReadiness: -5 } },
-        { text: 'Negotiate a new Union Treaty', effects: { stability: -3, partyUnity: -5, popularAffection: +5 } },
-      ]
-    },
-  parade_of_sovereignties: {
-    id: 'parade_of_sovereignties',
-      name: 'Parade of Sovereignties — Urgent Report from the Department of Nationalities',
-      image: 'images/Republic_Independence_Movements.jpg',
-      caption: 'Заседание Верховного Совета, 1989–1990',
-      description: `Comrade General Secretary — the following report is submitted under the classification URGENT by the Department of Nationalities Policy and the Council of Ministers Secretariat.
-
-Over the past several months, the Supreme Soviets of the Lithuanian, Estonian, Latvian, Ukrainian, Russian, and Byelorussian Soviet Socialist Republics have each passed formal declarations of sovereignty — asserting the primacy of republican law over Union law. These are not symbolic gestures. They represent the formal beginning of a constitutional dismemberment of the Union from within.
-
-The declarations follow a common pattern: they do not yet use the word independence, but they claim the right to it. Republican newspapers, now largely beyond central editorial control, are treating each new declaration as a victory. The momentum is self-reinforcing: each declaration emboldens the next.
-
-Central authority is losing its grip not through revolution but through institutional withdrawal. If the Union is to survive in any form, that form must be actively constructed — it will not maintain itself.
-
-Your advisors have identified several courses of action that may still arrest the cascade. The Republic Autonomy Pact, the Cultural Autonomy Programme, Economic Incentives for the Republics, and the Novo-Ogaryovo process are the mechanisms most likely to offer the republics a credible reason to remain. Time is no longer a resource in surplus.`,
-      choices: [
-        {
-          text: 'Issue a public statement affirming the right of republics to cultural and economic self-determination within the Union',
-          effects: { separatism: -6, popularAffection: +5, partyUnity: -8, stability: +2 },
-          outcomeText: `Gorbachev addresses the nation. The statement is carefully worded — it affirms self-determination but not secession, federal partnership but not dissolution. Reformers call it overdue; conservatives call it capitulation. In Vilnius and Tallinn, the crowds are not wholly unimpressed. The cascade slows, but does not stop. The countermeasure policies are now the decisive terrain.`,
-        },
-        {
-          text: 'Convene an emergency session of the Congress of People\u2019s Deputies to debate a reformed Union Treaty',
-          effects: { separatism: -4, partyUnity: -5, stability: -3, popularAffection: +3 },
-          outcomeText: `The Congress convenes. The debate is raw and public in ways the Politburo finds alarming. Baltic deputies make speeches that would have earned years in the Gulag a decade ago. The reformist bloc demands a voluntary Union; the hardline bloc demands discipline. No resolution passes, but the act of convening signals that Moscow is willing to negotiate rather than simply command. Several republic leaderships indicate cautious openness to talks.`,
-        },
-        {
-          text: 'Do nothing — issue no statement and make no concessions; the declarations are legally void under the 1977 Constitution',
-          effects: { separatism: +5, stability: -5, partyUnity: +4, popularAffection: -4 },
-          outcomeText: `Moscow's silence is its own signal. The legal argument — that republican declarations cannot override the Union Constitution — is technically correct and politically catastrophic. In the absence of any credible offer from the centre, the moderate republican leaderships have nothing to show their populations. Hardliners in Moscow are satisfied; the republics draw the lesson that the centre will not negotiate and begin planning accordingly.`,
-        },
-      ],
-    },
-  union_on_the_brink: {
-    id: 'union_on_the_brink',
-      name: 'The Union on the Brink',
-      image: 'images/Republic_Independence_Movements.jpg',
-      description: 'Eleven of the fifteen republics have now either declared sovereignty or are in open confrontation with Moscow. The Union treaty exists only on paper. Gorbachev has days, not months, to either negotiate a final settlement or watch the USSR cease to exist. This is the last moment at which the centre can act.',
-      choices: [
-        {
-          text: 'Emergency Union Treaty — offer maximum autonomy to all republics',
-          effects: { separatism: -20, stability: +5, partyUnity: -15, popularAffection: +8 },
-        },
-        {
-          text: 'Address the nation — make a direct personal appeal for unity',
-          effects: { separatism: -10, popularAffection: +10, stability: -3 },
-        },
-        {
-          text: 'Accept the inevitable — begin orderly dissolution negotiations',
-          effects: { separatism: -5, stability: +10, partyUnity: -20, foreignRelations: +10 },
-        },
-      ],
-    },
-  superpower_crisis: {
-    id: 'superpower_crisis',
-      name: 'Superpower Crisis',
-      image: 'images/Superpower_Crisis.jpg',
-      description: 'Soviet-American relations have completely broken down. Both sides are on high alert. The world is closer to nuclear war than at any time since the Cuban Missile Crisis.',
-      choices: [
-        { text: 'Emergency diplomatic back-channel', effects: { foreignRelations: +15, partyUnity: -8, militaryReadiness: -5 } },
-        { text: 'Military posture — show strength', effects: { foreignRelations: -10, militaryReadiness: +10, economy: -10 } },
-        { text: 'Propose emergency summit', effects: { foreignRelations: +10, popularAffection: +5, partyUnity: -5 } },
-      ]
-    },
-  sino_soviet_border_tensions: {
-    id: 'sino_soviet_border_tensions',
-      name: 'Sino-Soviet Border Tensions',
-      image: 'images/Sino_Soviet_Border_Tensions.jpg',
-      description: `Comrade General Secretary — the General Staff of the Armed Forces of the Union of Soviet Socialist Republics submits the following assessment for your urgent consideration.
-
-Intelligence reports received through the Far Eastern Military District confirm a significant concentration of People's Liberation Army ground forces along the Sino-Soviet frontier in the Amur and Ussuri river sectors. The movements are consistent with a posture of forward deployment rather than routine exercise rotation. Border guard units of the KGB have reported increased aerial reconnaissance activity over Soviet territory in the Trans-Baikal region.
-
-The deterioration of fraternal relations between the Communist Party of the Soviet Union and the Communist Party of China — originating in the revisionist provocations of the Khrushchev period and deepened by the adventurist foreign policy line pursued by the Chinese leadership since 1969 — has created conditions in which miscalculation along the frontier cannot be excluded.
-
-The Ministry of Foreign Affairs has received no communication through established diplomatic channels. The General Staff requests guidance.`,
-      choices: [
-        { text: 'Authorise reinforcement of the Far Eastern Military District — additional motorised rifle divisions to be deployed to the frontier sectors', effects: { militaryReadiness: +3, economy: -5, foreignRelations: -3 } },
-        { text: 'Instruct the Ministry of Foreign Affairs to request an immediate exchange of military attaches and open a direct channel with the PLA General Staff', effects: { foreignRelations: +5, militaryReadiness: -2 } },
-        { text: 'No response — the General Staff is to maintain existing deployments and take no action that could be construed as provocative', effects: { stability: -3, militaryReadiness: -3 } },
-      ]
-    },
-  warsaw_pact_summit: {
-    id: 'warsaw_pact_summit',
-      name: 'Warsaw Pact Summit',
-      image: 'images/Warsaw_Pact_Summit.jpg',
-      description: `Comrade General Secretary — the First Secretaries of the fraternal socialist parties of the Polish People's Republic, the German Democratic Republic, the Hungarian People's Republic, the Czechoslovak Socialist Republic, the Socialist Republic of Romania, and the People's Republic of Bulgaria have requested an extraordinary convocation of the Political Consultative Committee of the Warsaw Treaty Organisation.
-
-The delegations have raised, through established fraternal channels, certain questions regarding the continuity of the principles governing mutual assistance and collective defence as codified in the 1955 Treaty. Specifically: whether the obligations of Article 4 remain operative in the event of internal disturbances directed against the leading role of the Party. The Hungarian comrades have raised this matter with particular insistence. The Polish delegation has forwarded materials documenting the activities of certain anti-socialist elements operating under the designation "Solidarity."
-
-The fraternal parties await clarification of the Union's position. The Military Council of the Warsaw Treaty Organisation has prepared contingency assessments. Your response will define the doctrine of socialist solidarity for the coming period.`,
-      choices: [
-        { text: 'Reaffirm the obligations of proletarian internationalism — the fraternal parties may count on the full support of the Union in defence of socialist gains', effects: { partyUnity: +5, foreignRelations: -8, popularAffection: -5 } },
-        { text: 'Each fraternal party bears responsibility for the defence of socialism within its own borders — the Union will not intervene in the internal affairs of sovereign states', effects: { partyUnity: -10, foreignRelations: +10, popularAffection: +5 } },
-        { text: 'Authorise an emergency programme of economic fraternal assistance to stabilise the most exposed People\'s Republics', effects: { economy: -8, stability: +3 } },
-      ]
-    },
-  revolutions_1989: {
-    id: 'revolutions_1989',
-      name: 'Revolutions of 1989',
-      image: 'images/Revolutions_of_1989.JPG',
-      description: 'Comrade General Secretary — the International Department of the Central Committee submits an urgent summary of conditions in the fraternal socialist states of Eastern Europe.\n\nIn the Polish People\'s Republic, the United Workers\' Party has suffered a comprehensive defeat in elections to the newly constituted Senate. The so-called Solidarity trade union, which this Committee advised be suppressed in 1980 and which has instead been tolerated and then legalised, is forming a government. In the Hungarian People\'s Republic, the Party has voted to dissolve itself and reconstitute as a social democratic formation. The Hungarian government has furthermore opened its western border with Austria, rendering the entire system of frontier controls meaningless; several hundred thousand citizens of the German Democratic Republic have transited through Hungary to the Federal Republic in the past sixty days alone.\n\nIn the German Democratic Republic, mass demonstrations in Leipzig, Dresden, and East Berlin continue to grow. The request by Comrade Egon Krenz for clarification of the Union\'s position on the use of security forces has been received. In the Czechoslovak Socialist Republic, the security services have dispersed demonstrations in Prague; this action has produced no stabilising effect and has attracted significant international condemnation. In the Socialist Republic of Romania, the situation requires separate assessment.\n\nThe Military Council of the Warsaw Treaty Organisation has been convened. It has reached no conclusion. The International Department notes, for the record, that the doctrine of non-interference communicated by your office in 1988 is now producing its full consequences.',
-      choices: [
-        { text: 'Accept the revolutions — non-intervention', effects: { partyUnity: -10, foreignRelations: +15, popularAffection: +5 } },
-        { text: 'Selective military intervention', effects: { foreignRelations: -20, militaryReadiness: -8, popularAffection: -10 } },
-        { text: 'Emergency consultation with Politburo', effects: { partyUnity: -3, stability: -3 } },
-      ]
-    },
-  end_of_warsaw_pact: {
-    id: 'end_of_warsaw_pact',
-      name: 'End of the Warsaw Pact',
-      image: 'images/End_of_the_Warsaw_Pact.jpg',
-      description: 'The satellite states are openly seeking NATO membership. The Warsaw Pact exists only on paper. Soviet strategic depth in Europe is gone.',
-      choices: [
-        { text: 'Formally dissolve the Pact — negotiate NATO assurances', effects: { foreignRelations: +10, partyUnity: -10, militaryReadiness: -5 } },
-        { text: 'Demand the Pact continue — issue warnings', effects: { foreignRelations: -10, partyUnity: +5 } },
-      ]
-    }
-};
-
-
-function getTriggerEventById(id) {
-  const entry = triggerEventRegistry[id];
-  if (!entry) return null;
-  if (typeof entry.build === 'function') return entry.build();
-  return { ...entry };
-}
-
-function displayRegisteredTriggerEvent(id) {
-  const event = getTriggerEventById(id);
-  if (!event) { console.warn('Unknown registered trigger event:', id); return; }
-  displayTriggerEvent(event);
-}
-
-function allDevEvents() {
-  const canonical = (typeof events !== 'undefined' && Array.isArray(events)) ? events : [];
-  const triggerOnly = Object.keys(triggerEventRegistry || {}).map(id => triggerEventRegistry[id]);
-  return canonical.concat(triggerOnly);
-}
-
-function devLookupEventById(id) {
-  const canonical = (typeof events !== 'undefined' && Array.isArray(events)) ? events : [];
-  const ev = canonical.find(e => e.id === id);
-  return ev || getTriggerEventById(id);
-}
 
 let advisors = [
   {
@@ -7919,7 +7683,7 @@ function displayCoupEvent(event) {
           </linearGradient>
           <!-- screen clip uses new screen coords: x=120 y=42 w=372 h=236 rx=28 -->
           <clipPath id="screen-clip">
-            <rect x="132" y="50" width="320" height="214" rx="32" ry="32"/>
+            <rect x="140" y="49" width="320" height="214" rx="32" ry="32"/>
           </clipPath>
           <pattern id="scanlines" x="0" y="0" width="1" height="4" patternUnits="userSpaceOnUse">
             <rect width="1" height="4" fill="none"/>
@@ -8044,17 +7808,18 @@ function displayCoupEvent(event) {
         <line x1="529" y1="151" x2="533" y2="151" stroke="#aaa" stroke-width="0.8"/>
         <line x1="529" y1="153" x2="533" y2="153" stroke="#aaa" stroke-width="0.8"/>
 
-        <!-- ═══ 4. LARGE ROTARY DIAL — centred at x=521 ═══ -->
-        <!-- Degree numbers arc around knob (r=14, centre 521,210) -->
-        <text x="503" y="196" font-family="Arial,sans-serif" font-size="3.5" fill="#666">60</text>
-        <text x="504" y="190" font-family="Arial,sans-serif" font-size="3.5" fill="#666">55</text>
-        <text x="507" y="185" font-family="Arial,sans-serif" font-size="3.5" fill="#666">50</text>
-        <text x="512" y="181" font-family="Arial,sans-serif" font-size="3.5" fill="#666">45</text>
-        <text x="518" y="179" font-family="Arial,sans-serif" font-size="3.5" fill="#666">40</text>
-        <text x="524" y="181" font-family="Arial,sans-serif" font-size="3.5" fill="#666">35</text>
-        <text x="529" y="185" font-family="Arial,sans-serif" font-size="3.5" fill="#666">30</text>
-        <text x="533" y="191" font-family="Arial,sans-serif" font-size="3.5" fill="#666">25</text>
-        <text x="535" y="198" font-family="Arial,sans-serif" font-size="3.5" fill="#666">1</text>
+        <!-- ═══ 4. LARGE ROTARY DIAL — compact circular Rubin-714 scale ═══ -->
+        <g font-family="Arial,sans-serif" font-size="3.45" fill="#777" text-anchor="middle">
+          <text x="503" y="204">60</text>
+          <text x="506" y="198">55</text>
+          <text x="511" y="194">50</text>
+          <text x="516" y="192">45</text>
+          <text x="521" y="191">40</text>
+          <text x="526" y="192">35</text>
+          <text x="531" y="194">30</text>
+          <text x="536" y="198">25</text>
+          <text x="539" y="204">1</text>
+        </g>
         <!-- Knob body: r=14 centred at 521,210 -->
         <circle cx="521" cy="210" r="14" fill="#181818" stroke="#404040" stroke-width="0.9"/>
         <circle cx="521" cy="210" r="11" fill="url(#knob-grad)"/>
@@ -8097,24 +7862,24 @@ function displayCoupEvent(event) {
         <rect x="128" y="46" width="328" height="222" fill="#0a0a0a" rx="30"/>
 
         <!-- CRT glass — large, moderate squircle corners -->
-        <rect x="132" y="50" width="320" height="214" fill="#050a08" rx="32" ry="32"/>
+        <rect x="140" y="49" width="320" height="214" fill="#050a08" rx="32" ry="32"/>
 
         <!-- Screen image -->
-        <foreignObject x="132" y="50" width="320" height="214" clip-path="url(#screen-clip)">
+        <foreignObject x="140" y="49" width="320" height="214" clip-path="url(#screen-clip)">
           <div xmlns="http://www.w3.org/1999/xhtml" style="width:100%;height:100%;overflow:hidden;border-radius:32px;background:#000;">
             <img src="images/swan-lake.gif" alt="Soviet television — Swan Lake"
-                 style="width:100%;height:100%;object-fit:cover;display:block;filter:saturate(0.65) brightness(0.88) contrast(1.12);"/>
+                 style="width:100%;height:100%;object-fit:fill;object-position:center center;display:block;filter:saturate(0.65) brightness(0.88) contrast(1.12);"/>
           </div>
         </foreignObject>
 
         <!-- CRT vignette -->
-        <rect x="132" y="50" width="320" height="214" fill="url(#crt-vignette)" rx="32" ry="32"/>
+        <rect x="140" y="49" width="320" height="214" fill="url(#crt-vignette)" rx="32" ry="32"/>
         <!-- Scanlines -->
-        <rect class="coup-scanlines" x="132" y="50" width="320" height="214" fill="url(#scanlines)" rx="32" ry="32" opacity="0.7"/>
+        <rect class="coup-scanlines" x="140" y="49" width="320" height="214" fill="url(#scanlines)" rx="32" ry="32" opacity="0.7"/>
         <!-- Glass glare -->
-        <rect x="132" y="50" width="320" height="214" fill="url(#glare)" rx="32" ry="32"/>
+        <rect x="140" y="49" width="320" height="214" fill="url(#glare)" rx="32" ry="32"/>
         <!-- Thin inner shadow around glass edge -->
-        <rect x="132" y="50" width="320" height="214" fill="none" stroke="rgba(0,0,0,0.6)" stroke-width="3" rx="32" ry="32"/>
+        <rect x="140" y="49" width="320" height="214" fill="none" stroke="rgba(0,0,0,0.6)" stroke-width="3" rx="32" ry="32"/>
 
         <!-- РУБИН 714 nameplate — lower wood strip, left-aligned -->
         <rect x="130" y="282" width="78" height="11" fill="#191919" rx="1.5"/>
@@ -8660,7 +8425,30 @@ Communications to your office are being quietly rerouted. The garrison commander
 
     // Mark as fired so we don't display it twice
     gameState.firedTriggers['early_coup_event'] = true;
-    displayRegisteredTriggerEvent('early_coup')
+    displayTriggerEvent({
+      id: 'early_coup',
+      name: 'State Committee on the State of Emergency — Internal Memorandum',
+      image: 'images/coup_attempt.jpg',
+      caption: `${_monthName} ${_coupYear} — Государственный комитет по чрезвычайному положению`,
+      description: _coupContext,
+      choices: [
+        {
+          text: 'Refuse to recognise the committee — declare the action illegal and call on the army and people to resist',
+          effects: { popularAffection: +12, partyUnity: -5, stability: -15, foreignRelations: +8 },
+          outcomeText: `Gorbachev records a statement declaring the committee's actions unconstitutional and calling for resistance. The statement is broadcast — partially. Some units refuse orders. Others do not. In the streets, a crowd gathers outside the seat of the Russian government. Whether it will be enough is a question that history will answer over the next seventy-two hours.`,
+        },
+        {
+          text: 'Negotiate — seek a face-saving arrangement that preserves some form of the reform programme',
+          effects: { partyUnity: +5, popularAffection: -10, stability: -5 },
+          outcomeText: `Gorbachev attempts to negotiate. The committee listens, politely, and agrees to nothing. The offer of compromise is read as an admission of weakness. The apparatus that has already moved against the General Secretary is not interested in arrangements — it is interested in outcomes.`,
+        },
+        {
+          text: 'Capitulate — sign the emergency decrees; the alternative is something worse',
+          effects: { partyUnity: +15, popularAffection: -20, stability: +5, foreignRelations: -12 },
+          outcomeText: `The signature is given. The committee's declaration goes out over state television. Swan Lake plays on every channel. In Moscow, the tanks that had been sitting at their barracks are now moving. The reform era is over — not with an argument, but with a document.`,
+        },
+      ],
+    });
     return true;
   }
   if (m.popularAffection <= 0) {
@@ -8810,7 +8598,16 @@ function endTurn() {
       addLog(`Political capital exhausted — month ${gameState.budgetCrisisTurns} of paralysis.`, 'crisis');
       if (gameState.budgetCrisisTurns === 1 && !gameState.firedTriggers['budget_crisis_1']) {
         gameState.firedTriggers['budget_crisis_1'] = true;
-        displayRegisteredTriggerEvent('budget_crisis_1')
+        displayTriggerEvent({
+          name: 'Exhaustion of the Political Mandate',
+          image: 'images/iron_market.jpg',
+          description: 'Comrade General Secretary — the political capital of the General Secretary\'s office has been expended without sufficient renewal. The reformist tendency within the leading organs has lost forward momentum; the conservative tendency has registered a corresponding consolidation of its position. The Politburo has entered a condition of procedural deadlock in which no initiative of consequence can be advanced through the apparatus without prior restoration of the executive mandate.\n\nThe situation does not admit of passive resolution. A directive is required.',
+          choices: [
+            { text: 'Address the population directly — transmit a general appeal through Soviet television, bypassing the Politburo and invoking the authority of the General Secretary over the heads of the party apparatus', effects: { popularAffection: +12, partyUnity: -8 }, budgetGain: 20 },
+            { text: 'Extend concessions to the conservative tendency — restore the conditions for Politburo consensus through measured accommodation of the positions of the hardliner faction', effects: { partyUnity: +10, popularAffection: -8 }, budgetGain: 15 },
+            { text: 'Advance a single measure of visible consequence — demonstrate the operative authority of the General Secretary\'s office through the unilateral enactment of a high-profile reform', effects: { popularAffection: +6, stability: -5 }, budgetGain: 10 },
+          ],
+        });
       }
     } else {
       gameState.budgetCrisisTurns = 0;
@@ -9119,7 +8916,16 @@ function checkAllTriggers() {
 
   // ── SOCIAL PARASITISM TRIGGER (GDD: trigger at 25%) ──────────────
   if (es.socialParasitism >= 25 && fireTrigger('parasitism_25', 'Social parasitism crisis — public unrest event triggered.', 'event')) {
-    displayRegisteredTriggerEvent('social_parasitism_crisis')
+    displayTriggerEvent({
+      name: 'Social Parasitism Crisis',
+      image: 'images/social_parasitism.png',
+      description: 'Comrade General Secretary — the All-Union Central Council of Trade Unions, in coordination with the Ministry of Internal Affairs and the People\'s Control Committee, submits the following assessment of labour discipline conditions across the Union for the current reporting period.\n\nThe rate of unexcused absence from the workplace has increased for the fourth consecutive quarter. In certain branches of light industry, the figure now exceeds twelve percent of the scheduled workforce on any given shift. Inspectors of the People\'s Control Committee report a corresponding expansion of so-called "left-hand" activity — the manufacture and exchange of goods and services outside the planned economy — in urban residential districts in eleven of fifteen Union Republics. In several enterprises of the Donetsk coal basin, workers have been found to spend a significant portion of the working day in a condition incompatible with productive labour.\n\nThe relevant statutes remain in force. The problem is not the absence of legal instruments. The problem, as the Ministry of Internal Affairs has noted in a separate communication, is that enforcement requires a level of popular cooperation with state authority that cannot presently be assumed.\n\nThe socialist obligation to labour is a founding principle of the Union of Soviet Socialist Republics. The current situation is inconsistent with that principle.',
+      choices: [
+        { text: 'Launch anti-parasitism campaign', effects: { stability: +5, popularAffection: -8, partyUnity: +3 } },
+        { text: 'Ignore the problem', effects: { economy: -5, stability: -3 } },
+        { text: 'Offer economic incentives', effects: { economy: +3, popularAffection: +5, budget: -10 } },
+      ]
+    });
   }
 
   // ── POPULAR SUPPORT TRIGGERS ──────────────────────────────────────
@@ -9132,7 +8938,16 @@ function checkAllTriggers() {
     ms.loyalty   = clamp(ms.loyalty   - 4, 0, 100);
     pf.hardliner = clamp(pf.hardliner - 15, 0, 100);
     pf.moderate  = clamp(pf.moderate  - 5, 0, 100);
-    displayRegisteredTriggerEvent('mass_protests')
+    displayTriggerEvent({
+      name: 'Mass Protests',
+      image: 'images/Mass_Protests.jpg',
+      description: 'Crowds of hooligans, provocateurs, and — let us be honest — Western-funded agitators have gathered in the squares of Moscow, Leningrad, Kyiv, and eleven other cities. They carry signs. They shout. TASS has not reported this. CNN has. The workers and peasants of the Soviet Union — the real Soviet people — did not ask for this. These are not the masses. These are elements. Nevertheless, there are rather a lot of them, the Politburo has been in emergency session since 6 a.m., and your press secretary is, technically, still waiting for guidance.',
+      choices: [
+        { text: 'Address the nation. Announce reforms. Remind them you are on their side.', effects: { popularAffection: +8, partyUnity: -5 } },
+        { text: 'Restore order. The Ministry of Interior knows what to do.', budgetCost: 10, effects: { stability: +5, popularAffection: -15, foreignRelations: -8 } },
+        { text: 'Declare emergency powers. Public assembly suspended until further notice.', budgetCost: 15, effects: { stability: +8, popularAffection: -20, partyUnity: -10 } },
+      ]
+    });
   }
   // Trigger 3: 5 — revolution or civil war
   if (m.popularAffection <= 5 && fireTrigger('popsup_5', 'GAME OVER: Revolution — Gorbachev swept from power.')) {
@@ -9142,7 +8957,15 @@ function checkAllTriggers() {
   // ── PARTY UNITY — REFORM FACTION ─────────────────────────────────
   // Trigger 1: reform <= 50 — Yeltsin breaks with Gorbachev
   if (pf.reform <= 50 && fireTrigger('reform_50', 'Yeltsin breaks with the Kremlin — political crisis in Moscow.', 'event')) {
-    displayRegisteredTriggerEvent('yeltsin_break')
+    displayTriggerEvent({
+      name: 'Yeltsin\'s Break with Gorbachev',
+      description: 'Boris Yeltsin publicly denounces the pace of reform and resigns from the Politburo. His dramatic departure signals a fracturing of the reformist coalition and a growing rival power centre.',
+      choices: [
+        { text: 'Attempt reconciliation', effects: { partyUnity: +5, popularAffection: +3, stability: -3 } },
+        { text: 'Denounce Yeltsin publicly', effects: { partyUnity: -8, popularAffection: -5, stability: +2 } },
+        { text: 'Ignore the rupture', effects: { partyUnity: -5, stability: -2 } },
+      ]
+    });
   }
   // Trigger 2: reform <= 30 — hardliner or moderate advisor unlocked
   if (pf.reform <= 30 && fireTrigger('reform_30', 'Reform faction collapsed — hardliner advisors gaining influence.')) {
@@ -9175,7 +8998,29 @@ function checkAllTriggers() {
   // Covers returning soldiers, public reaction, and hardliner backlash.
   const enacted = new Set(gameState.enactedPolicies || []);
   if (enacted.has('afghanistan-pullout') && fireTrigger('afghan_withdrawal_followon', 'Last Soviet units cross the Friendship Bridge — the withdrawal is complete.', 'event')) {
-    displayRegisteredTriggerEvent('afghan_withdrawal_followon')
+    displayTriggerEvent({
+      name: 'The Boys Come Home',
+      image: 'images/Afghan_withdrawal.jpg',
+      description: `Comrade General Secretary — the last Soviet troops have crossed the Amu Darya river back into Soviet territory. General Boris Gromov, commander of the 40th Army, walked across the Friendship Bridge alone. He told waiting reporters: "There is not a single Soviet soldier or officer left behind me." Nine years, fifty-one days. Fifteen thousand dead.
+
+The homecoming is not a triumph. The veterans return to a country that has no language for what happened — the official narrative of "internationalist duty" has collapsed, and the new glasnost press is already running first-person accounts from wounded soldiers and mothers of the dead. Pamyat nationalists are furious. Reformers are vindicated. The generals are silent.
+
+The world has taken notice. Reagan's team signals that the Geneva Process can now accelerate.`,
+      choices: [
+        {
+          text: 'National ceremony of honour — receive the troops publicly and acknowledge their sacrifice, however painful the truth of the war',
+          effects: { popularAffection: +12, foreignRelations: +5, partyUnity: -8, stability: +3 },
+        },
+        {
+          text: 'Quiet reintegration — no ceremony, no headlines; redirect the defence budget savings into consumer goods and social programmes',
+          effects: { economy: +8, popularAffection: +4, stability: +5, partyUnity: +3 },
+        },
+        {
+          text: 'Commission a public inquiry into the conduct of the war — names, decisions, and failures on the record',
+          effects: { popularAffection: +15, foreignRelations: +8, partyUnity: -15, militaryReadiness: -5 },
+        },
+      ],
+    });
     // Hardliner loyalty hit regardless of player choice — the military-industrial
     // complex views the withdrawal as a humiliation, not a statesmanship.
     if (gameState.advisorLoyalty['akhromeyev'] != null) {
@@ -9203,7 +9048,16 @@ function checkAllTriggers() {
   if (sep >= 50 && fireTrigger('sep_50', 'Civil unrest spreading — multiple republics in open defiance.', 'event')) {
     applyMetricChange('stability', -10);
     applyMetricChange('popularAffection', -8);
-    displayRegisteredTriggerEvent('republic_independence_movements')
+    displayTriggerEvent({
+      name: 'Republic Independence Movements',
+      image: 'images/Republic_Independence_Movements.jpg',
+      description: 'Comrade General Secretary — the Department of Party Organisational Work submits the following summary of conditions in the Union Republics for the period under review.\n\nIn the Lithuanian, Latvian, and Estonian Soviet Socialist Republics, formations styling themselves as popular fronts have adopted resolutions calling for the restoration of so-called sovereignty. These formations enjoy a degree of mass participation that the relevant republican Party organs have proved unable to contain through existing organisational means. In the Georgian SSR, the Supreme Soviet has issued a declaration characterising the 1921 incorporation into the Union as an act of annexation. In the Armenian SSR, ongoing mobilisation over the Nagorno-Karabakh question has rendered normal Party functioning impossible in several raions.\n\nThe common thread in these developments is not, as certain comrades have suggested, the malign influence of foreign anti-Soviet centres — though such influence exists and is being monitored. The common thread is a crisis of confidence in the Union itself. Republican Party organisations are requesting guidance. Several first secretaries have indicated, in private communication, that they cannot guarantee compliance with central directives if the present situation continues.\n\nThe Union Treaty, in its current form, no longer commands the consent it requires.',
+      choices: [
+        { text: 'Offer genuine autonomy', effects: { stability: +5, partyUnity: -10, foreignRelations: +5 } },
+        { text: 'Military intervention', effects: { stability: +8, popularAffection: -15, foreignRelations: -15, militaryReadiness: -5 } },
+        { text: 'Negotiate a new Union Treaty', effects: { stability: -3, partyUnity: -5, popularAffection: +5 } },
+      ]
+    });
   }
   // ── SEPARATISM 65 — PARADE OF SOVEREIGNTIES WARNING ─────────────
   // Mid-crisis warning event. Fires between the sep_50 event (which gives
@@ -9212,7 +9066,37 @@ function checkAllTriggers() {
   // the player knows they exist, and each choice applies a small immediate
   // effect to reward engagement rather than letting the turn pass silently.
   if (sep >= 65 && fireTrigger('sep_65', 'Parade of Sovereignties — republics issuing formal declarations.', 'crisis')) {
-    displayRegisteredTriggerEvent('parade_of_sovereignties')
+    displayTriggerEvent({
+      name: 'Parade of Sovereignties — Urgent Report from the Department of Nationalities',
+      image: 'images/Republic_Independence_Movements.jpg',
+      caption: 'Заседание Верховного Совета, 1989–1990',
+      description: `Comrade General Secretary — the following report is submitted under the classification URGENT by the Department of Nationalities Policy and the Council of Ministers Secretariat.
+
+Over the past several months, the Supreme Soviets of the Lithuanian, Estonian, Latvian, Ukrainian, Russian, and Byelorussian Soviet Socialist Republics have each passed formal declarations of sovereignty — asserting the primacy of republican law over Union law. These are not symbolic gestures. They represent the formal beginning of a constitutional dismemberment of the Union from within.
+
+The declarations follow a common pattern: they do not yet use the word independence, but they claim the right to it. Republican newspapers, now largely beyond central editorial control, are treating each new declaration as a victory. The momentum is self-reinforcing: each declaration emboldens the next.
+
+Central authority is losing its grip not through revolution but through institutional withdrawal. If the Union is to survive in any form, that form must be actively constructed — it will not maintain itself.
+
+Your advisors have identified several courses of action that may still arrest the cascade. The Republic Autonomy Pact, the Cultural Autonomy Programme, Economic Incentives for the Republics, and the Novo-Ogaryovo process are the mechanisms most likely to offer the republics a credible reason to remain. Time is no longer a resource in surplus.`,
+      choices: [
+        {
+          text: 'Issue a public statement affirming the right of republics to cultural and economic self-determination within the Union',
+          effects: { separatism: -6, popularAffection: +5, partyUnity: -8, stability: +2 },
+          outcomeText: `Gorbachev addresses the nation. The statement is carefully worded — it affirms self-determination but not secession, federal partnership but not dissolution. Reformers call it overdue; conservatives call it capitulation. In Vilnius and Tallinn, the crowds are not wholly unimpressed. The cascade slows, but does not stop. The countermeasure policies are now the decisive terrain.`,
+        },
+        {
+          text: 'Convene an emergency session of the Congress of People\u2019s Deputies to debate a reformed Union Treaty',
+          effects: { separatism: -4, partyUnity: -5, stability: -3, popularAffection: +3 },
+          outcomeText: `The Congress convenes. The debate is raw and public in ways the Politburo finds alarming. Baltic deputies make speeches that would have earned years in the Gulag a decade ago. The reformist bloc demands a voluntary Union; the hardline bloc demands discipline. No resolution passes, but the act of convening signals that Moscow is willing to negotiate rather than simply command. Several republic leaderships indicate cautious openness to talks.`,
+        },
+        {
+          text: 'Do nothing — issue no statement and make no concessions; the declarations are legally void under the 1977 Constitution',
+          effects: { separatism: +5, stability: -5, partyUnity: +4, popularAffection: -4 },
+          outcomeText: `Moscow's silence is its own signal. The legal argument — that republican declarations cannot override the Union Constitution — is technically correct and politically catastrophic. In the absence of any credible offer from the centre, the moderate republican leaderships have nothing to show their populations. Hardliners in Moscow are satisfied; the republics draw the lesson that the centre will not negotiate and begin planning accordingly.`,
+        },
+      ],
+    });
   }
   if (sep >= 70 && fireTrigger('sep_70', 'Political crisis — Union dissolving.', 'crisis')) {
     applyMetricChange('stability', -15);
@@ -9225,7 +9109,25 @@ function checkAllTriggers() {
   // The player has one realistic turn to act; after this the cascade
   // is too far gone to reverse without extraordinary measures.
   if (sep >= 85 && fireTrigger('sep_85', 'FINAL WARNING: Union on the brink of dissolution.', 'crisis')) {
-    displayRegisteredTriggerEvent('union_on_the_brink')
+    displayTriggerEvent({
+      name: 'The Union on the Brink',
+      image: 'images/Republic_Independence_Movements.jpg',
+      description: 'Eleven of the fifteen republics have now either declared sovereignty or are in open confrontation with Moscow. The Union treaty exists only on paper. Gorbachev has days, not months, to either negotiate a final settlement or watch the USSR cease to exist. This is the last moment at which the centre can act.',
+      choices: [
+        {
+          text: 'Emergency Union Treaty — offer maximum autonomy to all republics',
+          effects: { separatism: -20, stability: +5, partyUnity: -15, popularAffection: +8 },
+        },
+        {
+          text: 'Address the nation — make a direct personal appeal for unity',
+          effects: { separatism: -10, popularAffection: +10, stability: -3 },
+        },
+        {
+          text: 'Accept the inevitable — begin orderly dissolution negotiations',
+          effects: { separatism: -5, stability: +10, partyUnity: -20, foreignRelations: +10 },
+        },
+      ],
+    });
   }
 
   // ── FOREIGN RELATIONS — US/CANADA ────────────────────────────────
@@ -9234,7 +9136,16 @@ function checkAllTriggers() {
     applyMetricChange('militaryReadiness', +1);
   }
   if (ir.us <= 0 && fireTrigger('us_0', 'CRISIS: US relations severed — World War III risk!', 'event')) {
-    displayRegisteredTriggerEvent('superpower_crisis')
+    displayTriggerEvent({
+      name: 'Superpower Crisis',
+      image: 'images/Superpower_Crisis.jpg',
+      description: 'Soviet-American relations have completely broken down. Both sides are on high alert. The world is closer to nuclear war than at any time since the Cuban Missile Crisis.',
+      choices: [
+        { text: 'Emergency diplomatic back-channel', effects: { foreignRelations: +15, partyUnity: -8, militaryReadiness: -5 } },
+        { text: 'Military posture — show strength', effects: { foreignRelations: -10, militaryReadiness: +10, economy: -10 } },
+        { text: 'Propose emergency summit', effects: { foreignRelations: +10, popularAffection: +5, partyUnity: -5 } },
+      ]
+    });
   }
   if (ir.us >= 70 && fireTrigger('us_70', 'Strong US ties: reduced troop requirements and loan access.', 'system')) {
     es.budgetBalance = clamp(es.budgetBalance + 2, -100, 100);
@@ -9244,20 +9155,65 @@ function checkAllTriggers() {
 
   // ── FOREIGN RELATIONS — CHINA ─────────────────────────────────────
   if (ir.china <= 20 && fireTrigger('china_20', 'China tensions rising — border reinforcement required.', 'event')) {
-    displayRegisteredTriggerEvent('sino_soviet_border_tensions')
+    displayTriggerEvent({
+      name: 'Sino-Soviet Border Tensions',
+      image: 'images/Sino_Soviet_Border_Tensions.jpg',
+      description: `Comrade General Secretary — the General Staff of the Armed Forces of the Union of Soviet Socialist Republics submits the following assessment for your urgent consideration.
+
+Intelligence reports received through the Far Eastern Military District confirm a significant concentration of People's Liberation Army ground forces along the Sino-Soviet frontier in the Amur and Ussuri river sectors. The movements are consistent with a posture of forward deployment rather than routine exercise rotation. Border guard units of the KGB have reported increased aerial reconnaissance activity over Soviet territory in the Trans-Baikal region.
+
+The deterioration of fraternal relations between the Communist Party of the Soviet Union and the Communist Party of China — originating in the revisionist provocations of the Khrushchev period and deepened by the adventurist foreign policy line pursued by the Chinese leadership since 1969 — has created conditions in which miscalculation along the frontier cannot be excluded.
+
+The Ministry of Foreign Affairs has received no communication through established diplomatic channels. The General Staff requests guidance.`,
+      choices: [
+        { text: 'Authorise reinforcement of the Far Eastern Military District — additional motorised rifle divisions to be deployed to the frontier sectors', effects: { militaryReadiness: +3, economy: -5, foreignRelations: -3 } },
+        { text: 'Instruct the Ministry of Foreign Affairs to request an immediate exchange of military attaches and open a direct channel with the PLA General Staff', effects: { foreignRelations: +5, militaryReadiness: -2 } },
+        { text: 'No response — the General Staff is to maintain existing deployments and take no action that could be construed as provocative', effects: { stability: -3, militaryReadiness: -3 } },
+      ]
+    });
   }
 
   // ── FOREIGN RELATIONS — EASTERN BLOC ─────────────────────────────
   if (ir.eastEu <= 40 && fireTrigger('bloc_40', 'Bloc instability — emergency meeting with satellite leaders.', 'event')) {
-    displayRegisteredTriggerEvent('warsaw_pact_summit')
+    displayTriggerEvent({
+      name: 'Warsaw Pact Summit',
+      image: 'images/Warsaw_Pact_Summit.jpg',
+      description: `Comrade General Secretary — the First Secretaries of the fraternal socialist parties of the Polish People's Republic, the German Democratic Republic, the Hungarian People's Republic, the Czechoslovak Socialist Republic, the Socialist Republic of Romania, and the People's Republic of Bulgaria have requested an extraordinary convocation of the Political Consultative Committee of the Warsaw Treaty Organisation.
+
+The delegations have raised, through established fraternal channels, certain questions regarding the continuity of the principles governing mutual assistance and collective defence as codified in the 1955 Treaty. Specifically: whether the obligations of Article 4 remain operative in the event of internal disturbances directed against the leading role of the Party. The Hungarian comrades have raised this matter with particular insistence. The Polish delegation has forwarded materials documenting the activities of certain anti-socialist elements operating under the designation "Solidarity."
+
+The fraternal parties await clarification of the Union's position. The Military Council of the Warsaw Treaty Organisation has prepared contingency assessments. Your response will define the doctrine of socialist solidarity for the coming period.`,
+      choices: [
+        { text: 'Reaffirm the obligations of proletarian internationalism — the fraternal parties may count on the full support of the Union in defence of socialist gains', effects: { partyUnity: +5, foreignRelations: -8, popularAffection: -5 } },
+        { text: 'Each fraternal party bears responsibility for the defence of socialism within its own borders — the Union will not intervene in the internal affairs of sovereign states', effects: { partyUnity: -10, foreignRelations: +10, popularAffection: +5 } },
+        { text: 'Authorise an emergency programme of economic fraternal assistance to stabilise the most exposed People\'s Republics', effects: { economy: -8, stability: +3 } },
+      ]
+    });
   }
   if (ir.eastEu <= 20 && fireTrigger('bloc_20', 'Bloc crisis — coups and revolutions in satellite states.', 'event')) {
     applyMetricChange('stability', -5);
     gameState.separatism = clamp(gameState.separatism + 10, 0, 100);
-    displayRegisteredTriggerEvent('revolutions_1989')
+    displayTriggerEvent({
+      name: 'Revolutions of 1989',
+      image: 'images/Revolutions_of_1989.JPG',
+      description: 'Comrade General Secretary — the International Department of the Central Committee submits an urgent summary of conditions in the fraternal socialist states of Eastern Europe.\n\nIn the Polish People\'s Republic, the United Workers\' Party has suffered a comprehensive defeat in elections to the newly constituted Senate. The so-called Solidarity trade union, which this Committee advised be suppressed in 1980 and which has instead been tolerated and then legalised, is forming a government. In the Hungarian People\'s Republic, the Party has voted to dissolve itself and reconstitute as a social democratic formation. The Hungarian government has furthermore opened its western border with Austria, rendering the entire system of frontier controls meaningless; several hundred thousand citizens of the German Democratic Republic have transited through Hungary to the Federal Republic in the past sixty days alone.\n\nIn the German Democratic Republic, mass demonstrations in Leipzig, Dresden, and East Berlin continue to grow. The request by Comrade Egon Krenz for clarification of the Union\'s position on the use of security forces has been received. In the Czechoslovak Socialist Republic, the security services have dispersed demonstrations in Prague; this action has produced no stabilising effect and has attracted significant international condemnation. In the Socialist Republic of Romania, the situation requires separate assessment.\n\nThe Military Council of the Warsaw Treaty Organisation has been convened. It has reached no conclusion. The International Department notes, for the record, that the doctrine of non-interference communicated by your office in 1988 is now producing its full consequences.',
+      choices: [
+        { text: 'Accept the revolutions — non-intervention', effects: { partyUnity: -10, foreignRelations: +15, popularAffection: +5 } },
+        { text: 'Selective military intervention', effects: { foreignRelations: -20, militaryReadiness: -8, popularAffection: -10 } },
+        { text: 'Emergency consultation with Politburo', effects: { partyUnity: -3, stability: -3 } },
+      ]
+    });
   }
   if (ir.eastEu <= 10 && fireTrigger('bloc_10', 'Bloc dissolution — Warsaw Pact effectively dead.', 'event')) {
-    displayRegisteredTriggerEvent('end_of_warsaw_pact')
+    displayTriggerEvent({
+      name: 'End of the Warsaw Pact',
+      image: 'images/End_of_the_Warsaw_Pact.jpg',
+      description: 'The satellite states are openly seeking NATO membership. The Warsaw Pact exists only on paper. Soviet strategic depth in Europe is gone.',
+      choices: [
+        { text: 'Formally dissolve the Pact — negotiate NATO assurances', effects: { foreignRelations: +10, partyUnity: -10, militaryReadiness: -5 } },
+        { text: 'Demand the Pact continue — issue warnings', effects: { foreignRelations: -10, partyUnity: +5 } },
+      ]
+    });
   }
 
   // ── FOREIGN RELATIONS — WESTERN EUROPE ───────────────────────────
@@ -9913,21 +9869,20 @@ function renderDate() {
 function renderFactions() {
   const fa = gameState.factionApproval || {};
   const rows = [
-    { id: 'reform',   key: 'reformers'   },
-    { id: 'moderate', key: 'moderates'   },
-    { id: 'hard',     key: 'hardliners'  },
+    { id: 'reform', key: 'reformers' },
+    { id: 'moderate', key: 'moderates' },
+    { id: 'hard', key: 'hardliners' },
   ];
   rows.forEach(({ id, key }) => {
     const val = clamp(Math.round(Number(fa[key] || 0)), -10, 10);
     const fillEl = document.getElementById(`fb-${id}`);
-    const valEl  = document.getElementById(`fv-${id}`);
+    const valEl = document.getElementById(`fv-${id}`);
     if (!fillEl || !valEl) return;
     fillEl.style.setProperty('--fill-width', (Math.abs(val) * 5) + '%');
     if (val < 0) { fillEl.style.left = 'auto'; fillEl.style.right = '50%'; }
     else { fillEl.style.left = '50%'; fillEl.style.right = 'auto'; }
-    const cls = val > 0 ? 'pos' : val < 0 ? 'neg' : 'neu';
     valEl.textContent = val > 0 ? `+${val}` : String(val);
-    valEl.className = 'approval-val ' + cls;
+    valEl.className = 'approval-val ' + (val > 0 ? 'pos' : val < 0 ? 'neg' : 'neu');
   });
 }
 
@@ -11249,56 +11204,15 @@ document.addEventListener('keydown', function(e) {
   </div>
 </div>
 
-
-<script id="launcher-start-failsafe">
-(function() {
-  function safeCall(fn) { try { if (typeof fn === 'function') fn(); } catch (e) { console.warn('[launcher]', e); } }
-  window.launcherStartGame = function launcherStartGameFailsafe() {
-    safeCall(window.unlockAllAudio);
-    try {
-      if (typeof projectorAudio !== 'undefined' && projectorAudio) {
-        projectorAudio.currentTime = 0;
-        if (typeof projectorAudio.play === 'function') projectorAudio.play().catch(function(){});
-      }
-    } catch (e) {}
-    var launcher = document.getElementById('launcher-modal');
-    if (launcher) {
-      launcher.classList.add('divorced');
-      window.setTimeout(function() { launcher.style.display = 'none'; }, 650);
-    }
-    window.setTimeout(function() {
-      var modal = document.getElementById('intro-modal');
-      if (!modal) { safeCall(window.startGame); return; }
-      modal.style.display = 'flex';
-      modal.style.opacity = '1';
-      var frame = modal.querySelector ? modal.querySelector('.newsreel-frame') : null;
-      if (frame && frame.classList) {
-        frame.classList.add('slide-blank');
-        window.setTimeout(function() {
-          frame.classList.remove('slide-blank');
-          frame.classList.add('slide-in', 'slide-flash');
-          if (typeof frame.addEventListener === 'function') {
-            frame.addEventListener('animationend', function() {
-              frame.classList.remove('slide-in', 'slide-flash');
-            }, { once: true });
-          }
-        }, 120);
-      }
-    }, 250);
-  };
-  document.addEventListener('DOMContentLoaded', function() {
-    var btn = document.querySelector('.launcher-btn-primary');
-    if (btn && !btn.dataset.startFailsafeBound) {
-      btn.dataset.startFailsafeBound = '1';
-      btn.addEventListener('click', function(e) {
-        e.preventDefault();
-        window.launcherStartGame();
-      });
-    }
-  });
-})();
+<script id="launcher-start-failsafe-body">
+window.launcherStartGame = function(){
+  try { if (typeof unlockAllAudio === 'function') unlockAllAudio(); } catch(e) {}
+  try { if (typeof projectorAudio !== 'undefined' && projectorAudio) { projectorAudio.currentTime = 0; if (projectorAudio.play) projectorAudio.play().catch(function(){}); } } catch(e) {}
+  var launcher = document.getElementById('launcher-modal');
+  if (launcher) { launcher.classList.add('divorced'); setTimeout(function(){ launcher.style.display = 'none'; }, 650); }
+  setTimeout(function(){ var modal = document.getElementById('intro-modal'); if (modal) { modal.style.display = 'flex'; modal.style.opacity = '1'; } else if (typeof startGame === 'function') { try { startGame(); } catch(e) { console.error(e); } } }, 250);
+};
 </script>
-
 </body>
 </html>
  
@@ -11309,13 +11223,13 @@ document.addEventListener('keydown', function(e) {
 function populateDevEventSelect() {
   var sel = document.getElementById('dev-event-select');
   if (!sel) return;
-  var eventList = (typeof allDevEvents === 'function') ? allDevEvents() : ((typeof events !== 'undefined' && Array.isArray(events)) ? events : []);
   var previousValue = sel.value;
   sel.innerHTML = '';
   var placeholder = document.createElement('option');
   placeholder.value = '';
   placeholder.textContent = '— choose event —';
   sel.appendChild(placeholder);
+  var eventList = (typeof events !== 'undefined' && Array.isArray(events)) ? events : [];
   var seen = new Set();
   eventList.forEach(function(ev) {
     if (!ev || !ev.id || seen.has(ev.id)) return;
@@ -11323,10 +11237,12 @@ function populateDevEventSelect() {
     var opt = document.createElement('option');
     opt.value = ev.id;
     var label = ev.name || ev.id;
-    if (ev.trigger && ev.trigger.month && ev.trigger.year) label += ' (' + ev.trigger.month + '/' + ev.trigger.year + ')';
-    else if ((typeof triggerEventRegistry !== 'undefined') && triggerEventRegistry[ev.id]) label += ' (trigger-only)';
-    else if (typeof ev.condition === 'function') label += ' (conditional)';
-    opt.textContent = label;
+    var meta = [];
+    if (ev.trigger && ev.trigger.month && ev.trigger.year) meta.push(String(ev.trigger.month).padStart(2, '0') + '/' + ev.trigger.year);
+    if (typeof ev.condition === 'function') meta.push(ev.trigger && ev.trigger.month && ev.trigger.year ? 'trigger-based' : 'conditional');
+    else if (ev.trigger && ev.trigger.month && ev.trigger.year) meta.push('dated');
+    else meta.push('manual');
+    opt.textContent = label + ' [' + meta.join(' · ') + ']';
     sel.appendChild(opt);
   });
   if (previousValue && Array.prototype.some.call(sel.options, function(opt) { return opt.value === previousValue; })) sel.value = previousValue;
@@ -11362,9 +11278,11 @@ function devFireSelectedEvent() {
   var eventId = sel.value;
   // Find the event. NOTE: events is declared with `let` so window['events'] won't find it —
   // reference it directly. (Bug #1 fix)
-  var ev = (typeof devLookupEventById === 'function')
-    ? devLookupEventById(eventId)
-    : (typeof events !== 'undefined' ? events : []).find(function(e){ return e.id === eventId; });
+  var ev = (typeof events !== 'undefined' ? events : [])
+    .find(function(e){ return e.id === eventId; });
+  if (!ev && typeof gameEvents !== 'undefined') {
+    ev = gameEvents.find(function(e){ return e.id === eventId; });
+  }
   if (!ev) { alert('Event "' + eventId + '" not found. Check console.'); console.warn('devFireSelectedEvent: no event with id', eventId); return; }
   closeDevModal();
   // Fire it immediately via displayEvent
