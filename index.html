@@ -2511,6 +2511,32 @@
 .event-panel.pravda::before,.event-panel.pravda.active::before,.event-panel.pravda.active.is-ending::before{content:''!important;position:fixed!important;inset:0!important;width:100vw!important;height:100vh!important;min-height:100dvh!important;background:#000!important;opacity:1!important;z-index:0!important;pointer-events:none!important;}
 .event-panel.pravda>*,.event-panel.pravda .pravda-modal-card,.event-panel.pravda .coup-overlay{position:relative!important;z-index:1!important;}
 
+
+  .personnel-help { font-family:'IM Fell English',serif; font-size:13px; font-style:italic; opacity:.75; margin-bottom:.75rem; }
+  .personnel-question-list { display:grid; gap:.65rem; }
+  .personnel-question-card { background:rgba(242,234,216,0.72); border:1px solid rgba(139,26,26,0.28); border-left:4px solid var(--gold); border-radius:3px; padding:.7rem .75rem; }
+  .personnel-question-card.overdue { border-left-color:var(--red); }
+  .personnel-question-card.pending { border-left-color:var(--gold); }
+  .personnel-question-card.clear { border-left-color:var(--green); opacity:.76; }
+  .personnel-question-title { display:flex; justify-content:space-between; gap:.5rem; align-items:baseline; font-family:'Playfair Display',serif; font-weight:700; color:var(--red-dark); font-size:14px; }
+  .personnel-question-meta { font-size:12px; color:var(--gold); margin:.2rem 0 .35rem; }
+  .personnel-question-body { font-size:13px; line-height:1.25; }
+  .personnel-question-effects { margin-top:.35rem; font-size:12px; opacity:.85; }
+  .personnel-question-actions { margin-top:.55rem; display:flex; gap:.45rem; flex-wrap:wrap; }
+  .advisor-slot-label { font-size:10px; letter-spacing:.04em; text-transform:uppercase; opacity:.82; color:#f2ead8; margin-top:2px; }
+  .advisor-stat-row { display:grid; grid-template-columns:1fr auto; gap:8px; align-items:center; font-size:12px; margin:.25rem 0; }
+  .advisor-mini-bars { margin-top:.45rem; }
+  .advisor-replacement-section { background:rgba(160,125,24,0.08); border:1px solid rgba(160,125,24,0.25); padding:.75rem; border-radius:3px; }
+  .advisor-replacement-list { display:grid; gap:.6rem; }
+  .advisor-replacement-card { background:rgba(242,234,216,0.65); border:1px solid rgba(139,26,26,0.22); padding:.6rem; border-radius:3px; }
+  .advisor-replacement-card strong { display:block; color:var(--red-dark); font-family:'Playfair Display',serif; }
+  .advisor-replacement-card span { display:block; font-size:11px; color:var(--gold); margin:.15rem 0; }
+  .advisor-replacement-card p { font-size:12px; margin:.25rem 0 .45rem; }
+  .appointment-preview { margin:.35rem 0; padding:.45rem .55rem; background:rgba(43,31,16,0.06); border-radius:3px; font-size:12px; }
+  .appointment-preview b { color:var(--red-dark); }
+  .advisor-status-chip.high { border-color:rgba(45,110,68,0.8); color:#d8ffe2; background:rgba(45,110,68,0.35); }
+  .advisor-action-row { display:flex; gap:.45rem; flex-wrap:wrap; }
+
 </style>
 
 
@@ -2983,11 +3009,22 @@ window.launcherStartGame = function(){
       </div>
     </div>
 
+    <!-- PERSONNEL QUESTIONS PANEL -->
+    <div style="margin-top:1.5rem;" class="advisor-panel personnel-panel">
+      <div class="section-title panel-header">Personnel Questions</div>
+      <p class="personnel-help">Unresolved appointments, overdue successions, and factional personnel risks. These are not automatic orders — they are political problems you can choose to solve, delay, or exploit.</p>
+      <div class="personnel-question-list" id="personnel-question-list"></div>
+    </div><!-- /personnel-panel -->
+
     <!-- ADVISORS PANEL -->
     <div style="margin-top:1.5rem;" class="advisor-panel">
       <div class="section-title panel-header">Active Advisors</div>
       <div class="filter-row" id="advisor-filters">
         <button class="filter-btn active" onclick="setAdvisorFilter('All', this)">All</button>
+        <button class="filter-btn" onclick="setAdvisorFilter('Active', this)">Active</button>
+        <button class="filter-btn" onclick="setAdvisorFilter('Available', this)">Available</button>
+        <button class="filter-btn" onclick="setAdvisorFilter('Replaced', this)">Replaced</button>
+        <button class="filter-btn" onclick="setAdvisorFilter('Office', this)">By Office</button>
         <button class="filter-btn" onclick="setAdvisorFilter('Reformist', this)">Reformist</button>
         <button class="filter-btn" onclick="setAdvisorFilter('Conservative', this)">Conservative</button>
         <button class="filter-btn" onclick="setAdvisorFilter('Centrist', this)">Centrist</button>
@@ -3073,6 +3110,24 @@ const gameState = {
       emboldened: false,
     },
   },
+
+  // Historically grounded advisor offices. The roster may include future or
+  // alternative figures, but only the occupant of each slot is an active advisor.
+  activeAdvisorSlots: {
+    foreignMinister: 'gromyko',
+    premier: 'tikhonov',
+    ideologySecretary: 'ligachev',
+    kgbChair: 'chebrikov',
+    militaryChief: 'akhromeyev',
+    chiefOfStaff: 'boldin',
+    foreignPolicyAdvisor: null,
+    moscowPartyChief: null,
+    personal: 'raisa',
+  },
+  advisorHistory: [],
+  advisorPressure: {},
+  advisorEventFlags: {},
+  advisorStats: {},
   gameOver: false,
   ending: null,
 
@@ -3120,6 +3175,7 @@ const gameState = {
     shevardnadze:70, // Foreign minister
     ligachev:    55, // Conservative
     yeltsin:     50, // Wild card
+    tikhonov:    45, // Retiring Brezhnev-era premier
     ryzhkov:     60, // PM
     akhromeyev:  50, // Military
     // Extended roster — previously uninitialised (caused silent failures)
@@ -3207,6 +3263,7 @@ function checkPolicyVisible(policy) {
         if (y > a.availableUntil.year) return false;
         if (a.availableUntil.month && y === a.availableUntil.year && mo > a.availableUntil.month) return false;
       }
+      if (typeof isAdvisorActive === 'function' && !isAdvisorActive(a.id)) return false;
     }
   }
 
@@ -3372,6 +3429,7 @@ function setPolicyFilter(category, btnEl) {
 function setAdvisorFilter(faction, btnEl) {
   uiState.advisorFaction = faction;
   setActiveFilter('advisor-filters', btnEl);
+  renderPersonnelQuestions();
   renderAdvisors();
 }
 
@@ -6638,6 +6696,13 @@ let advisors = [
     name: 'Alexander Yakovlev',
     role: 'Chief Ideologist · "Architect of Perestroika"',
     faction: 'Reformist',
+    advisorSlot: 'ideologySecretary',
+    availableFrom: { year: 1986, month: 3 },
+    appointmentCost: 12,
+    appointmentEffects: { partyUnity: -3, popularAffection: +4 },
+    appointmentNote: 'Promote Yakovlev into the ideological centre after his rapid rise through the Central Committee apparatus.',
+    influence: 62,
+    competence: 88,
     loyalty: 70,
     effectiveness: 80,
     image: 'images/Alexander_Yakovlev.jpg',
@@ -6653,6 +6718,13 @@ let advisors = [
     name: 'Eduard Shevardnadze',
     role: 'Minister of Foreign Affairs (1985–1990)',
     faction: 'Reformist',
+    advisorSlot: 'foreignMinister',
+    availableFrom: { year: 1985, month: 7 },
+    appointmentCost: 10,
+    appointmentEffects: { foreignRelations: +6, partyUnity: -2 },
+    appointmentNote: 'Move Gromyko aside and install Shevardnadze as the public face of New Thinking.',
+    influence: 72,
+    competence: 88,
     loyalty: 75,
     effectiveness: 85,
     image: 'images/Eduard_Shevardnadze.jpg',
@@ -6669,6 +6741,12 @@ let advisors = [
     name: 'Yegor Ligachev',
     role: 'Second Secretary of the Central Committee',
     faction: 'Conservative',
+    advisorSlot: 'ideologySecretary',
+    appointmentCost: 8,
+    appointmentEffects: { partyUnity: +4, popularAffection: -2 },
+    appointmentNote: 'Restore Ligachev to ideological command and reassure conservative cadres.',
+    influence: 86,
+    competence: 74,
     loyalty: 55,
     effectiveness: 70,
     image: 'images/Yigor_Ligachev.jpg',
@@ -6684,6 +6762,14 @@ let advisors = [
     name: 'Boris Yeltsin',
     role: 'First Secretary, Moscow City Party Committee',
     faction: 'Personal',
+    advisorSlot: 'moscowPartyChief',
+    availableFrom: { year: 1985, month: 12 },
+    availableUntil: { year: 1988, month: 2 },
+    appointmentCost: 8,
+    appointmentEffects: { popularAffection: +5, partyUnity: -3 },
+    appointmentNote: 'Elevate Yeltsin to Moscow: a populist reformer who is useful, volatile, and hard to control.',
+    influence: 70,
+    competence: 70,
     loyalty: 50,
     effectiveness: 75,
     image: 'images/Boris_Yeltsin_deputies.jpg',
@@ -6695,10 +6781,36 @@ let advisors = [
     thresholdEffect: 'Breaks openly with Gorbachev — Popular Support -10, Stability -8',
   },
   {
+    id: 'tikhonov',
+    name: 'Nikolai Tikhonov',
+    role: 'Chairman of the Council of Ministers (1980–1985)',
+    faction: 'Conservative',
+    advisorSlot: 'premier',
+    availableUntil: { year: 1986, month: 1 },
+    loyalty: 45,
+    effectiveness: 45,
+    influence: 86,
+    competence: 52,
+    image: 'images/Nikolai_Tikhonov.jpg',
+    description: 'A Brezhnev-era premier and symbol of the ageing Soviet establishment. Keeping him avoids an early confrontation with the old guard, but it slows economic renewal and leaves Gorbachev surrounded by men he inherited rather than chose.',
+    specialty: 'Protects short-term Party Unity but weakens economic reform momentum. Can be replaced by Nikolai Ryzhkov after the September 1985 government reshuffle.',
+    reactionLiberal: -6,
+    reactionConservative: +8,
+    threshold: 15,
+    thresholdEffect: 'Retires under pressure — Party Unity -2, Economy +1',
+  },
+  {
     id: 'ryzhkov',
     name: 'Nikolai Ryzhkov',
     role: 'Chairman of the Council of Ministers',
     faction: 'Centrist',
+    advisorSlot: 'premier',
+    availableFrom: { year: 1985, month: 9 },
+    appointmentCost: 10,
+    appointmentEffects: { economy: +5, partyUnity: -1 },
+    appointmentNote: 'Replace Tikhonov with Ryzhkov to modernise economic management without shocking the system.',
+    influence: 76,
+    competence: 82,
     loyalty: 60,
     effectiveness: 70,
     image: 'images/Nikolai_Ryzhkov.jpg',
@@ -6714,6 +6826,9 @@ let advisors = [
     name: 'Sergey Akhromeyev',
     role: 'Red Army Chief of Staff',
     faction: 'Hardliner',
+    advisorSlot: 'militaryChief',
+    influence: 78,
+    competence: 84,
     loyalty: 50,
     effectiveness: 90,
     image: 'images/Sergey_Akhromeyev_1.jpg',
@@ -6792,6 +6907,9 @@ let advisors = [
     name: 'Valery Boldin',
     role: 'Chief of Staff / Presidential Aide',
     faction: 'Centrist',
+    advisorSlot: 'chiefOfStaff',
+    influence: 60,
+    competence: 68,
     loyalty: 60,
     effectiveness: 85,
     // Replace with images/Valery_Boldin.jpg once you have a photo
@@ -6810,6 +6928,12 @@ let advisors = [
     name: 'Vadim Medvedev',
     role: 'CPSU Secretary / Ideological Advisor',
     faction: 'Centrist',
+    advisorSlot: 'ideologySecretary',
+    appointmentCost: 10,
+    appointmentEffects: { partyUnity: +1, popularAffection: +2 },
+    appointmentNote: 'Use Medvedev as a less polarising ideological manager between Yakovlev and Ligachev.',
+    influence: 64,
+    competence: 76,
     loyalty: 65,
     effectiveness: 75,
     image: 'images/Vadim_Andreevich_Medvedev.jpg',
@@ -6828,6 +6952,9 @@ let advisors = [
     name: 'Raisa Gorbacheva',
     role: 'First Lady / Informal Advisor',
     faction: 'Personal',
+    advisorSlot: 'personal',
+    influence: 45,
+    competence: 70,
     loyalty: 90,
     effectiveness: 65,
     image: 'images/Raisa_Gorbacheva.jpg',
@@ -6845,6 +6972,13 @@ let advisors = [
     name: 'Anatoly Chernyaev',
     role: 'Chief Foreign Policy Advisor to Gorbachev',
     faction: 'Reformist',
+    advisorSlot: 'foreignPolicyAdvisor',
+    availableFrom: { year: 1986, month: 2 },
+    appointmentCost: 6,
+    appointmentEffects: { foreignRelations: +4, partyUnity: -1 },
+    appointmentNote: 'Bring Chernyaev into the personal advisory apparatus for arms control and European diplomacy.',
+    influence: 52,
+    competence: 86,
     loyalty: 85,
     effectiveness: 80,
     image: 'images/Anatoly_Chernyaev.jpg',
@@ -6862,6 +6996,12 @@ let advisors = [
     name: 'Viktor Chebrikov',
     role: 'Chairman, KGB (1982–1988)',
     faction: 'Conservative',
+    advisorSlot: 'kgbChair',
+    appointmentCost: 8,
+    appointmentEffects: { stability: +3, partyUnity: +2 },
+    appointmentNote: 'Keep Chebrikov atop the KGB rather than empowering Kryuchkov.',
+    influence: 82,
+    competence: 76,
     loyalty: 60,
     effectiveness: 75,
     image: 'images/victor_cherbrikov.jpg',
@@ -6881,6 +7021,12 @@ let advisors = [
     name: 'Andrei Gromyko',
     role: 'Foreign Minister / President of the Supreme Soviet',
     faction: 'Conservative',
+    advisorSlot: 'foreignMinister',
+    appointmentCost: 8,
+    appointmentEffects: { foreignRelations: -2, partyUnity: +3 },
+    appointmentNote: 'Keep Gromyko in charge of foreign affairs and reassure the old diplomatic establishment.',
+    influence: 92,
+    competence: 78,
     loyalty: 55,
     effectiveness: 70,
     image: 'images/Andrei_Gromyko.jpg',
@@ -6899,6 +7045,12 @@ let advisors = [
     name: 'Vladimir Kryuchkov',
     role: 'Chairman, KGB (1988–1991)',
     faction: 'Conservative',
+    advisorSlot: 'kgbChair',
+    appointmentCost: 10,
+    appointmentEffects: { stability: +2, coupProbability: +4 },
+    appointmentNote: 'Replace Chebrikov with Kryuchkov, gaining a sharper security operator at the price of future coup risk.',
+    influence: 84,
+    competence: 78,
     loyalty: 50,
     effectiveness: 85,
     image: 'images/Vladimir_Kryuchkov.jpg',
@@ -7173,6 +7325,7 @@ function mergeLibraryEntries(existingArray, incomingArray){
 }
 
 function ensureAdvisorLoyaltyDefaults(){
+ ensureAdvancedAdvisorDefaults();
  advisors.forEach(a => {
   if (gameState.advisorLoyalty[a.id] == null) {
    gameState.advisorLoyalty[a.id] = (a.defaultLoyalty ?? a.loyalty ?? 50);
@@ -7482,39 +7635,394 @@ function getAdvisorById(advisorId){
   return advisors.find(a => a.id === advisorId);
 }
 
+
+const ADVISOR_SLOT_LABELS = {
+  foreignMinister: 'Foreign Minister',
+  premier: 'Chairman of the Council of Ministers',
+  ideologySecretary: 'Ideology / Central Committee Secretary',
+  kgbChair: 'KGB Chairman',
+  militaryChief: 'Chief of the General Staff',
+  chiefOfStaff: 'Chief of Staff',
+  foreignPolicyAdvisor: 'Personal Foreign Policy Advisor',
+  moscowPartyChief: 'Moscow Party Chief',
+  personal: 'Personal Confidante',
+};
+
+const INITIAL_ADVISOR_SLOTS = {
+  foreignMinister: 'gromyko',
+  premier: 'tikhonov',
+  ideologySecretary: 'ligachev',
+  kgbChair: 'chebrikov',
+  militaryChief: 'akhromeyev',
+  chiefOfStaff: 'boldin',
+  foreignPolicyAdvisor: null,
+  moscowPartyChief: null,
+  personal: 'raisa',
+};
+
+const ADVISOR_STAT_DEFAULTS = {
+  gromyko:    { influence: 92, competence: 78 },
+  shevardnadze:{ influence: 72, competence: 88 },
+  tikhonov:   { influence: 86, competence: 52 },
+  ryzhkov:    { influence: 76, competence: 82 },
+  ligachev:   { influence: 86, competence: 74 },
+  yakovlev:   { influence: 62, competence: 88 },
+  medvedev:   { influence: 64, competence: 76 },
+  yeltsin:    { influence: 70, competence: 70 },
+  chernyaev:  { influence: 52, competence: 86 },
+  chebrikov:  { influence: 82, competence: 76 },
+  kryuchkov:  { influence: 84, competence: 78 },
+  akhromeyev: { influence: 78, competence: 84 },
+  boldin:     { influence: 60, competence: 68 },
+  raisa:      { influence: 45, competence: 70 },
+};
+
+const ADVISOR_SUCCESSION_PRESSURES = [
+  { id:'foreign_ministry_new_thinking', slot:'foreignMinister', staleAdvisor:'gromyko', recommendedAdvisor:'shevardnadze', due:{year:1985,month:7}, warningAfter:1, crisisAfter:4, title:'Foreign Ministry Succession Question', description:'The Foreign Ministry remains under the old diplomatic line even though the General Secretary requires a public instrument for New Thinking. Gromyko can still protect continuity, but every month of delay makes reform in foreign policy look less credible to foreign governments and to younger officials inside the apparatus.', monthlyEffects:{ foreignRelations:-1 }, crisisEffects:{ foreignRelations:-3, partyUnity:-1 } },
+  { id:'premier_economic_succession', slot:'premier', staleAdvisor:'tikhonov', recommendedAdvisor:'ryzhkov', due:{year:1985,month:9}, warningAfter:1, crisisAfter:4, title:'Chairman of the Council of Ministers Question', description:'The Brezhnev-era premier remains in place after the moment for economic renewal has arrived. Keeping Tikhonov reassures the old guard, but it also tells the ministries that acceleration can be postponed and that reform is still negotiable.', monthlyEffects:{ economy:-1 }, crisisEffects:{ economy:-3, partyUnity:-1 } },
+  { id:'moscow_party_chief_vacancy', slot:'moscowPartyChief', staleAdvisor:null, recommendedAdvisor:'yeltsin', due:{year:1985,month:12}, warningAfter:1, crisisAfter:5, title:'Moscow Party Organisation Vacancy', description:'The capital is too politically important to leave without a clear reform signal. A vacant Moscow office slows visible anti-corruption work and allows cautious municipal cadres to wait out the General Secretary.', monthlyEffects:{ popularAffection:-0.5, partyUnity:-0.5 }, crisisEffects:{ popularAffection:-3, partyUnity:-2 } },
+  { id:'personal_foreign_policy_apparatus', slot:'foreignPolicyAdvisor', staleAdvisor:null, recommendedAdvisor:'chernyaev', due:{year:1986,month:2}, warningAfter:2, crisisAfter:6, title:'Personal Foreign Policy Apparatus', description:'Summitry, arms control, and European diplomacy increasingly require a trusted personal adviser outside the inherited ministerial channels. Without one, the General Secretary remains dependent on institutions he is trying to transform.', monthlyEffects:{ foreignRelations:-0.5 }, crisisEffects:{ foreignRelations:-2, partyUnity:-1 } },
+  { id:'ideology_secretariat_reform_pressure', slot:'ideologySecretary', staleAdvisor:'ligachev', recommendedAdvisor:'yakovlev', due:{year:1987,month:1}, warningAfter:1, crisisAfter:5, title:'Ideological Direction of Reform', description:'Ligachev can hold the Party together, but leaving the conservative organiser in command of ideology after glasnost gathers momentum creates a contradiction at the centre of government. Reformers expect Yakovlev or another trusted ideological ally to be empowered.', monthlyEffects:{ popularAffection:-0.5, partyUnity:+0.2 }, crisisEffects:{ popularAffection:-4, partyUnity:-2 } },
+  { id:'kgb_chair_succession', slot:'kgbChair', staleAdvisor:'chebrikov', recommendedAdvisor:'kryuchkov', due:{year:1988,month:10}, warningAfter:1, crisisAfter:5, title:'Security Apparatus Succession', description:'The security apparatus expects clarity. Keeping Chebrikov beyond the succession point calms some conservatives, but it also leaves the KGB uncertain about how far the centre intends to tolerate glasnost and national mobilisation.', monthlyEffects:{ stability:-0.5 }, crisisEffects:{ stability:-3, partyUnity:-2 } },
+];
+
+function monthIndex(dateObj){ if (!dateObj) return -Infinity; return Number(dateObj.year || 0) * 12 + Number(dateObj.month || dateObj.mon || 1); }
+function currentMonthIndex(){ return Number(gameState.year || 1985) * 12 + Number(gameState.month || 1); }
+function isAdvisorDateEligible(a){
+  if (!a) return false;
+  const now = currentMonthIndex();
+  if (a.availableFrom && now < monthIndex(a.availableFrom)) return false;
+  if (a.availableUntil && now > monthIndex(a.availableUntil)) return false;
+  return true;
+}
+function ensureAdvisorSlotDefaults(){
+  if (!gameState.activeAdvisorSlots) gameState.activeAdvisorSlots = {};
+  Object.entries(INITIAL_ADVISOR_SLOTS).forEach(([slot,id]) => { if (!(slot in gameState.activeAdvisorSlots)) gameState.activeAdvisorSlots[slot] = id; });
+  if (!Array.isArray(gameState.advisorHistory)) gameState.advisorHistory = [];
+  if (!gameState.advisorPressure) gameState.advisorPressure = {};
+  if (!gameState.advisorEventFlags) gameState.advisorEventFlags = {};
+  if (!gameState.advisorStats) gameState.advisorStats = {};
+}
+function ensureAdvancedAdvisorDefaults(){
+  ensureAdvisorSlotDefaults();
+  advisors.forEach(a => {
+    if (!gameState.advisorStats[a.id]) gameState.advisorStats[a.id] = {};
+    const d = ADVISOR_STAT_DEFAULTS[a.id] || {};
+    if (gameState.advisorStats[a.id].influence == null) gameState.advisorStats[a.id].influence = Number(a.influence ?? d.influence ?? 50);
+    if (gameState.advisorStats[a.id].competence == null) gameState.advisorStats[a.id].competence = Number(a.competence ?? d.competence ?? a.effectiveness ?? 60);
+  });
+}
+function advisorStat(advisorId, key){ ensureAdvancedAdvisorDefaults(); return Number((gameState.advisorStats[advisorId]||{})[key] ?? 50); }
+function getAdvisorSlot(aOrId){ const a = typeof aOrId === 'string' ? getAdvisorById(aOrId) : aOrId; return a && a.advisorSlot ? a.advisorSlot : null; }
+function getActiveAdvisorIdForSlot(slot){ ensureAdvisorSlotDefaults(); return gameState.activeAdvisorSlots ? gameState.activeAdvisorSlots[slot] : null; }
+function getActiveAdvisorIds(){ ensureAdvisorSlotDefaults(); return Object.values(gameState.activeAdvisorSlots || {}).filter(Boolean); }
+function isAdvisorActive(advisorId){
+  const a = getAdvisorById(advisorId); if (!a) return false;
+  const status = gameState.advisorStatus[advisorId] || {};
+  if (status.fired || status.resigned) return false;
+  const slot = getAdvisorSlot(a);
+  if (!slot) return isAdvisorDateEligible(a);
+  return getActiveAdvisorIdForSlot(slot) === advisorId;
+}
+function advisorSlotLabel(slot){ return ADVISOR_SLOT_LABELS[slot] || slot || 'Advisor Office'; }
+function isAdvisorCandidateForVacantSlot(advisorId){
+  const a = getAdvisorById(advisorId); const slot = getAdvisorSlot(a);
+  if (!slot) return false;
+  const st = gameState.advisorStatus[advisorId] || {};
+  if (st.fired || st.resigned) return false;
+  if (!isAdvisorDateEligible(a)) return false;
+  return !getActiveAdvisorIdForSlot(slot);
+}
+function isAdvisorVisibleInPanel(a){
+  const status = gameState.advisorStatus[a.id] || {};
+  const f = uiState.advisorFaction || 'All';
+  if (f === 'Active') return isAdvisorActive(a.id);
+  if (f === 'Available') return isAdvisorCandidateForVacantSlot(a.id);
+  if (f === 'Replaced') return !!(status.replaced || status.retired || status.resigned || status.fired);
+  if (f === 'Office') return !!getAdvisorSlot(a) && (isAdvisorActive(a.id) || isAdvisorCandidateForVacantSlot(a.id) || status.replaced || status.retired);
+  const base = isAdvisorActive(a.id) || isAdvisorCandidateForVacantSlot(a.id);
+  if (f && f !== 'All') return base && String(a.faction || '').toLowerCase() === String(f).toLowerCase();
+  return base;
+}
+function getReplacementCandidatesForAdvisor(advisorId){
+  ensureAdvisorSlotDefaults();
+  const outgoing = getAdvisorById(advisorId); const slot = getAdvisorSlot(outgoing);
+  if (!slot) return [];
+  return advisors.filter(candidate => {
+    if (candidate.id === advisorId) return false;
+    if (getAdvisorSlot(candidate) !== slot) return false;
+    const st = gameState.advisorStatus[candidate.id] || {};
+    if (st.fired || st.resigned) return false;
+    return isAdvisorDateEligible(candidate);
+  });
+}
+function formatAdvisorDate(dateObj){
+  if (!dateObj) return '';
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const m = Number(dateObj.month || dateObj.mon || 1);
+  return `${months[Math.max(0, Math.min(11, m - 1))]} ${dateObj.year}`;
+}
+function formatEffects(effects){
+  const entries = Object.entries(effects || {});
+  if (!entries.length) return 'No immediate metric shift';
+  return entries.map(([k,v]) => `${formatStatKey(k)} ${Number(v) > 0 ? '+' : ''}${v}`).join(', ');
+}
+function appointmentCostFor(advisorId){ const a = getAdvisorById(advisorId); return Number(a && a.appointmentCost != null ? a.appointmentCost : 10); }
+function advisorConfirmationText(action, incoming, outgoing){
+  const slot = advisorSlotLabel(getAdvisorSlot(incoming || outgoing));
+  if (action === 'replace') return `Confirm appointment: ${incoming.name} will become ${slot}, replacing ${outgoing.name}. Cost: ${appointmentCostFor(incoming.id)} political capital. Effects: ${formatEffects(incoming.appointmentEffects)}.`;
+  if (action === 'appoint') return `Confirm appointment: ${incoming.name} will fill the vacant office of ${slot}. Cost: ${appointmentCostFor(incoming.id)} political capital. Effects: ${formatEffects(incoming.appointmentEffects)}.`;
+  if (action === 'retire') return `Confirm managed retirement: ${outgoing.name} will be moved aside without a public purge. The office of ${slot} will become vacant unless a successor is appointed.`;
+  return 'Confirm personnel action?';
+}
+function confirmAdvisorAction(message){ try { return window.confirm(message); } catch(e) { return true; } }
+function applyAdvisorPressureEffects(effects){
+  Object.entries(effects || {}).forEach(([key,value]) => {
+    if (key in gameState.metrics) applyMetricChange(key, value);
+    else if (key === 'separatism') gameState.separatism = clamp((gameState.separatism || 0) + value, 0, 100);
+    else if (key === 'coupProbability') gameState.coupProbability = clamp((gameState.coupProbability || 0) + value, 0, 100);
+  });
+}
+function applyAppointmentFactionReaction(incoming, outgoing, mode){
+  if (!incoming) return;
+  const fa = gameState.factionApproval || {};
+  const incFaction = String(incoming.faction || '');
+  const outFaction = String(outgoing && outgoing.faction || '');
+  const bump = (k,v) => { if (fa[k] != null) fa[k] = clamp(Number(fa[k]) + v, -10, 10); };
+  if (incFaction === 'Reformist') { bump('reformers', +2); bump('hardliners', -1); }
+  if (incFaction === 'Conservative' || incFaction === 'Hardliner') { bump('hardliners', +2); bump('reformers', -1); }
+  if (incFaction === 'Centrist') bump('moderates', +1);
+  if (incoming.id === 'yeltsin') { bump('reformers', +1); applyMetricChange('popularAffection', +1); applyMetricChange('partyUnity', -1); }
+  if (incoming.id === 'kryuchkov') { gameState.coupProbability = clamp((gameState.coupProbability || 0) + 3, 0, 100); }
+  if (outFaction === 'Conservative' && incFaction === 'Reformist') applyMetricChange('partyUnity', -1);
+  if (mode === 'retire') applyMetricChange('stability', +1);
+}
+function recordAdvisorHistory(slot, outgoingId, incomingId, mode){
+  gameState.advisorHistory.push({ turn:gameState.turn, year:gameState.year, month:gameState.month, slot, outgoing:outgoingId||null, incoming:incomingId||null, mode:mode||'replace' });
+}
+function replaceAdvisor(outgoingId, incomingId){
+  ensureAdvisorSlotDefaults();
+  const outgoing = getAdvisorById(outgoingId); const incoming = getAdvisorById(incomingId);
+  if (!outgoing || !incoming) return;
+  const slot = getAdvisorSlot(outgoing);
+  if (!slot || getAdvisorSlot(incoming) !== slot) return;
+  if (!isAdvisorDateEligible(incoming)) { addLog(`⚠ ${incoming.name} is not yet historically available for ${advisorSlotLabel(slot)}.`, 'advisor'); return; }
+  const cost = appointmentCostFor(incoming.id);
+  if (Number(gameState.budget || 0) < cost) { addLog(`⚠ Not enough political capital to appoint ${incoming.name} (costs ${cost}).`, 'advisor'); return; }
+  if (!confirmAdvisorAction(advisorConfirmationText('replace', incoming, outgoing))) return;
+  gameState.budget -= cost;
+  const outgoingStatus = gameState.advisorStatus[outgoing.id] || {};
+  outgoingStatus.replaced = true; outgoingStatus.resigned = true; outgoingStatus.replacedBy = incoming.id;
+  gameState.advisorStatus[outgoing.id] = outgoingStatus;
+  const incomingStatus = gameState.advisorStatus[incoming.id] || {};
+  incomingStatus.resigned = false; incomingStatus.fired = false; incomingStatus.appointed = true; incomingStatus.appointedTurn = gameState.turn;
+  gameState.advisorStatus[incoming.id] = incomingStatus;
+  gameState.activeAdvisorSlots[slot] = incoming.id;
+  if (gameState.advisorLoyalty[incoming.id] == null) gameState.advisorLoyalty[incoming.id] = (incoming.defaultLoyalty ?? incoming.loyalty ?? 50);
+  applyAdvisorPressureEffects(incoming.appointmentEffects || {});
+  applyAppointmentFactionReaction(incoming, outgoing, 'replace');
+  recordAdvisorHistory(slot, outgoing.id, incoming.id, 'replace');
+  addLog(`${incoming.name} appointed as ${advisorSlotLabel(slot)}, replacing ${outgoing.name}. -${cost} political capital. ${incoming.appointmentNote || ''}`, 'advisor');
+  closeAdvisorDetail(); render(); renderPolicies();
+}
+function appointAdvisorToVacantSlot(incomingId){
+  ensureAdvisorSlotDefaults();
+  const incoming = getAdvisorById(incomingId); const slot = getAdvisorSlot(incoming);
+  if (!incoming || !slot) return;
+  if (getActiveAdvisorIdForSlot(slot)) { addLog(`⚠ The office of ${advisorSlotLabel(slot)} is not vacant. Replace the current office-holder instead.`, 'advisor'); return; }
+  if (!isAdvisorDateEligible(incoming)) { addLog(`⚠ ${incoming.name} is not yet historically available for ${advisorSlotLabel(slot)}.`, 'advisor'); return; }
+  const cost = appointmentCostFor(incoming.id);
+  if (Number(gameState.budget || 0) < cost) { addLog(`⚠ Not enough political capital to appoint ${incoming.name} (costs ${cost}).`, 'advisor'); return; }
+  if (!confirmAdvisorAction(advisorConfirmationText('appoint', incoming, null))) return;
+  gameState.budget -= cost;
+  const st = gameState.advisorStatus[incoming.id] || {};
+  st.resigned = false; st.fired = false; st.appointed = true; st.appointedTurn = gameState.turn;
+  gameState.advisorStatus[incoming.id] = st;
+  gameState.activeAdvisorSlots[slot] = incoming.id;
+  if (gameState.advisorLoyalty[incoming.id] == null) gameState.advisorLoyalty[incoming.id] = (incoming.defaultLoyalty ?? incoming.loyalty ?? 50);
+  applyAdvisorPressureEffects(incoming.appointmentEffects || {});
+  applyAppointmentFactionReaction(incoming, null, 'appoint');
+  recordAdvisorHistory(slot, null, incoming.id, 'appoint');
+  addLog(`${incoming.name} appointed as ${advisorSlotLabel(slot)}. -${cost} political capital. ${incoming.appointmentNote || ''}`, 'advisor');
+  closeAdvisorDetail(); render(); renderPolicies();
+}
+function retireAdvisor(advisorId){
+  const a = getAdvisorById(advisorId); if (!a) return;
+  const slot = getAdvisorSlot(a); if (!slot || !isAdvisorActive(a.id)) return;
+  const cost = Math.max(3, Math.round(appointmentCostFor(a.id) / 2));
+  if (Number(gameState.budget || 0) < cost) { addLog(`⚠ Not enough political capital to manage the retirement of ${a.name} (costs ${cost}).`, 'advisor'); return; }
+  if (!confirmAdvisorAction(advisorConfirmationText('retire', null, a))) return;
+  gameState.budget -= cost;
+  const st = gameState.advisorStatus[a.id] || {};
+  st.retired = true; st.resigned = true; st.fired = false;
+  gameState.advisorStatus[a.id] = st;
+  if (gameState.activeAdvisorSlots && gameState.activeAdvisorSlots[slot] === advisorId) gameState.activeAdvisorSlots[slot] = null;
+  applyMetricChange('partyUnity', a.faction === 'Conservative' ? +1 : -1);
+  applyMetricChange('stability', +1);
+  applyAppointmentFactionReaction(a, a, 'retire');
+  recordAdvisorHistory(slot, a.id, null, 'retire');
+  addLog(`${a.name} moved aside through managed retirement. -${cost} political capital. This avoids a public purge, but leaves ${advisorSlotLabel(slot)} vacant.`, 'advisor');
+  closeAdvisorDetail(); render(); renderPolicies();
+}
+function advisorPressureKey(rule, suffix){ return `advisor_pressure_${rule.id}_${suffix}`; }
+function isSuccessionPressureActive(rule){
+  ensureAdvisorSlotDefaults(); const activeId = getActiveAdvisorIdForSlot(rule.slot) || null;
+  if (rule.staleAdvisor === null) return activeId === null;
+  return activeId === rule.staleAdvisor;
+}
+function getPersonnelQuestions(){
+  ensureAdvisorSlotDefaults(); const now=currentMonthIndex();
+  return ADVISOR_SUCCESSION_PRESSURES.map(rule => {
+    const due=monthIndex(rule.due); const activeId=getActiveAdvisorIdForSlot(rule.slot); const active=activeId?getAdvisorById(activeId):null; const rec=getAdvisorById(rule.recommendedAdvisor);
+    const monthsOverdue=Math.max(0, now-due);
+    const activeProblem = now > due && isSuccessionPressureActive(rule);
+    const pending = now <= due && (due-now) <= 3 && isSuccessionPressureActive(rule);
+    return { rule, active, rec, monthsOverdue, activeProblem, pending, dueText:formatAdvisorDate(rule.due) };
+  });
+}
+function applyAdvisorReplacementPressure(){
+  ensureAdvisorSlotDefaults(); if (!gameState.advisorPressure) gameState.advisorPressure = {};
+  const now=currentMonthIndex();
+  ADVISOR_SUCCESSION_PRESSURES.forEach(rule => {
+    const due=monthIndex(rule.due); if (now <= due) return; if (!isSuccessionPressureActive(rule)) return;
+    const monthsOverdue=now-due; const recommended=getAdvisorById(rule.recommendedAdvisor); const activeId=getActiveAdvisorIdForSlot(rule.slot); const active=activeId?getAdvisorById(activeId):null; const office=advisorSlotLabel(rule.slot);
+    applyAdvisorPressureEffects(rule.monthlyEffects);
+    const lastLogKey=advisorPressureKey(rule,'last_log');
+    if (!gameState.advisorPressure[lastLogKey] || monthsOverdue - gameState.advisorPressure[lastLogKey] >= 3) {
+      gameState.advisorPressure[lastLogKey]=monthsOverdue;
+      const subject=active ? active.name : `the vacant ${office} office`;
+      addLog(`Personnel pressure: ${subject} is ${monthsOverdue} month${monthsOverdue===1?'':'s'} overdue for a succession decision. ${recommended ? 'Historically plausible option: ' + recommended.name + '.' : ''}`, 'advisor');
+    }
+    const warningKey=advisorPressureKey(rule,'warning');
+    if (monthsOverdue >= rule.warningAfter && !gameState.firedTriggers[warningKey]) {
+      gameState.firedTriggers[warningKey]=true;
+      displayTriggerEvent({ id:warningKey, name:rule.title, image:active&&active.image?active.image:(recommended&&recommended.image?recommended.image:'images/Pravda_1971.png'), description:`${rule.description}\n\nThe office concerned is ${office}. The recommended historical solution is ${recommended ? recommended.name : 'a new appointment'}, but the decision remains political: move now, defend continuity, or postpone and absorb the damage.`, choices:[ { text:`Prepare the transition toward ${recommended ? recommended.name : 'a new appointment'}`, effects:{ partyUnity:-1, popularAffection:+1 }, budgetGain:4 }, { text:'Defend continuity for now', effects:{ partyUnity:+2, popularAffection:-2 } }, { text:'Postpone the matter', effects:{ stability:-1, partyUnity:-1 } } ] });
+    }
+    const crisisKey=advisorPressureKey(rule,'crisis');
+    if (monthsOverdue >= rule.crisisAfter && !gameState.firedTriggers[crisisKey]) {
+      gameState.firedTriggers[crisisKey]=true; applyAdvisorPressureEffects(rule.crisisEffects);
+      displayTriggerEvent({ id:crisisKey, name:`${rule.title}: Apparatus Friction`, image:'images/Pravda_1971.png', description:`${rule.description}\n\nDelay has now become visible inside the apparatus. Rival factions are interpreting the unresolved personnel question as weakness, and ministries are adjusting their behaviour accordingly.`, choices:[ { text:'Force the personnel question onto the Politburo agenda', effects:{ partyUnity:-3, popularAffection:+2 }, budgetGain:6 }, { text:'Trade concessions for continued support', effects:{ partyUnity:+4, popularAffection:-4, economy:-1 } }, { text:'Let the unresolved contradiction stand', effects:{ stability:-3, partyUnity:-2 } } ] });
+    }
+  });
+}
+function policyTheme(policy){
+  const text = `${policy.id || ''} ${policy.name || ''} ${policy.category || ''} ${policy.description || ''}`.toLowerCase();
+  if (/foreign|summit|arms|treaty|nato|washington|reagan|cold|afghanistan|europe/.test(text)) return 'foreign';
+  if (/glasnost|press|speech|media|multi-party|election|liberal|democrat/.test(text)) return 'glasnost';
+  if (/econom|industry|market|enterprise|cooperative|budget|perestroika|planning/.test(text)) return 'economy';
+  if (/kgb|security|stability|discipline|anti-corruption|party|censorship/.test(text)) return 'party';
+  if (/military|army|defence|weapons|readiness/.test(text)) return 'military';
+  return 'general';
+}
+function getAdvisorModifiedPolicyCost(policy){
+  let cost = Number(policy.cost || 0); const theme=policyTheme(policy); const active=new Set(getActiveAdvisorIds());
+  if (theme === 'foreign' && active.has('shevardnadze')) cost -= 1;
+  if (theme === 'foreign' && active.has('gromyko')) cost += 1;
+  if (theme === 'economy' && active.has('ryzhkov')) cost -= 1;
+  if (theme === 'economy' && active.has('tikhonov')) cost += 2;
+  if (theme === 'glasnost' && active.has('yakovlev')) cost -= 1;
+  if (theme === 'glasnost' && active.has('ligachev')) cost += 2;
+  if (theme === 'party' && active.has('ligachev')) cost -= 1;
+  return Math.max(0, cost);
+}
+function getAdvisorModifiedPolicyEffects(policy){
+  const out = { ...(policy.effects || {}) }; const theme=policyTheme(policy); const active=new Set(getActiveAdvisorIds());
+  const add=(k,v)=>{ out[k]=Number(out[k]||0)+v; };
+  if (theme === 'foreign' && active.has('shevardnadze')) add('foreignRelations', +1);
+  if (theme === 'foreign' && active.has('gromyko')) { add('foreignRelations', -0.5); add('partyUnity', +0.5); }
+  if (theme === 'economy' && active.has('ryzhkov')) add('economy', +1);
+  if (theme === 'economy' && active.has('tikhonov')) { add('economy', -1); add('partyUnity', +0.5); }
+  if (theme === 'glasnost' && active.has('yakovlev')) { add('popularAffection', +1); add('partyUnity', -0.5); add('separatism', +0.5); }
+  if (theme === 'glasnost' && active.has('ligachev')) { add('popularAffection', -1); add('partyUnity', +0.5); }
+  if (theme === 'party' && active.has('ligachev')) add('partyUnity', +1);
+  if (theme === 'party' && active.has('yakovlev')) add('popularAffection', +0.5);
+  if (theme === 'military' && active.has('akhromeyev')) add('militaryReadiness', +1);
+  return out;
+}
+function applyAdvisorRivalriesAndArcs(){
+  ensureAdvisorSlotDefaults(); const active=new Set(getActiveAdvisorIds()); const flags=gameState.advisorEventFlags || (gameState.advisorEventFlags={});
+  const logEvery=(key,msg,type='advisor')=>{ const last=flags[key]||0; if ((gameState.turn-last)>=6){ flags[key]=gameState.turn; addLog(msg,type); } };
+  if (active.has('yakovlev') && active.has('ligachev')) { applyMetricChange('partyUnity', -0.5); applyMetricChange('popularAffection', +0.3); logEvery('yakovlev_ligachev_rivalry','Yakovlev and Ligachev are now openly pulling ideological policy in opposite directions.'); }
+  if (active.has('shevardnadze') && (active.has('kryuchkov') || active.has('ligachev'))) { gameState.coupProbability = clamp((gameState.coupProbability||0)+0.5,0,100); logEvery('shev_hardliner_tension','Foreign-policy reform is sharpening hardliner suspicion of Shevardnadze and the New Thinking line.'); }
+  if (active.has('kryuchkov')) { gameState.coupProbability = clamp((gameState.coupProbability||0)+0.4,0,100); }
+  if (active.has('yeltsin')) {
+    applyMetricChange('popularAffection', +0.4); applyMetricChange('partyUnity', -0.6);
+    if (currentMonthIndex() >= 1987*12+10 && !flags.yeltsin_1987_break) triggerYeltsinBreakEvent();
+  }
+  if (active.has('ligachev')) applyLigachevDecline();
+  if (active.has('shevardnadze')) maybeTriggerShevardnadzeResignation();
+}
+function applyLigachevDecline(){
+  const enacted = new Set(gameState.enactedPolicies || []); const flags=gameState.advisorEventFlags || (gameState.advisorEventFlags={});
+  if (gameState.year >= 1987 || enacted.has('glasnost')) {
+    applyMetricChange('popularAffection', -0.3); applyMetricChange('partyUnity', +0.2);
+    if (!flags.ligachev_decline_warning && gameState.year >= 1988) {
+      flags.ligachev_decline_warning = true;
+      displayTriggerEvent({ id:'ligachev_decline_warning', name:'Ligachev and the Limits of Discipline', image:'images/Yigor_Ligachev.jpg', description:'Ligachev continues to defend discipline, central authority, and party primacy. That steadies the apparatus, but it also narrows the credibility of glasnost and frustrates the reform wing. He remains useful only if reform is deliberately restrained.', choices:[ { text:'Keep Ligachev as counterweight to radicalism', effects:{ partyUnity:+5, popularAffection:-4 } }, { text:'Shift ideological authority toward reformers', effects:{ popularAffection:+4, partyUnity:-4 } }, { text:'Balance both camps ambiguously', effects:{ stability:-2, partyUnity:-1 } } ] });
+    }
+  }
+}
+function triggerYeltsinBreakEvent(){
+  const flags=gameState.advisorEventFlags || (gameState.advisorEventFlags={}); if (flags.yeltsin_1987_break) return; flags.yeltsin_1987_break = true;
+  displayTriggerEvent({ id:'yeltsin_1987_break', name:'Yeltsin Challenges the Centre', image:'images/Boris_Yeltsin_deputies.jpg', description:'Yeltsin has converted his Moscow position into a platform against privilege and hesitation. His attacks delight parts of the public, but the party apparatus sees him as reckless. The question is no longer whether he is useful, but whether he can be contained.', choices:[ { text:'Demote Yeltsin and defend collective discipline', effects:{ partyUnity:+5, popularAffection:-6, stability:+2 }, advisorAction:{ type:'vacate', advisorId:'yeltsin', reason:'demoted' } }, { text:'Tolerate him as a radical pressure valve', effects:{ popularAffection:+6, partyUnity:-8, stability:-3 } }, { text:'Publicly censure him but keep him in reserve', effects:{ partyUnity:+2, popularAffection:-2, stability:-1 } } ] });
+}
+function maybeTriggerShevardnadzeResignation(){
+  const flags=gameState.advisorEventFlags || (gameState.advisorEventFlags={}); if (flags.shevardnadze_1990_resignation) return;
+  const danger = (gameState.year > 1990 || (gameState.year === 1990 && gameState.month >= 12)) || (gameState.coupProbability || 0) >= 55;
+  if (!danger) return; flags.shevardnadze_1990_resignation = true;
+  displayTriggerEvent({ id:'shevardnadze_1990_resignation', name:'Shevardnadze Warns of Dictatorship', image:'images/Eduard_Shevardnadze.jpg', description:'The foreign minister warns that the political atmosphere is darkening and that dictatorship may be approaching. His resignation would be a signal to reformers and to the outside world that the centre is losing its nerve.', choices:[ { text:'Keep Shevardnadze by recommitting to political reform', effects:{ foreignRelations:+6, popularAffection:+4, partyUnity:-6, stability:-2 }, budgetCost:4 }, { text:'Accept his resignation', effects:{ foreignRelations:-8, popularAffection:-3, partyUnity:+2 }, advisorAction:{ type:'vacate', advisorId:'shevardnadze', reason:'resigned' } }, { text:'Denounce the warning and reassure the apparatus', effects:{ partyUnity:+6, foreignRelations:-6, popularAffection:-5 }, advisorAction:{ type:'vacate', advisorId:'shevardnadze', reason:'dismissed' } } ] });
+}
+function processAdvisorEventAction(action){
+  if (!action || !action.advisorId) return;
+  const a=getAdvisorById(action.advisorId); if (!a) return; const slot=getAdvisorSlot(a); const st=gameState.advisorStatus[a.id] || {};
+  if (action.type === 'vacate') {
+    st.resigned = true; st.fired = action.reason === 'dismissed'; st.replaced = false; st.eventDeparture = action.reason || 'departed';
+    gameState.advisorStatus[a.id]=st;
+    if (slot && gameState.activeAdvisorSlots && gameState.activeAdvisorSlots[slot] === a.id) gameState.activeAdvisorSlots[slot]=null;
+    recordAdvisorHistory(slot, a.id, null, action.reason || 'event');
+    addLog(`${a.name} leaves office (${action.reason || 'departed'}). ${slot ? advisorSlotLabel(slot) + ' is now vacant.' : ''}`, 'advisor');
+  }
+}
 function fireAdvisor(advisorId) {
   const a = advisors.find(x => x.id === advisorId);
   if (!a) return;
   const status = gameState.advisorStatus[advisorId] || {};
   if (status.resigned || status.fired) return;
-  // Firing costs political capital and has consequences
   const cost = 15;
   if (gameState.budget < cost) {
     addLog(`⚠ Not enough political capital to dismiss ${a.name} (costs ${cost}).`);
     return;
   }
+  if (!confirmAdvisorAction(`Confirm dismissal: ${a.name} will be publicly removed. This is harsher than managed retirement and may destabilise the apparatus.`)) return;
   gameState.budget -= cost;
   status.fired = true;
-  status.resigned = true; // treated as resigned for policy gating
+  status.resigned = true;
   gameState.advisorStatus[advisorId] = status;
-  // Faction and stability consequences
-  applyMetricChange('stability', -3);
+  const slot = getAdvisorSlot(a);
+  if (slot && gameState.activeAdvisorSlots && gameState.activeAdvisorSlots[slot] === advisorId) gameState.activeAdvisorSlots[slot] = null;
+  applyMetricChange('stability', -4);
   if (a.faction === 'Reformist') applyMetricChange('partyUnity', -5);
-  if (a.faction === 'Conservative') applyMetricChange('partyUnity', +3);
+  if (a.faction === 'Conservative') applyMetricChange('partyUnity', -2);
+  if (a.faction === 'Hardliner') gameState.coupProbability = clamp((gameState.coupProbability || 0) + 4, 0, 100);
+  applyAppointmentFactionReaction(a, a, 'dismiss');
+  recordAdvisorHistory(slot, advisorId, null, 'dismiss');
   const lockedPolicies = policies.filter(p => p.advisorRequired === advisorId && !(gameState.enactedPolicies||[]).includes(p.id));
   const lockedNames = lockedPolicies.map(p => p.name).join(', ');
-  addLog(`${a.name} ${a.id === 'raisa' ? 'divorced' : 'dismissed'}. -${cost} political capital, Stability −3. ${lockedNames ? 'Policies lost: ' + lockedNames + '.' : ''}`, 'advisor');
-  closeAdvisorDetail();
-  render();
-  renderPolicies();
-  
+  addLog(`${a.name} ${a.id === 'raisa' ? 'divorced' : 'dismissed'}. -${cost} political capital, Stability −4. ${lockedNames ? 'Policies lost: ' + lockedNames + '.' : ''}`, 'advisor');
+  closeAdvisorDetail(); render(); renderPolicies();
 }
 
 function buildAdvisorDetailContent(a){
+  ensureAdvancedAdvisorDefaults();
   const loyalty = Number(gameState.advisorLoyalty[a.id] ?? a.defaultLoyalty ?? a.loyalty ?? 50);
+  const influence = advisorStat(a.id, 'influence');
+  const competence = advisorStat(a.id, 'competence');
   const status = gameState.advisorStatus[a.id] || {};
   const enacted = enactedPolicySet();
   const selected = new Set(gameState.selectedPolicies || []);
+  const slot = getAdvisorSlot(a);
+  const active = isAdvisorActive(a.id);
+  const vacantCandidate = (!status.resigned && !status.fired && slot && isAdvisorCandidateForVacantSlot(a.id));
   let loyaltyCls = 'mid';
   if (loyalty >= 75) loyaltyCls = 'high';
   if (loyalty <= 40) loyaltyCls = 'low';
@@ -7527,10 +8035,14 @@ function buildAdvisorDetailContent(a){
   };
   const statusNote = status.fired
     ? `<p class="advisor-detail-empty" style="color:var(--red);font-style:normal;">${a.id === 'raisa' ? 'Raisa Gorbacheva was divorced and is no longer by your side.' : 'This advisor was dismissed.'}</p>`
+    : status.retired
+    ? '<p class="advisor-detail-empty" style="color:var(--gold);font-style:normal;">This advisor was moved aside through managed retirement.</p>'
+    : vacantCandidate
+    ? `<p style="color:var(--green);font-style:italic;">Available for appointment to ${escapeHtml(advisorSlotLabel(slot))}.</p>`
     : (a.id === 'raisa' && (status.resigned || loyalty < 15))
     ? '<p class="advisor-detail-empty" style="color:var(--red);font-style:normal;">Raisa Gorbacheva has left. The personal and political damage is severe.</p>'
     : (status.resigned || loyalty < 20)
-    ? `<p class="advisor-detail-empty" style="color:var(--red);font-style:normal;">${a.id === 'akhromeyev' ? 'Akhromeyev is dead. He took his own life rather than witness the end of everything he believed in.' : 'This advisor has resigned and no longer supports your agenda.'}</p>`
+    ? `<p class="advisor-detail-empty" style="color:var(--red);font-style:normal;">${a.id === 'akhromeyev' ? 'Akhromeyev is dead. He took his own life rather than witness the end of everything he believed in.' : 'This advisor has left office and no longer supports your agenda.'}</p>`
     : a.id === 'raisa' ? getRaisaNote()
     : status.emboldened ? '<p style="color:var(--green);font-style:italic;">Emboldened — unusually effective this month.</p>' : '';
 
@@ -7542,60 +8054,47 @@ function buildAdvisorDetailContent(a){
         return `<li class="${done ? 'enacted' : ''}">${escapeHtml(p.name)}${done ? ' — enacted' : ''}</li>`;
       }).join('')}</ul>`
     : '<p class="advisor-detail-empty">No policies require this advisor.</p>';
-
   const opposeHtml = opposes.length
     ? `<ul class="advisor-detail-policy-list">${opposes.map(p => {
-        const active = selected.has(p.id);
-        return `<li class="${active ? 'opposed-active' : ''}">${escapeHtml(p.name)}${active ? ' — opposes your current selection' : ''}</li>`;
+        const activeSel = selected.has(p.id);
+        return `<li class="${activeSel ? 'opposed-active' : ''}">${escapeHtml(p.name)}${activeSel ? ' — opposes your current selection' : ''}</li>`;
       }).join('')}</ul>`
     : '<p class="advisor-detail-empty">Does not formally oppose any policy in the deck.</p>';
+  const photo = a.image ? `<img src="${escapeHtml(a.image)}" alt="">` : `<div class="advisor-detail-hero-placeholder">☭</div>`;
+  const threshold = a.thresholdEffect ? `<div class="advisor-detail-section"><h4>${a.id === 'raisa' ? 'If affection falls too low' : 'If loyalty falls too low'}</h4><p>${escapeHtml(a.thresholdEffect)}</p></div>` : '';
 
-  const photo = a.image
-    ? `<img src="${escapeHtml(a.image)}" alt="">`
-    : `<div class="advisor-detail-hero-placeholder">☭</div>`;
-
-  const threshold = a.thresholdEffect
-    ? `<div class="advisor-detail-section"><h4>${a.id === 'raisa' ? 'If affection falls too low' : 'If loyalty falls too low'}</h4><p>${escapeHtml(a.thresholdEffect)}</p></div>`
+  const makePreview = c => `<div class="appointment-preview"><b>Preview:</b> Cost ${appointmentCostFor(c.id)} political capital · ${escapeHtml(formatEffects(c.appointmentEffects))}<br><b>Stats:</b> Influence ${advisorStat(c.id,'influence')}, Competence ${advisorStat(c.id,'competence')}</div>`;
+  const replacementCandidates = (!status.resigned && !status.fired && slot && active) ? getReplacementCandidatesForAdvisor(a.id) : [];
+  const vacantAppointmentHtml = vacantCandidate
+    ? `<div class="advisor-detail-section advisor-replacement-section"><h4>Appoint to vacant office: ${escapeHtml(advisorSlotLabel(slot))}</h4><p style="font-size:12px;margin-bottom:.6rem;">This office is vacant and ${escapeHtml(a.name)} is historically eligible this month.</p>${makePreview(a)}<button class="action-btn-secondary" style="font-size:11px;padding:6px 14px;" onclick="appointAdvisorToVacantSlot('${escapeHtml(a.id)}')">Appoint ${escapeHtml(a.name)}</button></div>`
     : '';
+  const replacementHtml = vacantAppointmentHtml || (replacementCandidates.length
+    ? `<div class="advisor-detail-section advisor-replacement-section"><h4>Replace in office: ${escapeHtml(advisorSlotLabel(slot))}</h4><p style="font-size:12px;margin-bottom:.6rem;">Historically eligible alternatives for the current month. Replacing an advisor changes which advisor-gated policies can appear.</p><div class="advisor-replacement-list">${replacementCandidates.map(c => `<div class="advisor-replacement-card"><strong>${escapeHtml(c.name)}</strong><span>${escapeHtml(c.faction || 'Advisor')} · ${escapeHtml(advisorSlotLabel(getAdvisorSlot(c)))}</span><p>${escapeHtml(c.appointmentNote || 'Available now.')}</p>${makePreview(c)}<button class="action-btn-secondary" style="font-size:11px;padding:6px 14px;" onclick="replaceAdvisor('${escapeHtml(a.id)}','${escapeHtml(c.id)}')">Appoint ${escapeHtml(c.name)}</button></div>`).join('')}</div></div>`
+    : (slot && active && a.id !== 'raisa' ? `<div class="advisor-detail-section"><h4>Replace in office</h4><p class="advisor-detail-empty">No historically eligible replacement is available for ${escapeHtml(advisorSlotLabel(slot))} this month.</p></div>` : ''));
+
+  const retirementHtml = (!status.resigned && !status.fired && active && slot && a.id !== 'raisa')
+    ? `<div class="advisor-detail-section"><h4 style="color:var(--gold);">Managed retirement / move aside</h4><p style="font-size:12px;margin-bottom:.6rem;">A Soviet-style alternative to public dismissal: preserve dignity, reduce immediate shock, and leave the office vacant for a later appointment.</p><button class="action-btn-secondary" style="font-size:11px;padding:6px 14px;" onclick="retireAdvisor('${escapeHtml(a.id)}')">Move aside ${escapeHtml(a.name)}</button></div>`
+    : '';
+  const dismissalHtml = (!status.resigned && !status.fired && active)
+    ? `<div class="advisor-detail-section" style="border-top:1px solid rgba(139,26,26,0.2);padding-top:1rem;margin-top:.5rem;"><h4 style="color:var(--red);">${a.id === 'raisa' ? 'Divorce' : 'Dismiss advisor'}</h4><p style="font-size:12px;margin-bottom:.6rem;">${a.id === 'raisa' ? 'Divorcing Raisa Gorbacheva would be a personal and political catastrophe.' : 'Publicly removing ' + escapeHtml(a.name) + ' is harsher than managed retirement. It costs <strong>15 political capital</strong> and carries sharper stability and factional consequences.'}</p><button class="action-btn-secondary" style="font-size:11px;padding:6px 14px;" onclick="fireAdvisor('${escapeHtml(a.id)}')">${a.id === 'raisa' ? 'Divorce Raisa Gorbacheva' : 'Dismiss ' + escapeHtml(a.name)}</button></div>`
+    : status.fired ? `<p style="color:var(--red);font-style:italic;margin-top:1rem;">${a.id === 'raisa' ? 'Raisa Gorbacheva was divorced.' : 'This advisor was dismissed.'}</p>` : '';
 
   return `
-    <div class="advisor-detail-hero">
-      ${photo}
-      <div class="advisor-detail-hero-overlay"></div>
-      <div class="advisor-detail-hero-text">
-        <h2 class="advisor-detail-name" id="advisor-detail-title">${escapeHtml(a.name)}</h2>
-        <div class="advisor-detail-role">${escapeHtml(a.role || '')}</div>
-        <span class="advisor-detail-faction">${escapeHtml(a.faction || 'Advisor')}</span>
-        <div class="advisor-loyalty ${loyaltyCls}" style="margin-top:10px;color:#fff;">${a.id === 'raisa' ? 'Affection' : 'Loyalty'}: ${loyalty}</div>
-      </div>
-    </div>
+    <div class="advisor-detail-hero">${photo}<div class="advisor-detail-hero-overlay"></div><div class="advisor-detail-hero-text"><h2 class="advisor-detail-name" id="advisor-detail-title">${escapeHtml(a.name)}</h2><div class="advisor-detail-role">${escapeHtml(a.role || '')}</div><span class="advisor-detail-faction">${escapeHtml(a.faction || 'Advisor')}</span><div class="advisor-loyalty ${loyaltyCls}" style="margin-top:10px;color:#fff;">${a.id === 'raisa' ? 'Affection' : 'Loyalty'}: ${loyalty}</div></div></div>
     <div class="advisor-detail-body">
       ${statusNote}
-      <div class="advisor-detail-section">
-        <h4>Profile</h4>
-        <p>${escapeHtml(a.description || 'No biography available.')}</p>
-      </div>
-      <div class="advisor-detail-section">
-        <h4>Specialty</h4>
-        <p>${escapeHtml(a.specialty || 'No specialty listed.')}</p>
-      </div>
-      <div class="advisor-detail-section">
-        <h4>Policies unlocked</h4>
-        ${unlockHtml}
-      </div>
-      <div class="advisor-detail-section">
-        <h4>Policies opposed</h4>
-        ${opposeHtml}
-      </div>
+      <div class="advisor-detail-section"><h4>Office and power</h4><p>${slot ? escapeHtml(advisorSlotLabel(slot)) : 'No formal office slot.'} ${active ? 'Currently active.' : vacantCandidate ? 'Available for a vacant office.' : 'Not currently active.'}</p><div class="advisor-mini-bars"><div class="advisor-stat-row"><span>Loyalty</span><strong>${loyalty}</strong></div><div class="advisor-stat-row"><span>Influence</span><strong>${influence}</strong></div><div class="advisor-stat-row"><span>Competence</span><strong>${competence}</strong></div></div></div>
+      <div class="advisor-detail-section"><h4>Profile</h4><p>${escapeHtml(a.description || 'No biography available.')}</p></div>
+      <div class="advisor-detail-section"><h4>Specialty</h4><p>${escapeHtml(a.specialty || 'No specialty listed.')}</p></div>
+      <div class="advisor-detail-section"><h4>Policies unlocked</h4>${unlockHtml}</div>
+      <div class="advisor-detail-section"><h4>Policies opposed</h4>${opposeHtml}</div>
       ${threshold}
-      ${!status.resigned && !status.fired ? `
-      <div class="advisor-detail-section" style="border-top:1px solid rgba(139,26,26,0.2);padding-top:1rem;margin-top:.5rem;">
-        <h4 style="color:var(--red);">${a.id === 'raisa' ? 'Divorce' : 'Dismiss advisor'}</h4>
-        <p style="font-size:12px;margin-bottom:.6rem;">${a.id === 'raisa' ? 'Divorcing Raisa Gorbacheva would be a personal and political catastrophe. It costs <strong>15 political capital</strong> and deals a severe blow to public standing and reformist morale. This cannot be undone.' : 'Removing ' + escapeHtml(a.name) + ' from the inner circle costs <strong>15 political capital</strong> and carries consequences for stability and party cohesion. This cannot be undone.'}</p>
-        <button class="action-btn-secondary" style="font-size:11px;padding:6px 14px;" onclick="fireAdvisor('${escapeHtml(a.id)}')">${a.id === 'raisa' ? 'Divorce Raisa Gorbacheva' : 'Dismiss ' + escapeHtml(a.name)}</button>
-      </div>` : status.fired ? `<p style="color:var(--red);font-style:italic;margin-top:1rem;">${a.id === 'raisa' ? 'Raisa Gorbacheva was divorced.' : 'This advisor was dismissed.'}</p>` : ''}
+      ${replacementHtml}
+      ${retirementHtml}
+      ${dismissalHtml}
     </div>`;
 }
+
 
 function openAdvisorDetail(advisorId){
   const a = getAdvisorById(advisorId);
@@ -8265,6 +8764,9 @@ function resolveEventChoice(choiceIdx) {
     gameState.budget = clamp(gameState.budget + gain, 0, 9999);
     addLog(`Emergency mandate secured: +${gain} political capital`);
   }
+  if (choice.advisorAction) {
+    processAdvisorEventAction(choice.advisorAction);
+  }
   // Directly enact a policy card if the event choice specifies one.
   // Effects and budget cost come from choice.effects / choice.budgetCost above,
   // so we skip them here to avoid double-application. Advisor loyalty reactions
@@ -8797,6 +9299,10 @@ function endTurn() {
 
   gameState.turn++;
   advanceDate();
+
+  // Personnel succession, rivalries, and special advisor arcs.
+  applyAdvisorReplacementPressure();
+  applyAdvisorRivalriesAndArcs();
 
   // Also decay separatism influence on stability each turn
   if (gameState.separatism > 10) {
@@ -9827,15 +10333,20 @@ function applyPolicyImmediate(policyId, { skipEffectsAndCost = false } = {}) {
     return;
   }
   if (!skipEffectsAndCost) {
-    if (gameState.budget < policy.cost) {
+    const finalCost = getAdvisorModifiedPolicyCost(policy);
+    if (gameState.budget < finalCost) {
       addLog('⚠ Not enough political capital.');
       return;
     }
-    gameState.budget -= policy.cost;
-    gameState.turnSpend += policy.cost;
-    Object.entries(policy.effects || {}).forEach(([key, val]) => {
+    gameState.budget -= finalCost;
+    gameState.turnSpend += finalCost;
+    const finalEffects = getAdvisorModifiedPolicyEffects(policy);
+    Object.entries(finalEffects || {}).forEach(([key, val]) => {
       applyMetricChange(key, val);
     });
+    if (finalCost !== policy.cost || JSON.stringify(finalEffects) !== JSON.stringify(policy.effects || {})) {
+      addLog(`Advisor office modifiers affected ${policy.name}: cost ${policy.cost} → ${finalCost}; effects ${formatEffects(finalEffects)}.`, 'advisor');
+    }
   }
   // Advisor loyalty hook (only if content provides these fields)
   if (policy.advisorOpposition && Array.isArray(policy.advisorOpposition)) {
@@ -10283,82 +10794,54 @@ function renderPolicies() {
 }
 
 function renderAdvisors(){
+  ensureAdvancedAdvisorDefaults();
   const f = uiState.advisorFaction;
-  const dateGate = a => {
-    if (a.availableFrom && gameState.year < a.availableFrom.year) return false;
-    if (a.availableUntil && (gameState.year > a.availableUntil.year || (gameState.year === a.availableUntil.year && a.availableUntil.month && gameState.month > a.availableUntil.month))) return false;
-    return true;
-  };
-  const list = (f && f !== 'All')
-    ? advisors.filter(a => dateGate(a) && String(a.faction || '').toLowerCase() === String(f).toLowerCase())
-    : advisors.filter(dateGate);
-
+  let list = advisors.filter(a => isAdvisorVisibleInPanel(a));
+  if (f === 'Office') {
+    list.sort((a,b) => String(advisorSlotLabel(getAdvisorSlot(a))).localeCompare(String(advisorSlotLabel(getAdvisorSlot(b)))) || String(a.name).localeCompare(String(b.name)));
+  }
   const html = list.map(a => {
     const loyalty = (gameState.advisorLoyalty[a.id] ?? a.defaultLoyalty ?? a.loyalty ?? 50);
+    const influence = advisorStat(a.id, 'influence');
+    const competence = advisorStat(a.id, 'competence');
     const status = gameState.advisorStatus[a.id] || {};
-    let cls = 'mid';
-    if (loyalty >= 75) cls = 'high';
-    if (loyalty <= 40) cls = 'low';
+    const active = isAdvisorActive(a.id);
+    const vacantCandidate = isAdvisorCandidateForVacantSlot(a.id);
+    let cls = 'mid'; if (loyalty >= 75) cls = 'high'; if (loyalty <= 40) cls = 'low';
     const chips = [];
     if (status.fired) chips.push(`<span class="advisor-status-chip low">${a.id === 'raisa' ? 'Divorced' : 'Dismissed'}</span>`);
+    else if (status.retired) chips.push('<span class="advisor-status-chip">Retired</span>');
+    else if (vacantCandidate) chips.push('<span class="advisor-status-chip high">Available</span>');
     else if (a.id === 'raisa' && (status.resigned || loyalty < 15)) chips.push('<span class="advisor-status-chip low">Departed</span>');
     else if (status.resigned || loyalty < 20) chips.push(`<span class="advisor-status-chip low">${a.id === 'akhromeyev' ? 'Dead' : 'Resigned'}</span>`);
     else if (a.id === 'raisa') {
-      if (loyalty >= 85)      chips.push('<span class="advisor-status-chip high">Deeply Devoted</span>');
+      if (loyalty >= 85) chips.push('<span class="advisor-status-chip high">Deeply Devoted</span>');
       else if (loyalty >= 40) chips.push('<span class="advisor-status-chip">Concerned</span>');
-      else                    chips.push('<span class="advisor-status-chip low">Alienated</span>');
+      else chips.push('<span class="advisor-status-chip low">Alienated</span>');
     } else if (status.emboldened) chips.push('<span class="advisor-status-chip high">Emboldened</span>');
-
-    const photoBg = a.image
-      ? `<img class="advisor-card-photo-bg" src="${a.image}" alt="${escapeHtml(a.name)}" onerror="this.style.display='none'">`
-      : `<div class="advisor-card-photo-bg-placeholder">☭</div>`;
-
+    if (active) chips.push('<span class="advisor-status-chip">In Office</span>');
+    const photoBg = a.image ? `<img class="advisor-card-photo-bg" src="${a.image}" alt="${escapeHtml(a.name)}" onerror="this.style.display='none'">` : `<div class="advisor-card-photo-bg-placeholder">☭</div>`;
     const loyaltyTone = loyalty >= 60 ? 'high' : loyalty >= 30 ? 'mid' : 'low';
     const loyaltyColor = loyalty >= 60 ? '#5dba7e' : loyalty >= 30 ? '#c9982e' : '#cc4040';
     const loyaltyBar = `<div class="advisor-loyalty-bar" data-advisor-id="${a.id}" data-loyalty="${loyalty}">${fillBarHtml('advisor-loyalty-fill ' + loyaltyTone, loyalty, loyaltyColor)}</div>`;
-
-    return `
-      <div class="advisor-card${status.fired || status.resigned || loyalty < 20 ? ' resigned' : ''}" role="button" tabindex="0" title="View advisor profile" onclick="openAdvisorDetail('${a.id}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openAdvisorDetail('${a.id}')}">
-        <div class="card-corner tl${status.emboldened && a.id !== 'raisa' && !status.fired && !status.resigned && loyalty >= 20 ? ' emboldened' : ''}">${escapeHtml(a.faction || 'Advisor')}</div>
-        <div class="card-corner br">${escapeHtml((a.role || '').length > 18 ? (a.role || '').slice(0,17)+'…' : (a.role || ''))}</div>
-        ${photoBg}
-        <div class="advisor-card-overlay"></div>
-        <div class="card-body">
-          <div class="advisor-name">${escapeHtml(a.name)}</div>
-          <div class="advisor-loyalty ${cls}">${a.id === 'raisa' ? 'Affection' : 'Loyalty'}: ${loyalty}${(() => {
-            const prev = gameState.advisorLoyaltyPrev && gameState.advisorLoyaltyPrev[a.id];
-            if (prev == null) return '';
-            const delta = loyalty - prev;
-            if (Math.abs(delta) < 1) return ' <span style="opacity:.55;font-size:10px;">\u2192</span>';
-            const arrow = delta > 0 ? '\u2191' : '\u2193';
-            const col = delta > 0 ? '#7eeaa0' : '#ff7070';
-            return ' <span style="color:' + col + ';font-size:10px;font-weight:700;">' + arrow + Math.abs(delta) + '</span>';
-          })()}</div>
-          ${loyaltyBar}
-          <div class="advisor-statuses">${chips.join('')}</div>
-        </div>
-      </div>`;
+    return `<div class="advisor-card${status.fired || status.resigned || loyalty < 20 ? ' resigned' : ''}" role="button" tabindex="0" title="View advisor profile" onclick="openAdvisorDetail('${a.id}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openAdvisorDetail('${a.id}')}">
+      <div class="card-corner tl${status.emboldened && a.id !== 'raisa' && !status.fired && !status.resigned && loyalty >= 20 ? ' emboldened' : ''}">${escapeHtml(a.faction || 'Advisor')}</div>
+      <div class="card-corner br">${escapeHtml((a.role || '').length > 18 ? (a.role || '').slice(0,17)+'…' : (a.role || ''))}</div>${photoBg}<div class="advisor-card-overlay"></div><div class="card-body"><div class="advisor-name">${escapeHtml(a.name)}</div>${getAdvisorSlot(a) ? `<div class="advisor-slot-label">${escapeHtml(advisorSlotLabel(getAdvisorSlot(a)))}</div>` : ''}<div class="advisor-loyalty ${cls}">${a.id === 'raisa' ? 'Affection' : 'Loyalty'}: ${loyalty}${(() => { const prev = gameState.advisorLoyaltyPrev && gameState.advisorLoyaltyPrev[a.id]; if (prev == null) return ''; const delta = loyalty - prev; if (Math.abs(delta) < 1) return ' <span style="opacity:.55;font-size:10px;">→</span>'; const arrow = delta > 0 ? '↑' : '↓'; const col = delta > 0 ? '#7eeaa0' : '#ff7070'; return ' <span style="color:' + col + ';font-size:10px;font-weight:700;">' + arrow + Math.abs(delta) + '</span>'; })()}</div>${loyaltyBar}<div style="font-size:10px;opacity:.8;margin-top:3px;">Inf ${influence} · Comp ${competence}</div><div class="advisor-statuses">${chips.join('')}</div></div></div>`;
   }).join('');
-
-  document.getElementById('advisor-grid').innerHTML = html;
+  document.getElementById('advisor-grid').innerHTML = html || '<p class="advisor-detail-empty">No advisors match this filter.</p>';
   refreshAdvisorDetailIfOpen();
-
-  // Flash loyalty bars where value changed this turn
   if (gameState.advisorLoyaltyPrev) {
-    document.querySelectorAll('.advisor-loyalty-bar[data-advisor-id]').forEach(bar => {
-      const id  = bar.dataset.advisorId;
-      const cur = Number(bar.dataset.loyalty);
-      const prv = gameState.advisorLoyaltyPrev[id];
-      if (prv == null) return;
-      const delta = cur - prv;
-      if (Math.abs(delta) < 1) return;
-      bar.classList.remove('flash-up', 'flash-down');
-      // Force reflow so removing then adding the class re-triggers the animation
-      void bar.offsetWidth;
-      bar.classList.add(delta > 0 ? 'flash-up' : 'flash-down');
+    requestAnimationFrame(() => {
+      Object.entries(gameState.advisorLoyaltyPrev).forEach(([aid, prev]) => {
+        const cur = gameState.advisorLoyalty[aid];
+        if (cur == null || Math.abs(cur - prev) < 1) return;
+        const el = document.querySelector(`.advisor-loyalty-bar[data-advisor-id="${aid}"]`);
+        if (el) { el.classList.add('advisor-loyalty-changed'); setTimeout(() => el.classList.remove('advisor-loyalty-changed'), 900); }
+      });
     });
   }
 }
+
 
 function renderActivePolicies(){
   const el = document.getElementById('active-policy-list');
@@ -10628,12 +11111,31 @@ function renderPressures() {
   setBar('mloyalty-bar', 'mloyalty-val', ml,  false);
 }
 
+function renderPersonnelQuestions(){
+  const el = document.getElementById('personnel-question-list');
+  if (!el) return;
+  ensureAdvisorSlotDefaults();
+  const questions = getPersonnelQuestions();
+  const visible = questions.filter(q => q.activeProblem || q.pending).slice(0, 8);
+  if (!visible.length) {
+    el.innerHTML = '<div class="personnel-question-card clear"><div class="personnel-question-title"><span>No urgent personnel questions</span><small>clear</small></div><div class="personnel-question-body">The current appointments are not generating immediate succession pressure.</div></div>';
+    return;
+  }
+  el.innerHTML = visible.map(q => {
+    const rule=q.rule; const cls=q.activeProblem?'overdue':'pending'; const office=advisorSlotLabel(rule.slot); const activeName=q.active?q.active.name:'Vacant'; const recName=q.rec?q.rec.name:'successor';
+    const statusText=q.activeProblem?`${q.monthsOverdue} month${q.monthsOverdue===1?'':'s'} overdue`:`due ${q.dueText}`;
+    const targetId = q.rec ? q.rec.id : (q.active ? q.active.id : '');
+    return `<div class="personnel-question-card ${cls}"><div class="personnel-question-title"><span>${escapeHtml(rule.title)}</span><small>${escapeHtml(statusText)}</small></div><div class="personnel-question-meta">${escapeHtml(office)} · Current: ${escapeHtml(activeName)} · Option: ${escapeHtml(recName)}</div><div class="personnel-question-body">${escapeHtml(rule.description)}</div><div class="personnel-question-effects">Monthly pressure: ${escapeHtml(formatEffects(rule.monthlyEffects))}</div><div class="personnel-question-actions">${targetId ? `<button class="action-btn-secondary" style="font-size:11px;padding:5px 10px;" onclick="openAdvisorDetail('${escapeHtml(targetId)}')">Review ${escapeHtml(recName)}</button>` : ''}${q.active ? `<button class="action-btn-secondary" style="font-size:11px;padding:5px 10px;" onclick="openAdvisorDetail('${escapeHtml(q.active.id)}')">Review current</button>` : ''}</div></div>`;
+  }).join('');
+}
+
 function render() {
   renderMetrics();
   renderStatus();
   renderTrajectory();
   renderDate();
   renderFactions();
+  renderPersonnelQuestions();
   renderIntl();
   renderPressures();
   renderPolitburoVisual();
