@@ -3053,8 +3053,6 @@ window.dismissIntro = window.dismissIntro || function(){
         <button class="filter-btn active" onclick="setAdvisorFilter('All', this)">All</button>
         <button class="filter-btn" onclick="setAdvisorFilter('Active', this)">Active</button>
         <button class="filter-btn" onclick="setAdvisorFilter('Available', this)">Available</button>
-        <button class="filter-btn" onclick="setAdvisorFilter('Replaced', this)">Replaced</button>
-        <button class="filter-btn" onclick="setAdvisorFilter('Office', this)">By Office</button>
         <button class="filter-btn" onclick="setAdvisorFilter('Reformist', this)">Reformist</button>
         <button class="filter-btn" onclick="setAdvisorFilter('Conservative', this)">Conservative</button>
         <button class="filter-btn" onclick="setAdvisorFilter('Centrist', this)">Centrist</button>
@@ -3484,7 +3482,7 @@ function clamp(n,min,max){ return Math.min(max, Math.max(min, n)); }
 
 function formatStatKey(key){
   const raw = String(key || '');
-  const map = { popularAffection:'Popular Support', partyUnity:'Party Unity', foreignRelations:'Foreign Relations', militaryReadiness:'Military Capability', economy:'Economy', stability:'Stability', inflation:'Inflation', socialParasitism:'Social Parasitism', budgetBalance:'Budget Balance', combatReadiness:'Combat Readiness', militaryLoyalty:'Military Loyalty', separatism:'Separatism', us:'US Relations', china:'China Relations', eastEu:'East Europe Relations', westEu:'West Europe Relations', nonAlign:'Non-Aligned Relations', hardlinersApproval:'Hardliners', reformMomentum:'Reform Momentum', reformersApproval:'Reformers', budget:'Political Capital', securityApparatusPower:'KGB Influence' };
+  const map = { popularAffection:'Popular Support', partyUnity:'Party Unity', foreignRelations:'Foreign Relations', militaryReadiness:'Military Capability', economy:'Economy', stability:'Stability', inflation:'Inflation', socialParasitism:'Social Parasitism', budgetBalance:'Budget Balance', combatReadiness:'Combat Readiness', militaryLoyalty:'Military Loyalty', separatism:'Separatism', us:'US Relations', china:'China Relations', eastEu:'East Europe Relations', westEu:'West Europe Relations', nonAlign:'Non-Aligned Relations', hardlinersApproval:'Hardliners', reformMomentum:'Reform Momentum', reformersApproval:'Reformers', budget:'Political Capital' };
   if (map[raw]) return map[raw];
   const spaced = raw.replace(/_/g,' ').replace(/([a-z])([A-Z])/g,'$1 $2');
   return spaced.replace(/\b\w/g, c => c.toUpperCase());
@@ -8252,12 +8250,12 @@ function applyAdvisorReplacementPressure(){
     const warningKey=advisorPressureKey(rule,'warning');
     if (monthsOverdue >= rule.warningAfter && !gameState.firedTriggers[warningKey]) {
       gameState.firedTriggers[warningKey]=true;
-      displayTriggerEvent({ id:warningKey, name:rule.title, image:active&&active.image?active.image:(recommended&&recommended.image?recommended.image:null), description:`${rule.description}\n\nThe office concerned is ${office}. The recommended historical solution is ${recommended ? recommended.name : 'a new appointment'}, but the decision remains political: move now, defend continuity, or postpone and absorb the damage.`, choices:[ { text:`Prepare the transition toward ${recommended ? recommended.name : 'a new appointment'}`, effects:{ partyUnity:-1, popularAffection:+1 }, budgetGain:4 }, { text:'Defend continuity for now', effects:{ partyUnity:+2, popularAffection:-2 } }, { text:'Postpone the matter', effects:{ stability:-1, partyUnity:-1 } } ] });
+      displayTriggerEvent({ id:warningKey, name:rule.title, image:active&&active.image?active.image:(recommended&&recommended.image?recommended.image:'images/Pravda_1971.png'), description:`${rule.description}\n\nThe office concerned is ${office}. The recommended historical solution is ${recommended ? recommended.name : 'a new appointment'}, but the decision remains political: move now, defend continuity, or postpone and absorb the damage.`, choices:[ { text:`Prepare the transition toward ${recommended ? recommended.name : 'a new appointment'}`, effects:{ partyUnity:-1, popularAffection:+1 }, budgetGain:4 }, { text:'Defend continuity for now', effects:{ partyUnity:+2, popularAffection:-2 } }, { text:'Postpone the matter', effects:{ stability:-1, partyUnity:-1 } } ] });
     }
     const crisisKey=advisorPressureKey(rule,'crisis');
     if (monthsOverdue >= rule.crisisAfter && !gameState.firedTriggers[crisisKey]) {
       gameState.firedTriggers[crisisKey]=true; applyAdvisorPressureEffects(rule.crisisEffects);
-      displayTriggerEvent({ id:crisisKey, name:`${rule.title}: Apparatus Friction`, image:(active&&active.image?active.image:(recommended&&recommended.image?recommended.image:null)), description:`${rule.description}\n\nDelay has now become visible inside the apparatus. Rival factions are interpreting the unresolved personnel question as weakness, and ministries are adjusting their behaviour accordingly.`, choices:[ { text:'Force the personnel question onto the Politburo agenda', effects:{ partyUnity:-3, popularAffection:+2 }, budgetGain:6 }, { text:'Trade concessions for continued support', effects:{ partyUnity:+4, popularAffection:-4, economy:-1 } }, { text:'Let the unresolved contradiction stand', effects:{ stability:-3, partyUnity:-2 } } ] });
+      displayTriggerEvent({ id:crisisKey, name:`${rule.title}: Apparatus Friction`, image:'images/Pravda_1971.png', description:`${rule.description}\n\nDelay has now become visible inside the apparatus. Rival factions are interpreting the unresolved personnel question as weakness, and ministries are adjusting their behaviour accordingly.`, choices:[ { text:'Force the personnel question onto the Politburo agenda', effects:{ partyUnity:-3, popularAffection:+2 }, budgetGain:6 }, { text:'Trade concessions for continued support', effects:{ partyUnity:+4, popularAffection:-4, economy:-1 } }, { text:'Let the unresolved contradiction stand', effects:{ stability:-3, partyUnity:-2 } } ] });
     }
   });
 }
@@ -8812,15 +8810,14 @@ function setupPravdaMasthead(eventImage, eventCaption, endingType){
   const fb = document.getElementById('pravda-photo-fallback');
   if (!img || !photo) return;
 
-  const isLogoFallback = eventImage && /Pravda_1971\.png|pravda-logo|Pravda/i.test(String(eventImage));
-  const src = (eventImage && !isLogoFallback)
+  const src = eventImage
     ? new URL(eventImage, document.baseURI).href
-    : '';
+    : new URL('images/pravda-placeholder.jpg', document.baseURI).href;
   const succeed = () => { photo.classList.add('loaded'); if (fb) fb.style.display = 'none'; };
   const fallbackSvg = 'data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%22800%22%20height%3D%22500%22%20viewBox%3D%220%200%20800%20500%22%3E%3Crect%20width%3D%22800%22%20height%3D%22500%22%20fill%3D%22%23e8dcc0%22/%3E%3Ctext%20x%3D%22400%22%20y%3D%22250%22%20text-anchor%3D%22middle%22%20font-family%3D%22Georgia%2Cserif%22%20font-size%3D%2226%22%20fill%3D%22%232b1f10%22%20opacity%3D%220.7%22%3EARCHIVAL%20PHOTOGRAPH%3C/text%3E%3C/svg%3E';
   img.onload = succeed;
   img.onerror = () => { img.src = fallbackSvg; succeed(); };
-  img.src = src ? (src + '?v=' + Date.now()) : fallbackSvg;
+  img.src = src + '?v=' + Date.now();
 }
 
 function playPaperCrackle() {
@@ -11200,12 +11197,6 @@ function renderMetrics() {
         `<div class="metric-bar">${fillBarHtml('metric-fill', sep, getMetricColor(100 - sep))}</div>`,
         `${sep}%`
       ));
-      const kgb = clamp(Math.round(Number(gameState.securityApparatusPower ?? 0)), 0, 100);
-      rows.push(metricRowHtml(
-        'KGB Influence',
-        `<div class="metric-bar" title="KGB Influence measures how much political leverage and institutional autonomy the security organs have. Higher values strengthen coercive options, but increase coup-danger sensitivity.">${fillBarHtml('metric-fill', kgb, getMetricColor(100 - kgb))}</div>`,
-        `${kgb}%`
-      ));
     }
 
     if (key === 'militaryReadiness' && gameState.militarySub) {
@@ -11418,7 +11409,7 @@ function renderAdvisors(){
       else if (loyalty >= 40) chips.push('<span class="advisor-status-chip">Concerned</span>');
       else chips.push('<span class="advisor-status-chip low">Alienated</span>');
     } else if (status.emboldened) chips.push('<span class="advisor-status-chip high">Emboldened</span>');
-    if (active) chips.push('<span class="advisor-status-chip">In Office</span>');
+    if (active && a.id !== 'raisa') chips.push('<span class="advisor-status-chip">In Office</span>');
     const photoBg = a.image ? `<img class="advisor-card-photo-bg" src="${a.image}" alt="${escapeHtml(a.name)}" onerror="this.style.display='none'">` : `<div class="advisor-card-photo-bg-placeholder">☭</div>`;
     const loyaltyTone = loyalty >= 60 ? 'high' : loyalty >= 30 ? 'mid' : 'low';
     const loyaltyColor = loyalty >= 60 ? '#5dba7e' : loyalty >= 30 ? '#c9982e' : '#cc4040';
