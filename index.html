@@ -2875,15 +2875,6 @@ window.dismissIntro = window.dismissIntro || function(){
       <div class="intl-row"><span class="intl-name">Non-Aligned</span><div class="intl-bar"><div class="intl-fill" id="if-na"></div></div><span class="intl-val neu" id="iv-na">0</span></div>
     </div>
 
-    <!-- SECONDARY PRESSURES -->
-    <div style="margin-top:1rem;">
-      <div class="section-title" style="font-size:10px;">Secondary Pressures</div>
-      <div class="intl-row"><span class="intl-name">Separatism</span><div class="intl-bar"><div class="intl-fill" id="sep-bar"></div></div><span class="intl-val neu" id="sep-val">0</span></div>
-      <div class="intl-row" title="Security Autonomy measures how independent and politically powerful the KGB/security organs have become. High values strengthen coercive options but amplify coup risk."><span class="intl-name">Security Autonomy</span><div class="intl-bar"><div class="intl-fill" id="security-autonomy-bar"></div></div><span class="intl-val neu" id="security-autonomy-val">0</span></div>
-      <div class="intl-row"><span class="intl-name">Combat Readiness</span><div class="intl-bar"><div class="intl-fill" id="combat-bar"></div></div><span class="intl-val neu" id="combat-val">0</span></div>
-      <div class="intl-row"><span class="intl-name">Military Loyalty</span><div class="intl-bar"><div class="intl-fill" id="mloyalty-bar"></div></div><span class="intl-val neu" id="mloyalty-val">0</span></div>
-    </div>
-
 
 <!-- HISTORY LOG -->
 <div class="tty-assembly">
@@ -3493,7 +3484,7 @@ function clamp(n,min,max){ return Math.min(max, Math.max(min, n)); }
 
 function formatStatKey(key){
   const raw = String(key || '');
-  const map = { popularAffection:'Popular Support', partyUnity:'Party Unity', foreignRelations:'Foreign Relations', militaryReadiness:'Military Capability', economy:'Economy', stability:'Stability', inflation:'Inflation', socialParasitism:'Social Parasitism', budgetBalance:'Budget Balance', combatReadiness:'Combat Readiness', militaryLoyalty:'Military Loyalty', separatism:'Separatism', us:'US Relations', china:'China Relations', eastEu:'East Europe Relations', westEu:'West Europe Relations', nonAlign:'Non-Aligned Relations', hardlinersApproval:'Hardliners', reformMomentum:'Reform Momentum', reformersApproval:'Reformers', budget:'Political Capital' };
+  const map = { popularAffection:'Popular Support', partyUnity:'Party Unity', foreignRelations:'Foreign Relations', militaryReadiness:'Military Capability', economy:'Economy', stability:'Stability', inflation:'Inflation', socialParasitism:'Social Parasitism', budgetBalance:'Budget Balance', combatReadiness:'Combat Readiness', militaryLoyalty:'Military Loyalty', separatism:'Separatism', us:'US Relations', china:'China Relations', eastEu:'East Europe Relations', westEu:'West Europe Relations', nonAlign:'Non-Aligned Relations', hardlinersApproval:'Hardliners', reformMomentum:'Reform Momentum', reformersApproval:'Reformers', budget:'Political Capital', securityApparatusPower:'KGB Influence' };
   if (map[raw]) return map[raw];
   const spaced = raw.replace(/_/g,' ').replace(/([a-z])([A-Z])/g,'$1 $2');
   return spaced.replace(/\b\w/g, c => c.toUpperCase());
@@ -11209,6 +11200,12 @@ function renderMetrics() {
         `<div class="metric-bar">${fillBarHtml('metric-fill', sep, getMetricColor(100 - sep))}</div>`,
         `${sep}%`
       ));
+      const kgb = clamp(Math.round(Number(gameState.securityApparatusPower ?? 0)), 0, 100);
+      rows.push(metricRowHtml(
+        'KGB Influence',
+        `<div class="metric-bar" title="KGB Influence measures how much political leverage and institutional autonomy the security organs have. Higher values strengthen coercive options, but increase coup-danger sensitivity.">${fillBarHtml('metric-fill', kgb, getMetricColor(100 - kgb))}</div>`,
+        `${kgb}%`
+      ));
     }
 
     if (key === 'militaryReadiness' && gameState.militarySub) {
@@ -11690,10 +11687,9 @@ function renderPolitburoVisual(){
 }
 
 function renderPressures() {
-  const sep = clamp(Math.round(Number(gameState.separatism || 0)), 0, 100);
-  const cr  = clamp(Math.round(Number(gameState.militarySub.combatReadiness || 0)), 0, 100);
-  const ml  = clamp(Math.round(Number(gameState.militarySub.loyalty || 0)), 0, 100);
-  const sec = clamp(Math.round(Number(gameState.securityApparatusPower || 0)), 0, 100);
+  const sep = clamp(gameState.separatism || 0, 0, 100);
+  const cr  = clamp(gameState.militarySub.combatReadiness || 0, 0, 100);
+  const ml  = clamp(gameState.militarySub.loyalty || 0, 0, 100);
 
   const setBar = (barId, valId, val, invert) => {
     const el = document.getElementById(barId);
@@ -11709,10 +11705,9 @@ function renderPressures() {
     vl.className = 'intl-val ' + cls;
   };
 
-  setBar('sep-bar', 'sep-val', sep, true); // high = bad
-  setBar('security-autonomy-bar', 'security-autonomy-val', sec, true); // high = bad/risky
-  setBar('combat-bar', 'combat-val', cr, false);
-  setBar('mloyalty-bar', 'mloyalty-val', ml, false);
+  setBar('sep-bar',      'sep-val',      sep, true);  // high = bad
+  setBar('combat-bar',   'combat-val',   cr,  false);
+  setBar('mloyalty-bar', 'mloyalty-val', ml,  false);
 }
 
 function renderPersonnelQuestions(){
