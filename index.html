@@ -2537,6 +2537,14 @@
   .advisor-status-chip.high { border-color:rgba(45,110,68,0.8); color:#d8ffe2; background:rgba(45,110,68,0.35); }
   .advisor-action-row { display:flex; gap:.45rem; flex-wrap:wrap; }
 
+
+  .advisor-warning-list { display:grid; gap:.55rem; margin-bottom:.7rem; }
+  .advisor-warning-card { background:rgba(139,26,26,0.08); border:1px solid rgba(139,26,26,0.28); border-left:4px solid var(--red); padding:.6rem .7rem; border-radius:3px; font-size:13px; }
+  .advisor-warning-card.medium { border-left-color:var(--gold); background:rgba(160,125,24,0.08); }
+  .advisor-warning-card.low { border-left-color:var(--green); background:rgba(45,110,68,0.08); }
+  .advisor-warning-title { font-family:'Playfair Display',serif; font-weight:700; color:var(--red-dark); display:flex; justify-content:space-between; gap:.5rem; }
+  .risk-chip { display:inline-block; font-size:10px; letter-spacing:.05em; text-transform:uppercase; border:1px solid currentColor; padding:1px 6px; border-radius:2px; opacity:.9; }
+
 </style>
 
 
@@ -2635,6 +2643,28 @@ window.launcherStartGame = function(){
   setTimeout(function(){ var modal = document.getElementById('intro-modal'); if (modal) { modal.style.display = 'flex'; modal.style.opacity = '1'; } else if (typeof startGame === 'function') { try { startGame(); } catch(e) { console.error(e); } } }, 250);
 };
 </script>
+
+<script id="begin-button-failsafe-head">
+window.dismissIntro = window.dismissIntro || function(){
+  try { if (typeof unlockAllAudio === 'function') unlockAllAudio(); } catch(e) {}
+  try { if (typeof startGame === 'function') startGame(); } catch(e) { console.error(e); }
+  try { if (typeof startSoundtrack === 'function') startSoundtrack(); } catch(e) {}
+  try { if (typeof projectorAudio !== 'undefined' && projectorAudio) { projectorAudio.pause(); projectorAudio.currentTime = 0; } } catch(e) {}
+  try {
+    var layout = document.querySelector('.game-layout');
+    var masthead = document.querySelector('.masthead');
+    if (layout) layout.style.visibility = 'visible';
+    if (masthead) masthead.style.visibility = 'visible';
+    var overlay = document.getElementById('intro-modal');
+    if (overlay) {
+      overlay.classList.add('divorced');
+      setTimeout(function(){ overlay.style.display = 'none'; }, 250);
+    }
+  } catch(e) { console.error(e); }
+  try { if (typeof render === 'function') render(); if (typeof renderPolicies === 'function') renderPolicies(); } catch(e) { console.error(e); }
+};
+</script>
+
 </head>
 <body>
 
@@ -3128,6 +3158,12 @@ const gameState = {
   advisorPressure: {},
   advisorEventFlags: {},
   advisorStats: {},
+  delayedEffects: [],
+  activeModifiers: [],
+  policyHandBonuses: [],
+  advisorWarnings: [],
+  securityApparatusPower: 10,
+  policyYearUse: {},
   gameOver: false,
   ending: null,
 
@@ -3189,7 +3225,7 @@ const gameState = {
     chernyaev:   85,
     chebrikov:   60,
     gromyko:     55,
-    kryuchkov:   50, // KGB chief (succeeds Chebrikov 1988); referenced in Afghanistan follow-on
+    kryuchkov:   45, // KGB chief (succeeds Chebrikov 1988); conditional loyalty; coup-risk trigger
   },
 
   // Faction approval (-10 to +10)
@@ -3306,29 +3342,23 @@ const MILESTONE_POLICY_IDS = [
 ];
 
 function dealPolicyHand(forceRedraw) {
-  // Re-deal if: new turn, forced redraw, or hand is empty
   if (!forceRedraw && uiState.policyHandTurn === gameState.turn && uiState.policyHandIds.length > 0) return;
 
   const pool = eligiblePolicyPool();
-
-  // Split pool into milestone policies (guaranteed slots) and the rest
   const milestones = pool.filter(p => MILESTONE_POLICY_IDS.includes(p.id));
   const rest       = pool.filter(p => !MILESTONE_POLICY_IDS.includes(p.id));
-
-  // Shuffle the non-milestone pool
   const shuffledRest = rest.slice().sort(() => Math.random() - 0.5);
-
-  // Milestones always lead the hand; fill remaining slots from the shuffled pool
-  const hand = [...milestones, ...shuffledRest].slice(0, POLICY_HAND_SIZE);
+  const handSize = getCurrentPolicyHandSize();
+  const hand = [...milestones, ...shuffledRest].slice(0, handSize);
   uiState.policyHandIds = hand.map(p => p.id);
   uiState.policyHandTurn = gameState.turn;
+  if (handSize > POLICY_HAND_SIZE) {
+    addLog(`Security-apparatus intelligence expands the policy hand this turn: ${POLICY_HAND_SIZE} → ${handSize}.`, 'advisor');
+    markPolicyHandBonusesUsed();
+  }
 }
 
-// Called by the ↺ Redraw Hand button. First redraw each turn is free;
-// each subsequent redraw costs 5 political capital.
-// Maximum 3 redraws per turn (1 free + 2 paid) to prevent capital drain exploit.
-const REDRAW_COST = 5;
-const REDRAW_MAX  = 3; // total redraws allowed per turn (including the free one)
+
 function requestRedraw() {
   if (uiState.redrawsThisTurn >= REDRAW_MAX) {
     addLog(`⚠ Maximum redraws reached for this turn (${REDRAW_MAX}).`);
@@ -3682,7 +3712,7 @@ let policies = [
     advisorSupport: ['medvedev', 'kryuchkov'],
     advisorOpposition: ['shevardnadze'],
     visibleIf: { minBudget: 3 },
-    delayedEffectNote: 'Template calls for Popular Approval +3 next year; delayed one-year rebound is not currently modelled by the policy engine.',
+    delayedEffects: [{ delayTurns: 12, effects: { popularAffection: +3 }, message: 'A delayed rebound from the Eastern Bloc crackdown reaches Soviet public opinion: Popular Support +3.' }],
   },
 
   // ── ALIYEV POLICIES ────────────────────────────────────────────────
@@ -5332,6 +5362,89 @@ let policies = [
     visibleIf: { minYear: 1991 },
     once: true,
   },
+
+  // ── KRYUCHKOV POLICIES — merged from Vladimir Kryuchkov advisor brief ──────
+  {
+    id: 'kryuchkov_suppress_eastern_bloc_protests',
+    name: 'Suppress Eastern Bloc Protests',
+    category: 'Foreign',
+    cost: 2,
+    description: 'Deploy KGB assets to disrupt and intimidate protest organisers in restive Eastern Bloc states before unrest spreads to the USSR itself. “Just like that, the student organisers went home.”',
+    effects: { separatism: -3, stability: +2, reformersApproval: -2, foreignRelations: -2 },
+    duration: '1 year',
+    advisorRequired: 'kryuchkov',
+    advisorSupport: ['akhromeyev', 'varennikov'],
+    advisorOpposition: ['yakovlev', 'shevardnadze'],
+    visibleIf: { minYear: 1988, minBudget: 2 },
+    yearlyLimitGroup: 'kryuchkov_actions',
+    outcomeText: 'Just like that, the student organisers went home.',
+    delayedEffectNote: 'Kryuchkov loyalty +5 on enactment via advisorSupport.',
+  },
+  {
+    id: 'kryuchkov_neutralise_hardliners',
+    name: 'Neutralise Hardline Opposition to Reform',
+    category: 'Domestic',
+    cost: 0,
+    description: "Kryuchkov uses intelligence leverage to quiet conservative critics threatening reform — a Faustian bargain that temporarily stabilises Gorbachev's position. “Despite being a hardliner himself, he remains loyal to Gorbachev — for now.”",
+    effects: { hardlinersApproval: +3, partyUnity: +2 },
+    duration: '1 year',
+    advisorRequired: 'kryuchkov',
+    advisorSupport: [],
+    advisorOpposition: ['yakovlev'],
+    visibleIf: { minYear: 1988 },
+    yearlyLimitGroup: 'kryuchkov_actions',
+    advisorLoyaltyEffects: { kryuchkov: -3 },
+    securityApparatusPowerEffect: +1,
+  },
+  {
+    id: 'kryuchkov_consolidate_internal_security',
+    name: 'Consolidate Internal Security',
+    category: 'Domestic',
+    cost: 1,
+    description: "Expand KGB domestic surveillance and informant networks, freeing Gorbachev to focus on reform without fear of immediate internal threats, but further entrenching Kryuchkov's autonomous power base. “Eliminate distractions. Everything else can follow.”",
+    effects: { reformersApproval: +1, moderatesApproval: +1, hardlinersApproval: +1, stability: +2 },
+    duration: 'permanent',
+    advisorRequired: 'kryuchkov',
+    advisorSupport: ['varennikov', 'chebrikov'],
+    advisorOpposition: ['yakovlev'],
+    visibleIf: { minYear: 1988, minBudget: 1 },
+    yearlyLimitGroup: 'kryuchkov_actions',
+    advisorLoyaltyEffects: { kryuchkov: +3 },
+    securityApparatusPowerEffect: +3,
+    policyHandBonus: { amount: 1, turns: 0 },
+    temporaryModifiers: [{ id: 'kryuchkov_internal_security_network', durationTurns: 12, effectsPerTurn: { stability: +0.2, coupProbability: +0.2 } }],
+  },
+  {
+    id: 'kryuchkov_audit_backchannels',
+    name: "Audit Kryuchkov's Back-Channel Contacts",
+    category: 'Domestic',
+    cost: 2,
+    description: "Commission a rival intelligence source to quietly investigate Kryuchkov's growing network of hardliner contacts. Costly politically, but it exposes coup preparations before they mature. “Know your enemies — especially the ones who smile at you across the cabinet table.”",
+    effects: { coupProbability: -15, hardlinersApproval: -2, stability: +1 },
+    duration: 'permanent',
+    advisorRequired: 'kryuchkov',
+    advisorSupport: ['yakovlev', 'shevardnadze'],
+    advisorOpposition: ['boldin'],
+    visibleIf: { minYear: 1989, minBudget: 2 },
+    yearlyLimitGroup: 'kryuchkov_actions',
+    advisorLoyaltyEffects: { kryuchkov: -10 },
+    securityApparatusPowerEffect: -4,
+  },
+  {
+    id: 'state_of_emergency',
+    name: 'State of Emergency',
+    category: 'Domestic',
+    cost: 8,
+    description: 'Invoke emergency powers through the security apparatus to contain separatism and open opposition. This can stabilise the state in the short term, but it places Kryuchkov and the KGB at the centre of Soviet politics.',
+    effects: { stability: +8, separatism: -10, popularAffection: -8, foreignRelations: -6, partyUnity: +3, coupProbability: +8 },
+    securityApparatusPowerEffect: +5,
+    duration: '1 year',
+    advisorRequired: 'kryuchkov',
+    advisorSupport: ['akhromeyev', 'varennikov'],
+    advisorOpposition: ['yakovlev', 'shevardnadze', 'yeltsin'],
+    visibleIf: { minYear: 1990, maxStability: 55, minBudget: 8 },
+  },
+
 ];
 
 let events = [
@@ -7051,15 +7164,15 @@ let advisors = [
     appointmentNote: 'Replace Chebrikov with Kryuchkov, gaining a sharper security operator at the price of future coup risk.',
     influence: 84,
     competence: 78,
-    loyalty: 50,
-    effectiveness: 85,
+    loyalty: 45,
+    effectiveness: 80,
     image: 'images/Vladimir_Kryuchkov.jpg',
-    description: 'A career KGB officer who rose through the ranks under Andropov, Kryuchkov succeeded Chebrikov as KGB Chairman in 1988. Outwardly supportive of perestroika, he privately believed Gorbachev was destroying the Soviet state and feeding intelligence to the West. He was the principal organiser of the August 1991 coup attempt. Loyal to the apparatus above all else — and convinced that glasnost had become a weapon in the hands of Soviet enemies.',
-    specialty: 'Counters foreign intelligence operations. Can suppress domestic opposition movements. His high loyalty blocks liberal reform policies; his defection triggers coup conditions.',
-    reactionLiberal: -12,
-    reactionConservative: +10,
-    threshold: 15,
-    thresholdEffect: 'Begins organising the GKChP — Stability -15, Coup Probability +25%',
+    description: "A shadowy figure who rose through the KGB's foreign-intelligence wing, Kryuchkov succeeded Chebrikov as KGB Chairman in 1988. Unlike Chebrikov, his loyalty to Gorbachev is fundamentally conditional: he quietly cultivates hardliner alliances throughout the late 1980s while outwardly serving the General Secretary. He will become one of the leaders of the August 1991 coup attempt if his loyalty collapses.",
+    specialty: 'Controls the internal security apparatus; can suppress separatist and Eastern Bloc protest movements; key variable in coup-attempt triggers; required for the "State of Emergency" policy card.',
+    reactionLiberal: -8,
+    reactionConservative: +5,
+    threshold: 25,
+    thresholdEffect: 'If loyalty falls below 25 in 1990 or later, coup probability rises by +10% per turn. At loyalty 0, the August Coup triggers immediately.',
     availableFrom: { year: 1988 },
   },
 ];
@@ -7081,6 +7194,61 @@ let libraryEntries = [
 
 // Override stubs with full entries
 libraryEntries = [
+  {
+    term: 'Vladimir Kryuchkov',
+    summary: 'KGB Chairman from 1988 to 1991. Kryuchkov rose through foreign intelligence and became a conditional ally of Gorbachev: outwardly loyal while cultivating hardliner networks that later fed into the August 1991 coup attempt. In-game, his loyalty is a direct coup-risk variable after 1990.',
+    pending: false,
+  },
+  {
+    term: 'Alexander Yakovlev',
+    summary: 'Reformist ideologist and one of Gorbachev\'s closest allies. In-game he strengthens glasnost and political liberalisation, but empowering him increases conservative backlash and separatist pressure.',
+    pending: false,
+  },
+  {
+    term: 'Eduard Shevardnadze',
+    summary: 'Foreign minister from 1985 to 1990 and face of New Thinking. In-game he improves summitry and arms-control policy, but his reformist line angers hardliners and can culminate in a resignation crisis.',
+    pending: false,
+  },
+  {
+    term: 'Yegor Ligachev',
+    summary: 'Conservative Central Committee secretary who defended discipline and party authority. In-game he protects Party Unity early, but becomes a brake on glasnost as reform radicalises.',
+    pending: false,
+  },
+  {
+    term: 'Boris Yeltsin',
+    summary: 'Populist Moscow party boss whose anti-privilege politics became an independent challenge to Gorbachev. In-game he boosts public support but corrodes Party Unity and can trigger a special 1987 break.',
+    pending: false,
+  },
+  {
+    term: 'Nikolai Ryzhkov',
+    summary: 'Pragmatic Soviet premier and economic manager. In-game he improves economic policy performance and represents a technocratic alternative to the Brezhnev-era Tikhonov.',
+    pending: false,
+  },
+  {
+    term: 'Nikolai Tikhonov',
+    summary: 'Brezhnev-era chairman of the Council of Ministers. In-game he reassures the old guard but weakens economic reform momentum if kept in office too long.',
+    pending: false,
+  },
+  {
+    term: 'Sergey Akhromeyev',
+    summary: 'Marshal and Chief of the General Staff. In-game he improves military policy but resists concessions that reduce military readiness or imperial control.',
+    pending: false,
+  },
+  {
+    term: 'Viktor Chebrikov',
+    summary: 'KGB chairman before Kryuchkov. In-game he stabilises the security apparatus but can raise coup risk if alienated.',
+    pending: false,
+  },
+  {
+    term: 'Anatoly Chernyaev',
+    summary: 'Gorbachev\'s personal foreign-policy adviser. In-game he supports diplomacy, arms control, and a less ministry-bound approach to foreign policy.',
+    pending: false,
+  },
+  {
+    term: 'Andrei Gromyko',
+    summary: 'Veteran foreign minister and later head of state. In-game he provides continuity and institutional prestige but slows New Thinking if he remains in control of foreign policy.',
+    pending: false,
+  },
   {
     term: 'Glasnost',
     summary: 'Russian for "openness." Gorbachev\'s policy of relaxing Soviet censorship, allowing freer public debate, and exposing past crimes of the Stalin era. Glasnost unleashed demands for accountability and national self-determination that the Party had not anticipated. The Chernobyl disaster in 1986 accelerated the policy: the government\'s initial cover-up was so damaging that Gorbachev concluded the old culture of secrecy was unsustainable. By 1988–89, glasnost had made it possible for citizens, journalists, and legislators to openly challenge the Communist Party\'s monopoly on truth — and eventually on power.',
@@ -7551,16 +7719,12 @@ function getPolicyAvailability(policy){
   const enacted = enactedPolicySet();
   const missingPrereqs = (policy.prerequisites || []).filter(id => !enacted.has(id));
   const requiredAdvisor = policy.advisorRequired || null;
-  const advisorLoyaltyDefault = requiredAdvisor
-    ? (advisors.find(a => a.id === requiredAdvisor)?.loyalty ?? 50)
-    : 100;
-  const advisorLoyalty = requiredAdvisor
-    ? Number(gameState.advisorLoyalty[requiredAdvisor] ?? advisorLoyaltyDefault)
-    : 100;
+  const requiredAdvisorObj = requiredAdvisor ? advisors.find(a => a.id === requiredAdvisor) : null;
+  const advisorLoyaltyDefault = requiredAdvisor ? (requiredAdvisorObj?.loyalty ?? 50) : 100;
+  const advisorLoyalty = requiredAdvisor ? Number(gameState.advisorLoyalty[requiredAdvisor] ?? advisorLoyaltyDefault) : 100;
 
-  // Lock if the required advisor has aged out (availableFrom / availableUntil)
   const advisorTimeLocked = Boolean(requiredAdvisor && (() => {
-    const a = advisors.find(x => x.id === requiredAdvisor);
+    const a = requiredAdvisorObj;
     if (!a) return false;
     if (a.availableFrom  && gameState.year < a.availableFrom.year)  return true;
     if (a.availableUntil && (
@@ -7570,23 +7734,26 @@ function getPolicyAvailability(policy){
     return false;
   })());
 
-  const advisorLocked = Boolean(requiredAdvisor && (advisorLoyalty < 20 || isAdvisorResigned(requiredAdvisor) || advisorTimeLocked));
-  // policy.recurring and policy.once are normalised in normalisePolicy:
-  // once:true forces recurring:false, so !policy.recurring is the canonical check.
+  const advisorNotInOffice = Boolean(requiredAdvisor && typeof isAdvisorActive === 'function' && !isAdvisorActive(requiredAdvisor));
+  const advisorLocked = Boolean(requiredAdvisor && (advisorLoyalty < 20 || isAdvisorResigned(requiredAdvisor) || advisorTimeLocked || advisorNotInOffice));
   const alreadyEnacted = enacted.has(policy.id) && !policy.recurring;
 
-  // Opposing advisors with very high loyalty (≥80) can block policies
   const opposingAdvisors = policy.advisorOpposition || [];
   const hardBlockingAdvisor = opposingAdvisors.find(aid => {
     if (isAdvisorResigned(aid)) return false;
+    if (typeof isAdvisorActive === 'function' && getAdvisorSlot(aid) && !isAdvisorActive(aid)) return false;
     const loy = Number(gameState.advisorLoyalty[aid] ?? 0);
     return loy >= 80;
   });
 
+  const yearlyLimited = Boolean(policy.yearlyLimitGroup && gameState.policyYearUse && gameState.policyYearUse[policy.yearlyLimitGroup] === gameState.year);
+
   const reasons = [];
   if (alreadyEnacted) reasons.push('Already enacted');
+  if (yearlyLimited) reasons.push(policy.yearlyLimitReason || 'Only one Kryuchkov security action may be taken per year');
   if (missingPrereqs.length) reasons.push('Requires ' + missingPrereqs.map(policyName).join(', '));
-  if (advisorLocked) reasons.push('Requires ' + advisorName(requiredAdvisor) + ' to remain loyal');
+  if (advisorNotInOffice) reasons.push('Requires ' + advisorName(requiredAdvisor) + ' to hold office');
+  else if (advisorLocked) reasons.push('Requires ' + advisorName(requiredAdvisor) + ' to remain loyal');
   if (hardBlockingAdvisor) reasons.push(advisorName(hardBlockingAdvisor) + ' is blocking this policy (loyalty ≥80)');
 
   return {
@@ -7595,9 +7762,12 @@ function getPolicyAvailability(policy){
     alreadyEnacted,
     missingPrereqs,
     advisorLocked,
+    advisorNotInOffice,
+    yearlyLimited,
     hardBlockingAdvisor: hardBlockingAdvisor || null,
   };
 }
+
 
 function availablePoliciesForCurrentFilters(){
   const cat = uiState.policyCategory;
@@ -7677,6 +7847,23 @@ const ADVISOR_STAT_DEFAULTS = {
   raisa:      { influence: 45, competence: 70 },
 };
 
+const ADVISOR_TYPE_DEFAULTS = {
+  yakovlev:'officeHolder', shevardnadze:'officeHolder', ligachev:'officeHolder', yeltsin:'powerBroker',
+  tikhonov:'officeHolder', ryzhkov:'officeHolder', akhromeyev:'militaryBloc', aliyev:'regionalBoss',
+  varennikov:'militaryBloc', nazarbayev:'regionalBoss', karimov:'regionalBoss', boldin:'personalCircle',
+  medvedev:'officeHolder', raisa:'personalCircle', chernyaev:'personalCircle', chebrikov:'officeHolder',
+  gromyko:'officeHolder', kryuchkov:'officeHolder',
+};
+
+const ADVISOR_SUCCESSION_CHAINS = {
+  foreignMinister: ['gromyko', 'shevardnadze'],
+  premier: ['tikhonov', 'ryzhkov'],
+  ideologySecretary: ['ligachev', 'yakovlev', 'medvedev'],
+  kgbChair: ['chebrikov', 'kryuchkov'],
+  moscowPartyChief: ['yeltsin'],
+  foreignPolicyAdvisor: ['chernyaev'],
+};
+
 const ADVISOR_SUCCESSION_PRESSURES = [
   { id:'foreign_ministry_new_thinking', slot:'foreignMinister', staleAdvisor:'gromyko', recommendedAdvisor:'shevardnadze', due:{year:1985,month:7}, warningAfter:1, crisisAfter:4, title:'Foreign Ministry Succession Question', description:'The Foreign Ministry remains under the old diplomatic line even though the General Secretary requires a public instrument for New Thinking. Gromyko can still protect continuity, but every month of delay makes reform in foreign policy look less credible to foreign governments and to younger officials inside the apparatus.', monthlyEffects:{ foreignRelations:-1 }, crisisEffects:{ foreignRelations:-3, partyUnity:-1 } },
   { id:'premier_economic_succession', slot:'premier', staleAdvisor:'tikhonov', recommendedAdvisor:'ryzhkov', due:{year:1985,month:9}, warningAfter:1, crisisAfter:4, title:'Chairman of the Council of Ministers Question', description:'The Brezhnev-era premier remains in place after the moment for economic renewal has arrived. Keeping Tikhonov reassures the old guard, but it also tells the ministries that acceleration can be postponed and that reform is still negotiable.', monthlyEffects:{ economy:-1 }, crisisEffects:{ economy:-3, partyUnity:-1 } },
@@ -7702,6 +7889,12 @@ function ensureAdvisorSlotDefaults(){
   if (!gameState.advisorPressure) gameState.advisorPressure = {};
   if (!gameState.advisorEventFlags) gameState.advisorEventFlags = {};
   if (!gameState.advisorStats) gameState.advisorStats = {};
+  if (!Array.isArray(gameState.delayedEffects)) gameState.delayedEffects = [];
+  if (!Array.isArray(gameState.activeModifiers)) gameState.activeModifiers = [];
+  if (!Array.isArray(gameState.policyHandBonuses)) gameState.policyHandBonuses = [];
+  if (!Array.isArray(gameState.advisorWarnings)) gameState.advisorWarnings = [];
+  if (!gameState.policyYearUse) gameState.policyYearUse = {};
+  if (gameState.securityApparatusPower == null) gameState.securityApparatusPower = 10;
 }
 function ensureAdvancedAdvisorDefaults(){
   ensureAdvisorSlotDefaults();
@@ -7767,7 +7960,20 @@ function formatEffects(effects){
   if (!entries.length) return 'No immediate metric shift';
   return entries.map(([k,v]) => `${formatStatKey(k)} ${Number(v) > 0 ? '+' : ''}${v}`).join(', ');
 }
-function appointmentCostFor(advisorId){ const a = getAdvisorById(advisorId); return Number(a && a.appointmentCost != null ? a.appointmentCost : 10); }
+function appointmentCostFor(advisorId, outgoingId){
+  const a = getAdvisorById(advisorId);
+  if (!a) return 10;
+  const base = Number(a.appointmentCost != null ? a.appointmentCost : 10);
+  const slot = getAdvisorSlot(a);
+  const outgoing = outgoingId ? getAdvisorById(outgoingId) : (slot ? getAdvisorById(getActiveAdvisorIdForSlot(slot)) : null);
+  const outgoingInfluence = outgoing && outgoing.id !== advisorId ? advisorStat(outgoing.id, 'influence') : 0;
+  const incomingInfluence = advisorStat(advisorId, 'influence');
+  const influencePremium = outgoingInfluence ? Math.round(outgoingInfluence / 25) : 0;
+  const powerBrokerPremium = advisorType(advisorId) === 'powerBroker' ? 1 : 0;
+  return Math.max(0, base + influencePremium + powerBrokerPremium + Math.max(0, Math.round((incomingInfluence - 80) / 30)));
+}
+
+
 function advisorConfirmationText(action, incoming, outgoing){
   const slot = advisorSlotLabel(getAdvisorSlot(incoming || outgoing));
   if (action === 'replace') return `Confirm appointment: ${incoming.name} will become ${slot}, replacing ${outgoing.name}. Cost: ${appointmentCostFor(incoming.id)} political capital. Effects: ${formatEffects(incoming.appointmentEffects)}.`;
@@ -7807,7 +8013,7 @@ function replaceAdvisor(outgoingId, incomingId){
   const slot = getAdvisorSlot(outgoing);
   if (!slot || getAdvisorSlot(incoming) !== slot) return;
   if (!isAdvisorDateEligible(incoming)) { addLog(`⚠ ${incoming.name} is not yet historically available for ${advisorSlotLabel(slot)}.`, 'advisor'); return; }
-  const cost = appointmentCostFor(incoming.id);
+  const cost = appointmentCostFor(incoming.id, outgoing.id);
   if (Number(gameState.budget || 0) < cost) { addLog(`⚠ Not enough political capital to appoint ${incoming.name} (costs ${cost}).`, 'advisor'); return; }
   if (!confirmAdvisorAction(advisorConfirmationText('replace', incoming, outgoing))) return;
   gameState.budget -= cost;
@@ -7915,30 +8121,48 @@ function policyTheme(policy){
   return 'general';
 }
 function getAdvisorModifiedPolicyCost(policy){
-  let cost = Number(policy.cost || 0); const theme=policyTheme(policy); const active=new Set(getActiveAdvisorIds());
-  if (theme === 'foreign' && active.has('shevardnadze')) cost -= 1;
+  let cost = Number(policy.cost || 0);
+  const theme = policyTheme(policy);
+  const active = new Set(getActiveAdvisorIds());
+  const activeAdvisor = id => active.has(id) ? getAdvisorById(id) : null;
+  const competenceAdj = id => Math.round((advisorStat(id, 'competence') - 70) / 20);
+
+  if (theme === 'foreign' && active.has('shevardnadze')) cost -= Math.max(1, competenceAdj('shevardnadze'));
   if (theme === 'foreign' && active.has('gromyko')) cost += 1;
-  if (theme === 'economy' && active.has('ryzhkov')) cost -= 1;
+  if (theme === 'economy' && active.has('ryzhkov')) cost -= Math.max(1, competenceAdj('ryzhkov'));
   if (theme === 'economy' && active.has('tikhonov')) cost += 2;
-  if (theme === 'glasnost' && active.has('yakovlev')) cost -= 1;
+  if (theme === 'glasnost' && active.has('yakovlev')) cost -= Math.max(1, competenceAdj('yakovlev'));
   if (theme === 'glasnost' && active.has('ligachev')) cost += 2;
   if (theme === 'party' && active.has('ligachev')) cost -= 1;
+  if ((theme === 'party' || theme === 'military') && active.has('kryuchkov')) cost -= Math.max(0, competenceAdj('kryuchkov'));
   return Math.max(0, cost);
 }
+
+
 function getAdvisorModifiedPolicyEffects(policy){
-  const out = { ...(policy.effects || {}) }; const theme=policyTheme(policy); const active=new Set(getActiveAdvisorIds());
-  const add=(k,v)=>{ out[k]=Number(out[k]||0)+v; };
-  if (theme === 'foreign' && active.has('shevardnadze')) add('foreignRelations', +1);
+  const out = { ...(policy.effects || {}) };
+  const theme = policyTheme(policy);
+  const active = new Set(getActiveAdvisorIds());
+  const add = (k,v) => { out[k] = Math.round((Number(out[k] || 0) + v) * 10) / 10; };
+  const compScale = id => clamp((advisorStat(id, 'competence') - 60) / 40, -0.5, 1.0);
+
+  if (theme === 'foreign' && active.has('shevardnadze')) add('foreignRelations', 1 + compScale('shevardnadze'));
   if (theme === 'foreign' && active.has('gromyko')) { add('foreignRelations', -0.5); add('partyUnity', +0.5); }
-  if (theme === 'economy' && active.has('ryzhkov')) add('economy', +1);
+  if (theme === 'economy' && active.has('ryzhkov')) add('economy', 1 + compScale('ryzhkov'));
   if (theme === 'economy' && active.has('tikhonov')) { add('economy', -1); add('partyUnity', +0.5); }
-  if (theme === 'glasnost' && active.has('yakovlev')) { add('popularAffection', +1); add('partyUnity', -0.5); add('separatism', +0.5); }
+  if (theme === 'glasnost' && active.has('yakovlev')) { add('popularAffection', 1 + compScale('yakovlev')); add('partyUnity', -0.5); add('separatism', +0.5); }
   if (theme === 'glasnost' && active.has('ligachev')) { add('popularAffection', -1); add('partyUnity', +0.5); }
-  if (theme === 'party' && active.has('ligachev')) add('partyUnity', +1);
+  if (theme === 'party' && active.has('ligachev')) add('partyUnity', 1 + compScale('ligachev'));
   if (theme === 'party' && active.has('yakovlev')) add('popularAffection', +0.5);
-  if (theme === 'military' && active.has('akhromeyev')) add('militaryReadiness', +1);
+  if (theme === 'military' && active.has('akhromeyev')) add('militaryReadiness', 1 + compScale('akhromeyev'));
+  if ((theme === 'party' || theme === 'military') && active.has('kryuchkov')) {
+    add('stability', 0.5 + compScale('kryuchkov'));
+    if (Number(gameState.securityApparatusPower || 0) > 35) add('coupProbability', +0.5);
+  }
   return out;
 }
+
+
 function applyAdvisorRivalriesAndArcs(){
   ensureAdvisorSlotDefaults(); const active=new Set(getActiveAdvisorIds()); const flags=gameState.advisorEventFlags || (gameState.advisorEventFlags={});
   const logEvery=(key,msg,type='advisor')=>{ const last=flags[key]||0; if ((gameState.turn-last)>=6){ flags[key]=gameState.turn; addLog(msg,type); } };
@@ -7983,6 +8207,194 @@ function processAdvisorEventAction(action){
     addLog(`${a.name} leaves office (${action.reason || 'departed'}). ${slot ? advisorSlotLabel(slot) + ' is now vacant.' : ''}`, 'advisor');
   }
 }
+
+function advisorType(advisorId){
+  const a = getAdvisorById(advisorId);
+  return (a && a.advisorType) || ADVISOR_TYPE_DEFAULTS[advisorId] || 'powerBroker';
+}
+
+function getSuccessionChainForSlot(slot){
+  return ADVISOR_SUCCESSION_CHAINS[slot] || [];
+}
+
+function getNextSuccessionCandidate(slot){
+  const chain = getSuccessionChainForSlot(slot);
+  const current = getActiveAdvisorIdForSlot(slot);
+  if (!chain.length) return null;
+  const idx = chain.indexOf(current);
+  const rest = idx >= 0 ? chain.slice(idx + 1) : chain;
+  return rest.map(getAdvisorById).find(a => a && isAdvisorDateEligible(a) && !isAdvisorResigned(a.id)) || null;
+}
+
+function applyFactionEffects(factionEffects){
+  if (!factionEffects) return;
+  Object.entries(factionEffects).forEach(([key, value]) => {
+    const canonical = key === 'reform' ? 'reformers' : key === 'hardliner' ? 'hardliners' : key;
+    if (canonical === 'reformers') gameState.factionApproval.reformers = clamp(Number(gameState.factionApproval.reformers || 0) + Number(value || 0), -10, 10);
+    else if (canonical === 'moderates') gameState.factionApproval.moderates = clamp(Number(gameState.factionApproval.moderates || 0) + Number(value || 0), -10, 10);
+    else if (canonical === 'hardliners') gameState.factionApproval.hardliners = clamp(Number(gameState.factionApproval.hardliners || 0) + Number(value || 0), -10, 10);
+  });
+}
+
+function applyAdvisorLoyaltyEffects(effects){
+  if (!effects) return;
+  Object.entries(effects).forEach(([advisorId, delta]) => {
+    if (gameState.advisorLoyalty && gameState.advisorLoyalty[advisorId] != null) {
+      gameState.advisorLoyalty[advisorId] = clamp(Number(gameState.advisorLoyalty[advisorId]) + Number(delta || 0), 0, 100);
+    }
+  });
+}
+
+function scheduleDelayedEffects(sourceId, delayedEffects){
+  if (!Array.isArray(delayedEffects) || !delayedEffects.length) return;
+  if (!Array.isArray(gameState.delayedEffects)) gameState.delayedEffects = [];
+  delayedEffects.forEach((d, idx) => {
+    gameState.delayedEffects.push({
+      id: d.id || `${sourceId}_delay_${gameState.turn}_${idx}`,
+      source: sourceId,
+      triggerTurn: gameState.turn + Number(d.delayTurns || d.turns || 1),
+      effects: d.effects || {},
+      advisorLoyaltyEffects: d.advisorLoyaltyEffects || null,
+      factionEffects: d.factionEffects || null,
+      message: d.message || null,
+    });
+  });
+}
+
+function addTemporaryModifiers(sourceId, modifiers){
+  if (!Array.isArray(modifiers) || !modifiers.length) return;
+  if (!Array.isArray(gameState.activeModifiers)) gameState.activeModifiers = [];
+  modifiers.forEach((m, idx) => {
+    gameState.activeModifiers.push({
+      id: m.id || `${sourceId}_modifier_${gameState.turn}_${idx}`,
+      source: sourceId,
+      expiresTurn: gameState.turn + Number(m.durationTurns || m.turns || 1),
+      effectsPerTurn: m.effectsPerTurn || {},
+      advisorLoyaltyPerTurn: m.advisorLoyaltyPerTurn || null,
+      factionEffectsPerTurn: m.factionEffectsPerTurn || null,
+      message: m.message || null,
+    });
+  });
+}
+
+function addPolicyHandBonus(sourceId, bonus){
+  if (!bonus) return;
+  if (!Array.isArray(gameState.policyHandBonuses)) gameState.policyHandBonuses = [];
+  gameState.policyHandBonuses.push({
+    id: `${sourceId}_hand_bonus_${gameState.turn}`,
+    amount: Number(bonus.amount || 0),
+    expiresTurn: gameState.turn + Number(bonus.turns || 0),
+    used: false,
+  });
+}
+
+function getCurrentPolicyHandSize(){
+  if (!Array.isArray(gameState.policyHandBonuses)) return POLICY_HAND_SIZE;
+  const active = gameState.policyHandBonuses.filter(b => !b.used && Number(b.expiresTurn) >= gameState.turn);
+  const bonus = active.reduce((sum, b) => sum + Number(b.amount || 0), 0);
+  return clamp(POLICY_HAND_SIZE + bonus, POLICY_HAND_SIZE, POLICY_HAND_SIZE + 4);
+}
+
+function markPolicyHandBonusesUsed(){
+  if (!Array.isArray(gameState.policyHandBonuses)) return;
+  gameState.policyHandBonuses.forEach(b => { if (!b.used && Number(b.expiresTurn) >= gameState.turn) b.used = true; });
+  gameState.policyHandBonuses = gameState.policyHandBonuses.filter(b => Number(b.expiresTurn) >= gameState.turn && !b.used);
+}
+
+function applyPolicyExtendedEffects(policy){
+  if (!policy) return;
+  applyAdvisorLoyaltyEffects(policy.advisorLoyaltyEffects);
+  // Backwards-compatibility: legacy one-off field is normalised here, not elsewhere.
+  if (policy.kryuchkovLoyaltyEffect) applyAdvisorLoyaltyEffects({ kryuchkov: policy.kryuchkovLoyaltyEffect });
+  applyFactionEffects(policy.factionEffects);
+  if (policy.securityApparatusPowerEffect) {
+    gameState.securityApparatusPower = clamp(Number(gameState.securityApparatusPower || 0) + Number(policy.securityApparatusPowerEffect || 0), 0, 100);
+  }
+  scheduleDelayedEffects(policy.id, policy.delayedEffects);
+  addTemporaryModifiers(policy.id, policy.temporaryModifiers);
+  addPolicyHandBonus(policy.id, policy.policyHandBonus);
+}
+
+function processDelayedEffects(){
+  if (!Array.isArray(gameState.delayedEffects) || !gameState.delayedEffects.length) return;
+  const ready = gameState.delayedEffects.filter(d => Number(d.triggerTurn || 0) <= gameState.turn);
+  gameState.delayedEffects = gameState.delayedEffects.filter(d => Number(d.triggerTurn || 0) > gameState.turn);
+  ready.forEach(d => {
+    Object.entries(d.effects || {}).forEach(([key, val]) => applyMetricChange(key, val));
+    applyAdvisorLoyaltyEffects(d.advisorLoyaltyEffects);
+    applyFactionEffects(d.factionEffects);
+    if (d.message) addLog(d.message, 'system');
+    else addLog(`Delayed effect applied from ${d.source || 'previous decision'}: ${formatEffects(d.effects || {})}.`, 'system');
+  });
+}
+
+function processActiveModifiers(){
+  if (!Array.isArray(gameState.activeModifiers) || !gameState.activeModifiers.length) return;
+  gameState.activeModifiers = gameState.activeModifiers.filter(m => Number(m.expiresTurn || 0) >= gameState.turn);
+  gameState.activeModifiers.forEach(m => {
+    Object.entries(m.effectsPerTurn || {}).forEach(([key, val]) => applyMetricChange(key, val));
+    applyAdvisorLoyaltyEffects(m.advisorLoyaltyPerTurn);
+    applyFactionEffects(m.factionEffectsPerTurn);
+  });
+}
+
+function applyOfficeVacancyPenalties(){
+  ensureAdvisorSlotDefaults();
+  const vacancyRules = {
+    foreignMinister: { grace: 2, effects: { foreignRelations: -1 }, label: 'Foreign Ministry vacancy' },
+    premier: { grace: 1, effects: { economy: -1, budgetBalance: -1 }, label: 'Premier vacancy' },
+    ideologySecretary: { grace: 2, effects: { partyUnity: -1 }, label: 'Ideology Secretariat vacancy' },
+    kgbChair: { grace: 0, effects: { stability: -1, coupProbability: +1 }, label: 'KGB chair vacancy' },
+    moscowPartyChief: { grace: 3, effects: { popularAffection: -0.5, partyUnity: -0.5 }, label: 'Moscow Party vacancy' },
+    foreignPolicyAdvisor: { grace: 4, effects: { foreignRelations: -0.5 }, label: 'Foreign-policy adviser vacancy' },
+  };
+  if (!gameState.officeVacancyTurns) gameState.officeVacancyTurns = {};
+  Object.entries(vacancyRules).forEach(([slot, rule]) => {
+    if (getActiveAdvisorIdForSlot(slot)) { gameState.officeVacancyTurns[slot] = 0; return; }
+    gameState.officeVacancyTurns[slot] = Number(gameState.officeVacancyTurns[slot] || 0) + 1;
+    if (gameState.officeVacancyTurns[slot] > rule.grace) {
+      Object.entries(rule.effects).forEach(([key, val]) => applyMetricChange(key, val));
+      const lastKey = `vacancy_${slot}_log`;
+      if (!gameState.advisorPressure[lastKey] || gameState.turn - gameState.advisorPressure[lastKey] >= 4) {
+        gameState.advisorPressure[lastKey] = gameState.turn;
+        addLog(`${rule.label} is harming state performance: ${formatEffects(rule.effects)} per month.`, 'advisor');
+      }
+    }
+  });
+}
+
+function getAdvisorWarnings(){
+  const warnings = [];
+  const kry = getAdvisorById('kryuchkov');
+  const kryLoyalty = Number(gameState.advisorLoyalty.kryuchkov ?? (kry ? kry.loyalty : 50));
+  if (gameState.year >= 1990 && kryLoyalty < 25 && !isAdvisorResigned('kryuchkov')) {
+    warnings.push({ severity:'high', title:'Kryuchkov coup warning', body:`Kryuchkov loyalty is ${Math.round(kryLoyalty)}. Coup plotting accelerates by +10% per turn while he remains below 25 after 1990.` });
+  }
+  if (Number(gameState.securityApparatusPower || 0) >= 45) {
+    warnings.push({ severity:'high', title:'Security apparatus power', body:`Security apparatus power is ${Math.round(gameState.securityApparatusPower)}. A strong KGB network magnifies coup risk if loyalty collapses.` });
+  }
+  if ((gameState.coupProbability || 0) >= 50) warnings.push({ severity:'high', title:'Coup probability critical', body:`Coup probability is ${Math.round(gameState.coupProbability)}. Hardliner action is becoming likely.` });
+  Object.entries(gameState.activeAdvisorSlots || {}).forEach(([slot, id]) => {
+    if (!id && slot !== 'personal') warnings.push({ severity:'medium', title:`Vacant office: ${advisorSlotLabel(slot)}`, body:'Vacancies now carry monthly penalties after a short grace period. Appoint a successor or accept drift.' });
+  });
+  return warnings;
+}
+
+function applyAdvisorDismissalBacklash(a){
+  if (!a) return;
+  const influence = advisorStat(a.id, 'influence');
+  const severity = influence >= 80 ? 'high' : influence >= 65 ? 'medium' : 'low';
+  const extraPartyHit = severity === 'high' ? -4 : severity === 'medium' ? -2 : -1;
+  applyMetricChange('partyUnity', extraPartyHit);
+  if (a.id === 'kryuchkov') { applyMetricChange('coupProbability', +8); applyMetricChange('stability', -3); }
+  if (a.id === 'shevardnadze') applyMetricChange('foreignRelations', -6);
+  if (a.id === 'ligachev') applyMetricChange('hardlinerFaction', -5);
+  if (a.id === 'gromyko') applyMetricChange('foreignRelations', -3);
+  if (a.id === 'yeltsin') applyMetricChange('popularAffection', -5);
+  addLog(`Dismissal backlash: ${a.name}'s influence (${influence}) amplifies the political cost. Party Unity ${extraPartyHit}.`, 'advisor');
+}
+
+
 function fireAdvisor(advisorId) {
   const a = advisors.find(x => x.id === advisorId);
   if (!a) return;
@@ -8005,6 +8417,7 @@ function fireAdvisor(advisorId) {
   if (a.faction === 'Conservative') applyMetricChange('partyUnity', -2);
   if (a.faction === 'Hardliner') gameState.coupProbability = clamp((gameState.coupProbability || 0) + 4, 0, 100);
   applyAppointmentFactionReaction(a, a, 'dismiss');
+  applyAdvisorDismissalBacklash(a);
   recordAdvisorHistory(slot, advisorId, null, 'dismiss');
   const lockedPolicies = policies.filter(p => p.advisorRequired === advisorId && !(gameState.enactedPolicies||[]).includes(p.id));
   const lockedNames = lockedPolicies.map(p => p.name).join(', ');
@@ -9005,25 +9418,32 @@ function updateAdvisorLoyaltyForTurn(){
       } else {
 
     const status = gameState.advisorStatus[a.id] || {};
-    if (next < 20 && !status.resigned) {
+    if (a.id === 'kryuchkov') {
+      if (next <= 0 && !status.augustCoupTriggered) {
+        status.augustCoupTriggered = true;
+        applyMetricChange('stability', -15);
+        applyMetricChange('hardlinerFaction', -5);
+        applyMetricChange('coupProbability', 25);
+        addLog(`${a.name}'s loyalty has collapsed to zero. The August Coup triggers immediately. Stability −15. Coup Probability +25%.`, 'advisor');
+        triggerAugustCoupEarly("Kryuchkov's loyalty has collapsed to zero. The GKChP moves immediately.");
+      } else if (next < 25 && gameState.year >= 1990) {
+        applyMetricChange('coupProbability', 10);
+        if (!status.coupWarningLogged || (gameState.turn - status.coupWarningLogged) >= 3) {
+          status.coupWarningLogged = gameState.turn;
+          addLog(`${a.name}'s loyalty is below 25. Hardliner coup plotting accelerates: Coup Probability +10%.`, 'advisor');
+        }
+      }
+    } else if (next < 20 && !status.resigned) {
       status.resigned = true;
       const lockedPolicies = policies.filter(p => p.advisorRequired === a.id && !enactedPolicySet().has(p.id));
       const lockedNames = lockedPolicies.map(p => p.name).join(', ');
       const lockedText = lockedNames ? 'Policies now locked: ' + lockedNames + '.' : 'No policies lost.';
-      if (a.id === 'kryuchkov') {
-        applyMetricChange('stability', -15);
-        applyMetricChange('hardlinerFaction', -5);
-        applyMetricChange('coupProbability', 25);
-        addLog(`${a.name} begins organising the GKChP. Stability −15. Coup Probability +25%. ${lockedText}`, 'advisor');
-        triggerAugustCoupEarly("Kryuchkov's loyalty has collapsed. The GKChP begins organising ahead of schedule.");
-      } else {
-        applyMetricChange('stability', -5);
-        if (a.faction === 'Reformist') applyMetricChange('reformFaction', -5);
-        if (a.faction === 'Conservative') applyMetricChange('hardlinerFaction', -5);
-        if (a.id === 'chebrikov') applyMetricChange('coupProbability', 10);
-        const coupText = a.id === 'chebrikov' ? ' Coup Probability +10%.' : '';
-        addLog(`${a.name} resigns. Stability −5.${coupText} ${lockedText}`, 'advisor');
-      }
+      applyMetricChange('stability', -5);
+      if (a.faction === 'Reformist') applyMetricChange('reformFaction', -5);
+      if (a.faction === 'Conservative') applyMetricChange('hardlinerFaction', -5);
+      if (a.id === 'chebrikov') applyMetricChange('coupProbability', 10);
+      const coupText = a.id === 'chebrikov' ? ' Coup Probability +10%.' : '';
+      addLog(`${a.name} resigns. Stability −5.${coupText} ${lockedText}`, 'advisor');
     }
     if (next >= 80 && !status.emboldened) {
       status.emboldened = true;
@@ -9300,7 +9720,10 @@ function endTurn() {
   gameState.turn++;
   advanceDate();
 
-  // Personnel succession, rivalries, and special advisor arcs.
+  // Personnel succession, rivalries, delayed effects, temporary modifiers, and vacancies.
+  processDelayedEffects();
+  processActiveModifiers();
+  applyOfficeVacancyPenalties();
   applyAdvisorReplacementPressure();
   applyAdvisorRivalriesAndArcs();
 
@@ -10341,14 +10764,17 @@ function applyPolicyImmediate(policyId, { skipEffectsAndCost = false } = {}) {
     gameState.budget -= finalCost;
     gameState.turnSpend += finalCost;
     const finalEffects = getAdvisorModifiedPolicyEffects(policy);
-    Object.entries(finalEffects || {}).forEach(([key, val]) => {
-      applyMetricChange(key, val);
-    });
+    Object.entries(finalEffects || {}).forEach(([key, val]) => applyMetricChange(key, val));
     if (finalCost !== policy.cost || JSON.stringify(finalEffects) !== JSON.stringify(policy.effects || {})) {
       addLog(`Advisor office modifiers affected ${policy.name}: cost ${policy.cost} → ${finalCost}; effects ${formatEffects(finalEffects)}.`, 'advisor');
     }
   }
-  // Advisor loyalty hook (only if content provides these fields)
+
+  // Generic special-effect engine. New advisor briefs should use these fields
+  // instead of one-off code hooks: advisorLoyaltyEffects, factionEffects,
+  // delayedEffects, temporaryModifiers, policyHandBonus, securityApparatusPowerEffect.
+  applyPolicyExtendedEffects(policy);
+
   if (policy.advisorOpposition && Array.isArray(policy.advisorOpposition)) {
     policy.advisorOpposition.forEach(aid => {
       if (gameState.advisorLoyalty && gameState.advisorLoyalty[aid] != null) {
@@ -10356,9 +10782,6 @@ function applyPolicyImmediate(policyId, { skipEffectsAndCost = false } = {}) {
       }
     });
   }
-  // advisorSupport: supporting advisors gain +3 loyalty when a policy they back is enacted.
-  // Mirrors the opposition penalty — policies aligned with an advisor's agenda strengthen
-  // the relationship. (Bug #2 fix — field was declared on content but never processed)
   if (policy.advisorSupport && Array.isArray(policy.advisorSupport)) {
     policy.advisorSupport.forEach(aid => {
       if (gameState.advisorLoyalty && gameState.advisorLoyalty[aid] != null) {
@@ -10366,116 +10789,43 @@ function applyPolicyImmediate(policyId, { skipEffectsAndCost = false } = {}) {
       }
     });
   }
-  // ── FIX 1: reactionLiberal / reactionConservative ─────────────────
-  // Determine whether this policy leans liberal or conservative.
-  // A policy is "liberal" if it boosts popularAffection or foreignRelations,
-  // or belongs to a set of known reformist ids. It's "conservative" if it
-  // boosts partyUnity or militaryReadiness without popularAffection gains,
-  // or belongs to a known conservative id set. Policies can also carry an
-  // explicit `alignment` field ('liberal'|'conservative'|'neutral') set by
-  // content authors, which always takes precedence.
+
   (function applyAdvisorReactions() {
     const eff = policy.effects || {};
-    let alignment = policy.alignment || null; // explicit tag wins
+    let alignment = policy.alignment || null;
     if (!alignment) {
       const liberalSignals  = ['popularAffection', 'foreignRelations', 'glasnost', 'openness'];
       const conservativeSignals = ['partyUnity', 'militaryReadiness', 'stability'];
-      // Score by effect keys
       let libScore  = 0;
       let conScore  = 0;
       Object.entries(eff).forEach(([k, v]) => {
         const n = Number(v);
         if (liberalSignals.includes(k)  && n > 0) libScore  += n;
         if (conservativeSignals.includes(k) && n > 0) conScore += n;
-        // Negative impacts on conservative goods are liberal-leaning
-        if (conservativeSignals.includes(k) && n < 0) libScore  += Math.abs(n) * 0.5;
-        if (liberalSignals.includes(k)  && n < 0) conScore += Math.abs(n) * 0.5;
+        if (k === 'popularAffection' && n < 0) conScore += Math.abs(n) / 2;
+        if (k === 'partyUnity' && n < 0) libScore += Math.abs(n) / 2;
       });
-      // Known liberal policy ids — must match actual policy id values in the data array
-      const knownLiberal = [
-        'glasnost', 'perestroika',
-        'yakovlev_nonintervention',
-        'yakovlev_molotov_ribbentrop', 'yakovlev_manifesto',
-        'inf-treaty', 'akhromeyev_inf_treaty',
-        'afghanistan-pullout',
-        'geneva_summit', 'reykjavik_summit', 'sino_soviet_summit',
-        'cooperative_law_full', 'cooperative_law_partial',
-        'free_economic_zones', 'shadow_market_experiments',
-        'freedom_of_conscience', 'controlled_religious_opening',
-        'republic_autonomy_pact', 'cultural_autonomy_programme',
-        'economic_incentive_republics', 'nazarbayev_union_treaty',
-      ];
-      const knownConservative = [
-        'akhromeyev_afghanistan_escalation', 'akhromeyev_weapons_development',
-        'akhromeyev_eastern_bloc_crackdown',
-        'aliyev_kgb_crackdown', 'aliyev_consolidate_bureaucracy', 'aliyev_regional_patronage',
-        'varennikov_afghanistan', 'varennikov_martial_law',
-        'varennikov_military_industrial', 'varennikov_intimidate_reformers',
-        'karimov_cotton_quota', 'karimov_purge_opposition', 'karimov_fergana_crackdown',
-      ];
-      if (knownLiberal.includes(policy.id))      libScore  += 20;
-      if (knownConservative.includes(policy.id)) conScore  += 20;
-      if (libScore > conScore)       alignment = 'liberal';
-      else if (conScore > libScore)  alignment = 'conservative';
-      else                           alignment = 'neutral';
+      const idText = String(policy.id || '').toLowerCase();
+      if (/glasnost|press|multi|democrat|liberal|openness|summit|treaty|withdrawal/.test(idText)) libScore += 4;
+      if (/discipline|security|military|hardline|emergency|kgb|suppress/.test(idText)) conScore += 4;
+      alignment = libScore > conScore ? 'liberal' : conScore > libScore ? 'conservative' : 'neutral';
     }
+    if (alignment === 'neutral') return;
     advisors.forEach(a => {
-      if (gameState.advisorLoyalty[a.id] == null) return;
-      let delta = 0;
-      if (alignment === 'liberal'       && a.reactionLiberal   != null) delta = Number(a.reactionLiberal);
-      if (alignment === 'conservative'  && a.reactionConservative != null) delta = Number(a.reactionConservative);
-      if (delta === 0) return;
-      const before = Number(gameState.advisorLoyalty[a.id]);
-      gameState.advisorLoyalty[a.id] = clamp(before + delta, 0, 100);
-      // Loyalty still changes internally, but we no longer spam the history log
-      // with per-turn advisor loyalty updates.
+      if (!gameState.advisorLoyalty || gameState.advisorLoyalty[a.id] == null) return;
+      if (isAdvisorResigned(a.id)) return;
+      const delta = alignment === 'liberal' ? Number(a.reactionLiberal || 0) : Number(a.reactionConservative || 0);
+      if (!delta) return;
+      gameState.advisorLoyalty[a.id] = clamp(Number(gameState.advisorLoyalty[a.id]) + delta, 0, 100);
     });
   })();
 
-  // Advisors gain loyalty when the player actively relies on them.
-  // This implements the GDD requirement that advisors be rewarded for use.
-  if (policy.advisorRequired) {
-    const advisorId = policy.advisorRequired;
-    const current = Number(gameState.advisorLoyalty[advisorId] ?? 50);
-    const reward = 4;
-    gameState.advisorLoyalty[advisorId] = clamp(current + reward, 0, 100);
-  }
-
-  // ── advisorLoyaltyBonus ───────────────────────────────────────────
-  // Explicit per-advisor loyalty bonuses declared on the policy, e.g.
-  //   advisorLoyaltyBonus: { shevardnadze: +15 }
-  // Distinct from the "used" reward above — these represent targeted
-  // relationship effects (the homecoming trip restoring Shevardnadze's
-  // confidence, etc.) and can be positive or negative.
-  if (policy.advisorLoyaltyBonus && typeof policy.advisorLoyaltyBonus === 'object') {
-    Object.entries(policy.advisorLoyaltyBonus).forEach(([aid, delta]) => {
-      if (gameState.advisorLoyalty[aid] != null) {
-        gameState.advisorLoyalty[aid] = clamp(Number(gameState.advisorLoyalty[aid]) + Number(delta), 0, 100);
-        if (delta > 0) addLog(`${advisorName(aid)}'s loyalty improved (+${delta}).`, 'system');
-        else addLog(`${advisorName(aid)}'s loyalty fell (${delta}).`, 'crisis');
-      }
-    });
-  }
-
-  if (!gameState.enactedPolicies) gameState.enactedPolicies = [];
-  if (!gameState.enactedPolicies.includes(policy.id)) gameState.enactedPolicies.push(policy.id);
+  if (!gameState.enactedPolicies.includes(policyId)) gameState.enactedPolicies.push(policyId);
   const durationTurns = getPolicyDurationTurns(policy);
   if (durationTurns) {
-    if (!Array.isArray(gameState.activePolicies)) gameState.activePolicies = [];
-    gameState.activePolicies = gameState.activePolicies.filter(x => x.id !== policy.id);
-    gameState.activePolicies.push({ id: policy.id, remainingTurns: durationTurns, startedTurn: gameState.turn });
+    gameState.activePolicies.push({ id: policyId, remainingTurns: durationTurns });
   }
-  const policyEffectsSummary = formatPolicyEffectsForLog(policy);
-  addLog(
-    skipEffectsAndCost
-      ? `Policy enacted via event: ${policy.name} — Effects: ${policyEffectsSummary}`
-      : `Policy: ${policy.name} (-${policy.cost} capital) — Effects: ${policyEffectsSummary}`,
-    'policy'
-  );
 }
-
-// NOTE: commitPolicies is defined above — this duplicate was removed.
-
 
 
 function getMetricColor(val) {
@@ -11115,19 +11465,26 @@ function renderPersonnelQuestions(){
   const el = document.getElementById('personnel-question-list');
   if (!el) return;
   ensureAdvisorSlotDefaults();
+  const warnings = getAdvisorWarnings();
+  const warningHtml = warnings.length
+    ? `<div class="advisor-warning-list">${warnings.map(w => `<div class="advisor-warning-card ${escapeHtml(w.severity || 'medium')}"><div class="advisor-warning-title"><span>${escapeHtml(w.title)}</span><span class="risk-chip">${escapeHtml(w.severity || 'risk')}</span></div><div>${escapeHtml(w.body)}</div></div>`).join('')}</div>`
+    : '';
   const questions = getPersonnelQuestions();
   const visible = questions.filter(q => q.activeProblem || q.pending).slice(0, 8);
   if (!visible.length) {
-    el.innerHTML = '<div class="personnel-question-card clear"><div class="personnel-question-title"><span>No urgent personnel questions</span><small>clear</small></div><div class="personnel-question-body">The current appointments are not generating immediate succession pressure.</div></div>';
+    el.innerHTML = warningHtml + '<div class="personnel-question-card clear"><div class="personnel-question-title"><span>No urgent personnel questions</span><small>clear</small></div><div class="personnel-question-body">The current appointments are not generating immediate succession pressure.</div></div>';
     return;
   }
-  el.innerHTML = visible.map(q => {
+  el.innerHTML = warningHtml + visible.map(q => {
     const rule=q.rule; const cls=q.activeProblem?'overdue':'pending'; const office=advisorSlotLabel(rule.slot); const activeName=q.active?q.active.name:'Vacant'; const recName=q.rec?q.rec.name:'successor';
     const statusText=q.activeProblem?`${q.monthsOverdue} month${q.monthsOverdue===1?'':'s'} overdue`:`due ${q.dueText}`;
     const targetId = q.rec ? q.rec.id : (q.active ? q.active.id : '');
-    return `<div class="personnel-question-card ${cls}"><div class="personnel-question-title"><span>${escapeHtml(rule.title)}</span><small>${escapeHtml(statusText)}</small></div><div class="personnel-question-meta">${escapeHtml(office)} · Current: ${escapeHtml(activeName)} · Option: ${escapeHtml(recName)}</div><div class="personnel-question-body">${escapeHtml(rule.description)}</div><div class="personnel-question-effects">Monthly pressure: ${escapeHtml(formatEffects(rule.monthlyEffects))}</div><div class="personnel-question-actions">${targetId ? `<button class="action-btn-secondary" style="font-size:11px;padding:5px 10px;" onclick="openAdvisorDetail('${escapeHtml(targetId)}')">Review ${escapeHtml(recName)}</button>` : ''}${q.active ? `<button class="action-btn-secondary" style="font-size:11px;padding:5px 10px;" onclick="openAdvisorDetail('${escapeHtml(q.active.id)}')">Review current</button>` : ''}</div></div>`;
+    const activeInfluence = q.active ? advisorStat(q.active.id, 'influence') : 0;
+    const recCost = q.rec ? appointmentCostFor(q.rec.id, q.active ? q.active.id : null) : null;
+    return `<div class="personnel-question-card ${cls}"><div class="personnel-question-title"><span>${escapeHtml(rule.title)}</span><small>${escapeHtml(statusText)}</small></div><div class="personnel-question-meta">${escapeHtml(office)} · Current: ${escapeHtml(activeName)}${activeInfluence ? ' · Influence ' + activeInfluence : ''} · Option: ${escapeHtml(recName)}${recCost != null ? ' · Cost ' + recCost : ''}</div><div class="personnel-question-body">${escapeHtml(rule.description)}</div><div class="personnel-question-effects">Monthly pressure: ${escapeHtml(formatEffects(rule.monthlyEffects))}</div><div class="personnel-question-actions">${targetId ? `<button class="action-btn-secondary" style="font-size:11px;padding:5px 10px;" onclick="openAdvisorDetail('${escapeHtml(targetId)}')">Review ${escapeHtml(recName)}</button>` : ''}${q.active ? `<button class="action-btn-secondary" style="font-size:11px;padding:5px 10px;" onclick="openAdvisorDetail('${escapeHtml(q.active.id)}')">Review current</button>` : ''}</div></div>`;
   }).join('');
 }
+
 
 function render() {
   renderMetrics();
@@ -11593,18 +11950,21 @@ function debugForceEnding(type){
   });
 })();
 
-// Init
-ensureAdvisorLoyaltyDefaults();
-// Initialise oil baseline from the starting month
-if (gameState.economySub && gameState.economySub.oilBaseline == null) {
-  const _oil0 = getBrentPriceUSD(gameState.year, gameState.month);
-  gameState.economySub.oilBaseline = _oil0;
-  gameState.economySub.oilPrice = _oil0;
+// Init — keep this non-fatal so the Begin button is always defined.
+try {
+  ensureAdvisorLoyaltyDefaults();
+  // Initialise oil baseline from the starting month
+  if (gameState.economySub && gameState.economySub.oilBaseline == null) {
+    const _oil0 = getBrentPriceUSD(gameState.year, gameState.month);
+    gameState.economySub.oilBaseline = _oil0;
+    gameState.economySub.oilPrice = _oil0;
+  }
+  render();
+  renderPolicies();
+  renderLibrary(); // populate library from JS data on first load
+} catch (e) {
+  console.error('Initial render failed; continuing so Begin remains usable.', e);
 }
-
-render();
-renderPolicies();
-renderLibrary(); // populate library from JS data on first load
 
 // ── GAME START GATING (wait for Begin) ───────────────────────────────────────
 let gameStarted = false;
@@ -11839,20 +12199,33 @@ function launcherToggleCredits(btn) {
 }
 
 function dismissIntro() {
-  // Ensure audio is unlocked in the context of this user gesture
-  unlockAllAudio();
-  // Stop projector sound
-  projectorAudio.pause();
-  projectorAudio.currentTime = 0;
-  // Start the game (teletype/log begins after Begin)
-  startGame();
-  startSoundtrack();
+  // The Begin button must always advance the UI, even if audio or initial rendering fails.
+  try { if (typeof unlockAllAudio === 'function') unlockAllAudio(); } catch(e) { console.error(e); }
+  try {
+    if (typeof projectorAudio !== 'undefined' && projectorAudio) {
+      projectorAudio.pause();
+      projectorAudio.currentTime = 0;
+    }
+  } catch(e) { console.error(e); }
+  try { if (typeof startGame === 'function') startGame(); } catch(e) { console.error(e); }
+  try { if (typeof startSoundtrack === 'function') startSoundtrack(); } catch(e) { console.error(e); }
+
   const overlay = document.getElementById('intro-modal');
-  overlay.classList.add('divorced');
-  document.querySelector('.game-layout').style.visibility = 'visible';
-  document.querySelector('.masthead').style.visibility = 'visible';
-  setTimeout(() => overlay.style.display = 'none', 700);
+  const layout = document.querySelector('.game-layout');
+  const masthead = document.querySelector('.masthead');
+  if (layout) layout.style.visibility = 'visible';
+  if (masthead) masthead.style.visibility = 'visible';
+  if (overlay) {
+    overlay.classList.add('divorced');
+    setTimeout(() => { overlay.style.display = 'none'; }, 700);
+  }
+
+  // If initial render was skipped because of a non-fatal error, try again after the UI is visible.
+  try { if (typeof render === 'function') render(); } catch(e) { console.error(e); }
+  try { if (typeof renderPolicies === 'function') renderPolicies(); } catch(e) { console.error(e); }
+  try { if (typeof renderLibrary === 'function') renderLibrary(); } catch(e) { console.error(e); }
 }
+window.dismissIntro = dismissIntro;
 
 function switchMainTab(tab, btn) {
   document.querySelectorAll('.main-tab-panel').forEach(p => p.style.display = 'none');
