@@ -8249,6 +8249,11 @@ function retireAdvisor(advisorId){
   closeAdvisorDetail(); render(); renderPolicies();
 }
 function advisorPressureKey(rule, suffix){ return `advisor_pressure_${rule.id}_${suffix}`; }
+function advisorPressureEventImage(active, recommended){
+  // Use the office-holder or recommended successor portrait for advisor/personnel events.
+  // Never use the Pravda masthead logo as the article photograph.
+  return (active && active.image) ? active.image : (recommended && recommended.image) ? recommended.image : null;
+}
 function isSuccessionPressureActive(rule){
   ensureAdvisorSlotDefaults(); const activeId = getActiveAdvisorIdForSlot(rule.slot) || null;
   if (rule.staleAdvisor === null) return activeId === null;
@@ -8280,12 +8285,12 @@ function applyAdvisorReplacementPressure(){
     const warningKey=advisorPressureKey(rule,'warning');
     if (monthsOverdue >= rule.warningAfter && !gameState.firedTriggers[warningKey]) {
       gameState.firedTriggers[warningKey]=true;
-      displayTriggerEvent({ id:warningKey, name:rule.title, image:active&&active.image?active.image:(recommended&&recommended.image?recommended.image:'images/Pravda_1971.png'), description:`${rule.description}\n\nThe office concerned is ${office}. The recommended historical solution is ${recommended ? recommended.name : 'a new appointment'}, but the decision remains political: move now, defend continuity, or postpone and absorb the damage.`, choices:[ { text:`Prepare the transition toward ${recommended ? recommended.name : 'a new appointment'}`, effects:{ partyUnity:-1, popularAffection:+1 }, budgetGain:4 }, { text:'Defend continuity for now', effects:{ partyUnity:+2, popularAffection:-2 } }, { text:'Postpone the matter', effects:{ stability:-1, partyUnity:-1 } } ] });
+      displayTriggerEvent({ id:warningKey, name:rule.title, image:advisorPressureEventImage(active, recommended), description:`${rule.description}\n\nThe office concerned is ${office}. The recommended historical solution is ${recommended ? recommended.name : 'a new appointment'}, but the decision remains political: move now, defend continuity, or postpone and absorb the damage.`, choices:[ { text:`Prepare the transition toward ${recommended ? recommended.name : 'a new appointment'}`, effects:{ partyUnity:-1, popularAffection:+1 }, budgetGain:4 }, { text:'Defend continuity for now', effects:{ partyUnity:+2, popularAffection:-2 } }, { text:'Postpone the matter', effects:{ stability:-1, partyUnity:-1 } } ] });
     }
     const crisisKey=advisorPressureKey(rule,'crisis');
     if (monthsOverdue >= rule.crisisAfter && !gameState.firedTriggers[crisisKey]) {
       gameState.firedTriggers[crisisKey]=true; applyAdvisorPressureEffects(rule.crisisEffects);
-      displayTriggerEvent({ id:crisisKey, name:`${rule.title}: Apparatus Friction`, image:'images/Pravda_1971.png', description:`${rule.description}\n\nDelay has now become visible inside the apparatus. Rival factions are interpreting the unresolved personnel question as weakness, and ministries are adjusting their behaviour accordingly.`, choices:[ { text:'Force the personnel question onto the Politburo agenda', effects:{ partyUnity:-3, popularAffection:+2 }, budgetGain:6 }, { text:'Trade concessions for continued support', effects:{ partyUnity:+4, popularAffection:-4, economy:-1 } }, { text:'Let the unresolved contradiction stand', effects:{ stability:-3, partyUnity:-2 } } ] });
+      displayTriggerEvent({ id:crisisKey, name:`${rule.title}: Apparatus Friction`, image:advisorPressureEventImage(active, recommended), description:`${rule.description}\n\nDelay has now become visible inside the apparatus. Rival factions are interpreting the unresolved personnel question as weakness, and ministries are adjusting their behaviour accordingly.`, choices:[ { text:'Force the personnel question onto the Politburo agenda', effects:{ partyUnity:-3, popularAffection:+2 }, budgetGain:6 }, { text:'Trade concessions for continued support', effects:{ partyUnity:+4, popularAffection:-4, economy:-1 } }, { text:'Let the unresolved contradiction stand', effects:{ stability:-3, partyUnity:-2 } } ] });
     }
   });
 }
@@ -8850,14 +8855,14 @@ function setupPravdaMasthead(eventImage, eventCaption, endingType){
   const fb = document.getElementById('pravda-photo-fallback');
   if (!img || !photo) return;
 
-  const src = eventImage
-    ? new URL(eventImage, document.baseURI).href
-    : new URL('images/pravda-placeholder.jpg', document.baseURI).href;
   const succeed = () => { photo.classList.add('loaded'); if (fb) fb.style.display = 'none'; };
   const fallbackSvg = 'data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%22800%22%20height%3D%22500%22%20viewBox%3D%220%200%20800%20500%22%3E%3Crect%20width%3D%22800%22%20height%3D%22500%22%20fill%3D%22%23e8dcc0%22/%3E%3Ctext%20x%3D%22400%22%20y%3D%22250%22%20text-anchor%3D%22middle%22%20font-family%3D%22Georgia%2Cserif%22%20font-size%3D%2226%22%20fill%3D%22%232b1f10%22%20opacity%3D%220.7%22%3EARCHIVAL%20PHOTOGRAPH%3C/text%3E%3C/svg%3E';
+  const rawImage = String(eventImage || '').trim();
+  const invalidArticleImage = !rawImage || /Pravda_1971|Izvestiya_Magazine|pravda-logo/i.test(rawImage);
+  const src = invalidArticleImage ? fallbackSvg : new URL(rawImage, document.baseURI).href;
   img.onload = succeed;
   img.onerror = () => { img.src = fallbackSvg; succeed(); };
-  img.src = src + '?v=' + Date.now();
+  img.src = src.startsWith('data:') ? src : src + '?v=' + Date.now();
 }
 
 function playPaperCrackle() {
