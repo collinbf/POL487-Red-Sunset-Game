@@ -2875,6 +2875,15 @@ window.dismissIntro = window.dismissIntro || function(){
       <div class="intl-row"><span class="intl-name">Non-Aligned</span><div class="intl-bar"><div class="intl-fill" id="if-na"></div></div><span class="intl-val neu" id="iv-na">0</span></div>
     </div>
 
+    <!-- SECONDARY PRESSURES -->
+    <div style="margin-top:1rem;">
+      <div class="section-title" style="font-size:10px;">Secondary Pressures</div>
+      <div class="intl-row"><span class="intl-name">Separatism</span><div class="intl-bar"><div class="intl-fill" id="sep-bar"></div></div><span class="intl-val neu" id="sep-val">0</span></div>
+      <div class="intl-row" title="Security Autonomy measures how independent and politically powerful the KGB/security organs have become. High values strengthen coercive options but amplify coup risk."><span class="intl-name">Security Autonomy</span><div class="intl-bar"><div class="intl-fill" id="security-autonomy-bar"></div></div><span class="intl-val neu" id="security-autonomy-val">0</span></div>
+      <div class="intl-row"><span class="intl-name">Combat Readiness</span><div class="intl-bar"><div class="intl-fill" id="combat-bar"></div></div><span class="intl-val neu" id="combat-val">0</span></div>
+      <div class="intl-row"><span class="intl-name">Military Loyalty</span><div class="intl-bar"><div class="intl-fill" id="mloyalty-bar"></div></div><span class="intl-val neu" id="mloyalty-val">0</span></div>
+    </div>
+
 
 <!-- HISTORY LOG -->
 <div class="tty-assembly">
@@ -3226,6 +3235,11 @@ const gameState = {
     chebrikov:   60,
     gromyko:     55,
     kryuchkov:   45, // KGB chief (succeeds Chebrikov 1988); conditional loyalty; coup-risk trigger
+    bessmertnykh:65, // Late-game foreign minister
+    pavlov:      50, // Late-game premier
+    yazov:       45, // Defence minister / coup-risk military figure
+    yanayev:     40, // Conservative vice-presidential actor
+    khasbulatov: 55, // Republican parliament actor
   },
 
   // Faction approval (-10 to +10)
@@ -7175,6 +7189,116 @@ let advisors = [
     thresholdEffect: 'If loyalty falls below 25 in 1990 or later, coup probability rises by +10% per turn. At loyalty 0, the August Coup triggers immediately.',
     availableFrom: { year: 1988 },
   },
+
+  // ── LATE-GAME SUCCESSORS ──────────────────────────────────────────────────
+  {
+    id: 'bessmertnykh',
+    name: 'Alexander Bessmertnykh',
+    role: 'Foreign Minister (1991)',
+    faction: 'Centrist',
+    advisorSlot: 'foreignMinister',
+    availableFrom: { year: 1991, month: 1 },
+    appointmentCost: 7,
+    appointmentEffects: { foreignRelations: +3, partyUnity: +1 },
+    appointmentNote: 'Appoint a cautious professional diplomat after Shevardnadze to keep channels open without provoking the old guard as sharply.',
+    influence: 58,
+    competence: 74,
+    loyalty: 65,
+    effectiveness: 72,
+    image: 'images/Alexander_Bessmertnykh.jpg',
+    description: 'A professional diplomat and late-Soviet foreign minister. Less transformative than Shevardnadze, but useful for maintaining diplomatic continuity in the collapsing late game.',
+    specialty: 'Stabilises foreign relations after Shevardnadze; weaker reform symbolism but less hardliner backlash.',
+    reactionLiberal: +2,
+    reactionConservative: +1,
+    threshold: 20,
+    thresholdEffect: 'Resigns amid diplomatic paralysis — Foreign Relations -4',
+  },
+  {
+    id: 'pavlov',
+    name: 'Valentin Pavlov',
+    role: 'Prime Minister of the USSR (1991)',
+    faction: 'Conservative',
+    advisorSlot: 'premier',
+    availableFrom: { year: 1991, month: 1 },
+    appointmentCost: 9,
+    appointmentEffects: { partyUnity: +3, economy: -2, popularAffection: -3 },
+    appointmentNote: 'Bring in Pavlov for late-stage fiscal discipline. He reassures conservatives but risks monetary chaos and public anger.',
+    influence: 68,
+    competence: 52,
+    loyalty: 50,
+    effectiveness: 55,
+    image: 'images/Valentin_Pavlov.jpg',
+    description: 'A late-Soviet premier associated with emergency economic management and conservative consolidation. Useful only if the player accepts harsh stabilisation costs.',
+    specialty: 'Improves conservative confidence but weakens public support and can worsen economic legitimacy.',
+    reactionLiberal: -6,
+    reactionConservative: +5,
+    threshold: 20,
+    thresholdEffect: 'Turns to emergency economic politics — Stability -4, Popular Support -4',
+  },
+  {
+    id: 'yazov',
+    name: 'Dmitry Yazov',
+    role: 'Minister of Defence / Military Hardliner',
+    faction: 'Hardliner',
+    advisorSlot: 'militaryChief',
+    availableFrom: { year: 1987, month: 5 },
+    appointmentCost: 10,
+    appointmentEffects: { militaryReadiness: +4, partyUnity: +2, coupProbability: +5 },
+    appointmentNote: 'Empower Yazov as a harder military voice. The army becomes more confident, but coup-risk politics sharpen.',
+    influence: 82,
+    competence: 66,
+    loyalty: 45,
+    effectiveness: 70,
+    image: 'images/Dmitry_Yazov.jpg',
+    description: 'A conservative military figure and later participant in the August 1991 coup attempt. Useful for military confidence, dangerous if hardliners gather momentum.',
+    specialty: 'Raises military readiness and hardliner confidence; increases coup-risk sensitivity.',
+    reactionLiberal: -10,
+    reactionConservative: +8,
+    threshold: 25,
+    thresholdEffect: 'Military hardliners begin coordinating with security organs — Coup Probability +10',
+  },
+  {
+    id: 'yanayev',
+    name: 'Gennady Yanayev',
+    role: 'Conservative Vice-Presidential Actor',
+    faction: 'Conservative',
+    advisorSlot: 'chiefOfStaff',
+    availableFrom: { year: 1990, month: 12 },
+    appointmentCost: 8,
+    appointmentEffects: { partyUnity: +2, stability: +1, popularAffection: -2, coupProbability: +4 },
+    appointmentNote: 'Bring Yanayev into the executive centre as a conservative balancing figure. His reliability is questionable in a crisis.',
+    influence: 64,
+    competence: 45,
+    loyalty: 40,
+    effectiveness: 45,
+    image: 'images/Gennady_Yanayev.jpg',
+    description: 'A conservative late-Soviet executive figure associated with the GKChP. He can reassure the apparatus, but his presence signals weakness and raises coup anxiety.',
+    specialty: 'Short-term party reassurance; long-term legitimacy and coup-risk problems.',
+    reactionLiberal: -8,
+    reactionConservative: +6,
+    threshold: 25,
+    thresholdEffect: 'Signals conservative emergency politics — Coup Probability +8',
+  },
+  {
+    id: 'khasbulatov',
+    name: 'Ruslan Khasbulatov',
+    role: 'Republican Parliamentary Actor',
+    faction: 'Reformist',
+    advisorType: 'regionalBoss',
+    availableFrom: { year: 1990, month: 6 },
+    loyalty: 55,
+    effectiveness: 62,
+    influence: 66,
+    competence: 62,
+    image: 'images/Ruslan_Khasbulatov.jpg',
+    description: 'A late-Soviet parliamentary figure representing the rise of republican institutions and legislative politics outside the old party chain of command. Useful as a reformist constitutional ally, but difficult for the Union centre to control.',
+    specialty: 'Improves republican legitimacy and parliamentary reform, while increasing pressure on Union authority if empowered too late.',
+    reactionLiberal: +4,
+    reactionConservative: -6,
+    threshold: 25,
+    thresholdEffect: 'Aligns with republican opposition — Party Unity -4, Separatism +4',
+  },
+
 ];
 
 let libraryEntries = [
@@ -7247,6 +7371,31 @@ libraryEntries = [
   {
     term: 'Andrei Gromyko',
     summary: 'Veteran foreign minister and later head of state. In-game he provides continuity and institutional prestige but slows New Thinking if he remains in control of foreign policy.',
+    pending: false,
+  },
+  {
+    term: 'Alexander Bessmertnykh',
+    summary: 'Late-Soviet foreign minister and professional diplomat. In-game he offers continuity after Shevardnadze with less reformist symbolism and less hardliner backlash.',
+    pending: false,
+  },
+  {
+    term: 'Valentin Pavlov',
+    summary: 'Late-Soviet premier associated with hard fiscal stabilisation and political conservatism. In-game he can reassure the apparatus but damages public legitimacy.',
+    pending: false,
+  },
+  {
+    term: 'Dmitry Yazov',
+    summary: 'Defence minister and military hardliner. In-game he strengthens military confidence but increases coup-risk sensitivity.',
+    pending: false,
+  },
+  {
+    term: 'Gennady Yanayev',
+    summary: 'Conservative late-Soviet executive figure associated with the GKChP. In-game he offers short-term apparatus reassurance at the cost of legitimacy and coup anxiety.',
+    pending: false,
+  },
+  {
+    term: 'Ruslan Khasbulatov',
+    summary: 'Late-Soviet republican parliamentary actor. In-game he represents the growing power of republican legislatures and constitutional politics outside the CPSU chain of command.',
     pending: false,
   },
   {
@@ -7845,6 +7994,11 @@ const ADVISOR_STAT_DEFAULTS = {
   akhromeyev: { influence: 78, competence: 84 },
   boldin:     { influence: 60, competence: 68 },
   raisa:      { influence: 45, competence: 70 },
+  bessmertnykh:{ influence: 58, competence: 74 },
+  pavlov:     { influence: 68, competence: 52 },
+  yazov:      { influence: 82, competence: 66 },
+  yanayev:    { influence: 64, competence: 45 },
+  khasbulatov:{ influence: 66, competence: 62 },
 };
 
 const ADVISOR_TYPE_DEFAULTS = {
@@ -7852,19 +8006,24 @@ const ADVISOR_TYPE_DEFAULTS = {
   tikhonov:'officeHolder', ryzhkov:'officeHolder', akhromeyev:'militaryBloc', aliyev:'regionalBoss',
   varennikov:'militaryBloc', nazarbayev:'regionalBoss', karimov:'regionalBoss', boldin:'personalCircle',
   medvedev:'officeHolder', raisa:'personalCircle', chernyaev:'personalCircle', chebrikov:'officeHolder',
-  gromyko:'officeHolder', kryuchkov:'officeHolder',
+  gromyko:'officeHolder', kryuchkov:'officeHolder', bessmertnykh:'officeHolder', pavlov:'officeHolder',
+  yazov:'militaryBloc', yanayev:'powerBroker', khasbulatov:'regionalBoss',
 };
 
 const ADVISOR_SUCCESSION_CHAINS = {
-  foreignMinister: ['gromyko', 'shevardnadze'],
-  premier: ['tikhonov', 'ryzhkov'],
+  foreignMinister: ['gromyko', 'shevardnadze', 'bessmertnykh'],
+  premier: ['tikhonov', 'ryzhkov', 'pavlov'],
   ideologySecretary: ['ligachev', 'yakovlev', 'medvedev'],
   kgbChair: ['chebrikov', 'kryuchkov'],
+  militaryChief: ['akhromeyev', 'yazov'],
+  chiefOfStaff: ['boldin', 'yanayev'],
   moscowPartyChief: ['yeltsin'],
   foreignPolicyAdvisor: ['chernyaev'],
 };
 
 const ADVISOR_SUCCESSION_PRESSURES = [
+  { id:'foreign_ministry_post_shevardnadze', slot:'foreignMinister', staleAdvisor:null, recommendedAdvisor:'bessmertnykh', due:{year:1991,month:1}, warningAfter:1, crisisAfter:4, title:'Post-Shevardnadze Foreign Ministry Question', description:'After Shevardnadze, the Foreign Ministry requires a less charismatic but competent successor to keep diplomatic channels functioning while the centre weakens.', monthlyEffects:{ foreignRelations:-0.7 }, crisisEffects:{ foreignRelations:-3, partyUnity:-1 } },
+  { id:'late_soviet_premier_question', slot:'premier', staleAdvisor:'ryzhkov', recommendedAdvisor:'pavlov', due:{year:1991,month:1}, warningAfter:1, crisisAfter:4, title:'Late-Soviet Premiership Question', description:'Economic crisis and cabinet fatigue create pressure for a harder fiscal manager. Pavlov offers discipline but risks public anger and monetary shock.', monthlyEffects:{ economy:-0.5, stability:-0.5 }, crisisEffects:{ economy:-3, popularAffection:-2 } },
   { id:'foreign_ministry_new_thinking', slot:'foreignMinister', staleAdvisor:'gromyko', recommendedAdvisor:'shevardnadze', due:{year:1985,month:7}, warningAfter:1, crisisAfter:4, title:'Foreign Ministry Succession Question', description:'The Foreign Ministry remains under the old diplomatic line even though the General Secretary requires a public instrument for New Thinking. Gromyko can still protect continuity, but every month of delay makes reform in foreign policy look less credible to foreign governments and to younger officials inside the apparatus.', monthlyEffects:{ foreignRelations:-1 }, crisisEffects:{ foreignRelations:-3, partyUnity:-1 } },
   { id:'premier_economic_succession', slot:'premier', staleAdvisor:'tikhonov', recommendedAdvisor:'ryzhkov', due:{year:1985,month:9}, warningAfter:1, crisisAfter:4, title:'Chairman of the Council of Ministers Question', description:'The Brezhnev-era premier remains in place after the moment for economic renewal has arrived. Keeping Tikhonov reassures the old guard, but it also tells the ministries that acceleration can be postponed and that reform is still negotiable.', monthlyEffects:{ economy:-1 }, crisisEffects:{ economy:-3, partyUnity:-1 } },
   { id:'moscow_party_chief_vacancy', slot:'moscowPartyChief', staleAdvisor:null, recommendedAdvisor:'yeltsin', due:{year:1985,month:12}, warningAfter:1, crisisAfter:5, title:'Moscow Party Organisation Vacancy', description:'The capital is too politically important to leave without a clear reform signal. A vacant Moscow office slows visible anti-corruption work and allows cautious municipal cadres to wait out the General Secretary.', monthlyEffects:{ popularAffection:-0.5, partyUnity:-0.5 }, crisisEffects:{ popularAffection:-3, partyUnity:-2 } },
@@ -8102,12 +8261,12 @@ function applyAdvisorReplacementPressure(){
     const warningKey=advisorPressureKey(rule,'warning');
     if (monthsOverdue >= rule.warningAfter && !gameState.firedTriggers[warningKey]) {
       gameState.firedTriggers[warningKey]=true;
-      displayTriggerEvent({ id:warningKey, name:rule.title, image:active&&active.image?active.image:(recommended&&recommended.image?recommended.image:'images/Pravda_1971.png'), description:`${rule.description}\n\nThe office concerned is ${office}. The recommended historical solution is ${recommended ? recommended.name : 'a new appointment'}, but the decision remains political: move now, defend continuity, or postpone and absorb the damage.`, choices:[ { text:`Prepare the transition toward ${recommended ? recommended.name : 'a new appointment'}`, effects:{ partyUnity:-1, popularAffection:+1 }, budgetGain:4 }, { text:'Defend continuity for now', effects:{ partyUnity:+2, popularAffection:-2 } }, { text:'Postpone the matter', effects:{ stability:-1, partyUnity:-1 } } ] });
+      displayTriggerEvent({ id:warningKey, name:rule.title, image:active&&active.image?active.image:(recommended&&recommended.image?recommended.image:null), description:`${rule.description}\n\nThe office concerned is ${office}. The recommended historical solution is ${recommended ? recommended.name : 'a new appointment'}, but the decision remains political: move now, defend continuity, or postpone and absorb the damage.`, choices:[ { text:`Prepare the transition toward ${recommended ? recommended.name : 'a new appointment'}`, effects:{ partyUnity:-1, popularAffection:+1 }, budgetGain:4 }, { text:'Defend continuity for now', effects:{ partyUnity:+2, popularAffection:-2 } }, { text:'Postpone the matter', effects:{ stability:-1, partyUnity:-1 } } ] });
     }
     const crisisKey=advisorPressureKey(rule,'crisis');
     if (monthsOverdue >= rule.crisisAfter && !gameState.firedTriggers[crisisKey]) {
       gameState.firedTriggers[crisisKey]=true; applyAdvisorPressureEffects(rule.crisisEffects);
-      displayTriggerEvent({ id:crisisKey, name:`${rule.title}: Apparatus Friction`, image:'images/Pravda_1971.png', description:`${rule.description}\n\nDelay has now become visible inside the apparatus. Rival factions are interpreting the unresolved personnel question as weakness, and ministries are adjusting their behaviour accordingly.`, choices:[ { text:'Force the personnel question onto the Politburo agenda', effects:{ partyUnity:-3, popularAffection:+2 }, budgetGain:6 }, { text:'Trade concessions for continued support', effects:{ partyUnity:+4, popularAffection:-4, economy:-1 } }, { text:'Let the unresolved contradiction stand', effects:{ stability:-3, partyUnity:-2 } } ] });
+      displayTriggerEvent({ id:crisisKey, name:`${rule.title}: Apparatus Friction`, image:(active&&active.image?active.image:(recommended&&recommended.image?recommended.image:null)), description:`${rule.description}\n\nDelay has now become visible inside the apparatus. Rival factions are interpreting the unresolved personnel question as weakness, and ministries are adjusting their behaviour accordingly.`, choices:[ { text:'Force the personnel question onto the Politburo agenda', effects:{ partyUnity:-3, popularAffection:+2 }, budgetGain:6 }, { text:'Trade concessions for continued support', effects:{ partyUnity:+4, popularAffection:-4, economy:-1 } }, { text:'Let the unresolved contradiction stand', effects:{ stability:-3, partyUnity:-2 } } ] });
     }
   });
 }
@@ -8163,6 +8322,88 @@ function getAdvisorModifiedPolicyEffects(policy){
 }
 
 
+
+function maybeTriggerRyzhkovFrustration(){
+  const flags = gameState.advisorEventFlags || (gameState.advisorEventFlags = {});
+  if (flags.ryzhkov_frustration_crisis) return;
+  if (!isAdvisorActive('ryzhkov')) return;
+  const economicStress = (gameState.year >= 1989 && (gameState.metrics.economy <= 38 || (gameState.economySub.inflation || 0) >= 45 || (gameState.economySub.budgetBalance || 0) <= -35));
+  if (!economicStress) return;
+  flags.ryzhkov_frustration_crisis = true;
+  displayTriggerEvent({ id:'ryzhkov_frustration_crisis', name:'Ryzhkov Demands Economic Clarity', image:'images/Nikolai_Ryzhkov.jpg', description:'Ryzhkov warns that the reform programme is being asked to do everything at once: discipline ministries, satisfy consumers, preserve subsidies, and avoid inflation. If the centre cannot choose a coherent line, the government will carry the blame for every shortage.', choices:[
+    { text:'Back Ryzhkov with a disciplined gradualist line', effects:{ economy:+4, stability:+2, popularAffection:-2 }, advisorLoyaltyEffects:{ ryzhkov:+8, yakovlev:-2 } },
+    { text:'Overrule him and push faster political reform', effects:{ popularAffection:+4, partyUnity:-4, economy:-2 }, advisorLoyaltyEffects:{ ryzhkov:-8, yakovlev:+4 } },
+    { text:'Blame the ministries and avoid choosing', effects:{ stability:-3, economy:-3, partyUnity:-2 }, advisorLoyaltyEffects:{ ryzhkov:-5 } },
+  ]});
+}
+
+function maybeTriggerGromykoPrestigeEvent(){
+  const flags = gameState.advisorEventFlags || (gameState.advisorEventFlags = {});
+  if (flags.gromyko_old_guard_prestige) return;
+  if (!isAdvisorActive('gromyko')) return;
+  if (gameState.year < 1986 || gameState.metrics.foreignRelations >= 45) return;
+  flags.gromyko_old_guard_prestige = true;
+  displayTriggerEvent({ id:'gromyko_old_guard_prestige', name:'Gromyko and the Old Diplomatic Line', image:'images/Andrei_Gromyko.jpg', description:'Gromyko remains a monument of Soviet diplomacy. His prestige reassures the old guard, but foreign governments increasingly doubt that New Thinking can emerge while the old diplomatic line still controls the ministry.', choices:[
+    { text:'Honour Gromyko and preserve continuity', effects:{ partyUnity:+5, foreignRelations:-3 }, advisorLoyaltyEffects:{ gromyko:+6, shevardnadze:-3 } },
+    { text:'Prepare a dignified transition to Shevardnadze', effects:{ foreignRelations:+4, partyUnity:-3 }, budgetGain:3, advisorLoyaltyEffects:{ shevardnadze:+5, gromyko:-4 } },
+    { text:'Publicly criticise stagnation in diplomacy', effects:{ foreignRelations:+2, partyUnity:-6, stability:-2 }, advisorLoyaltyEffects:{ gromyko:-10 } },
+  ]});
+}
+
+function maybeTriggerChebrikovSuccessionEvent(){
+  const flags = gameState.advisorEventFlags || (gameState.advisorEventFlags = {});
+  if (flags.chebrikov_security_succession) return;
+  if (!isAdvisorActive('chebrikov')) return;
+  if (gameState.year < 1988) return;
+  flags.chebrikov_security_succession = true;
+  displayTriggerEvent({ id:'chebrikov_security_succession', name:'Chebrikov and the Security Succession', image:'images/Viktor_Chebrikov.jpg', description:'The KGB expects clarity. Chebrikov offers continuity and institutional calm, but Kryuchkov and the foreign-intelligence wing are waiting for succession. The choice will shape whether the security organs remain obedient instruments or become a harder political actor.', choices:[
+    { text:'Keep Chebrikov for continuity', effects:{ stability:+3, partyUnity:+2, coupProbability:-2 }, advisorLoyaltyEffects:{ chebrikov:+6, kryuchkov:-4 } },
+    { text:'Prepare Kryuchkov as successor', effects:{ stability:+2, coupProbability:+4 }, budgetGain:2, advisorLoyaltyEffects:{ kryuchkov:+6, chebrikov:-3 }, securityApparatusPowerEffect:+3 },
+    { text:'Openly warn the KGB against political ambition', effects:{ popularAffection:+2, stability:-4, coupProbability:+4 }, advisorLoyaltyEffects:{ chebrikov:-6, kryuchkov:-6 }, securityApparatusPowerEffect:-2 },
+  ]});
+}
+
+function maybeTriggerAkhromeyevDespair(){
+  const flags = gameState.advisorEventFlags || (gameState.advisorEventFlags = {});
+  if (flags.akhromeyev_despair_event) return;
+  if (!isAdvisorActive('akhromeyev')) return;
+  const danger = gameState.year >= 1990 && ((gameState.metrics.militaryReadiness || 0) <= 45 || (gameState.militarySub.loyalty || 0) <= 42 || (gameState.metrics.foreignRelations || 0) >= 70);
+  if (!danger) return;
+  flags.akhromeyev_despair_event = true;
+  displayTriggerEvent({ id:'akhromeyev_despair_event', name:'Akhromeyev Warns the Army Is Losing Its State', image:'images/Sergey_Akhromeyev.jpg', description:'Akhromeyev sees the army losing prestige, mission, and strategic depth. Arms control, Eastern Europe, and domestic collapse are beginning to look less like reform and more like surrender to officers who built their lives around Soviet power.', choices:[
+    { text:'Reassure the military with resources and honours', effects:{ militaryReadiness:+6, partyUnity:+2, economy:-3 }, advisorLoyaltyEffects:{ akhromeyev:+8 } },
+    { text:'Tell the General Staff reform comes first', effects:{ foreignRelations:+4, popularAffection:+3, militaryReadiness:-5, partyUnity:-3 }, advisorLoyaltyEffects:{ akhromeyev:-10 } },
+    { text:'Ask Akhromeyev to help manage withdrawal with dignity', effects:{ foreignRelations:+2, militaryReadiness:+2, stability:+1 }, advisorLoyaltyEffects:{ akhromeyev:+3, shevardnadze:+2 } },
+  ]});
+}
+
+function maybeTriggerChernyaevSummitOpportunity(){
+  const flags = gameState.advisorEventFlags || (gameState.advisorEventFlags = {});
+  if (flags.chernyaev_summit_opportunity) return;
+  if (!isAdvisorActive('chernyaev')) return;
+  if (gameState.year < 1987 || gameState.metrics.foreignRelations < 45) return;
+  flags.chernyaev_summit_opportunity = true;
+  displayTriggerEvent({ id:'chernyaev_summit_opportunity', name:'Chernyaev Drafts a Summit Breakthrough', image:'images/Anatoly_Chernyaev.jpg', description:'Chernyaev argues that personal diplomacy can bypass institutional caution. A bold summit proposal could transform the external environment, but every concession will be read by hardliners as another unilateral retreat.', choices:[
+    { text:'Authorise Chernyaev to draft a bold proposal', effects:{ foreignRelations:+7, partyUnity:-4, militaryReadiness:-2 }, advisorLoyaltyEffects:{ chernyaev:+6, shevardnadze:+3, akhromeyev:-4 } },
+    { text:'Keep summit diplomacy cautious and ministry-led', effects:{ foreignRelations:+2, partyUnity:+2 }, advisorLoyaltyEffects:{ chernyaev:-3, gromyko:+2 } },
+    { text:'Use the proposal privately as bargaining leverage', effects:{ foreignRelations:+4, stability:+1, partyUnity:-1 }, advisorLoyaltyEffects:{ chernyaev:+2 } },
+  ]});
+}
+
+function maybeTriggerRaisaPersonalPressure(){
+  const flags = gameState.advisorEventFlags || (gameState.advisorEventFlags = {});
+  if (flags.raisa_personal_pressure) return;
+  const loyalty = Number(gameState.advisorLoyalty.raisa ?? 90);
+  const crisis = loyalty < 55 || (gameState.metrics.popularAffection < 40 && gameState.year >= 1988);
+  if (!crisis) return;
+  flags.raisa_personal_pressure = true;
+  displayTriggerEvent({ id:'raisa_personal_pressure', name:'Raisa Feels the Cost of Public Life', image:'images/Raisa_Gorbacheva.jpg', description:'Raisa warns that reform is consuming both the family and the country. Public resentment, elite gossip, and the endless pace of crisis are turning the personal into the political.', choices:[
+    { text:'Protect Raisa and reduce public exposure', effects:{ stability:+2, popularAffection:-2 }, advisorLoyaltyEffects:{ raisa:+8 } },
+    { text:'Ask her to remain a public symbol of modernisation', effects:{ popularAffection:+4, partyUnity:-2 }, advisorLoyaltyEffects:{ raisa:-5, yakovlev:+2 } },
+    { text:'Privately admit the burden and slow the pace', effects:{ stability:+3, economy:-1, partyUnity:+1 }, advisorLoyaltyEffects:{ raisa:+5 } },
+  ]});
+}
+
 function applyAdvisorRivalriesAndArcs(){
   ensureAdvisorSlotDefaults(); const active=new Set(getActiveAdvisorIds()); const flags=gameState.advisorEventFlags || (gameState.advisorEventFlags={});
   const logEvery=(key,msg,type='advisor')=>{ const last=flags[key]||0; if ((gameState.turn-last)>=6){ flags[key]=gameState.turn; addLog(msg,type); } };
@@ -8175,6 +8416,12 @@ function applyAdvisorRivalriesAndArcs(){
   }
   if (active.has('ligachev')) applyLigachevDecline();
   if (active.has('shevardnadze')) maybeTriggerShevardnadzeResignation();
+  maybeTriggerRyzhkovFrustration();
+  maybeTriggerGromykoPrestigeEvent();
+  maybeTriggerChebrikovSuccessionEvent();
+  maybeTriggerAkhromeyevDespair();
+  maybeTriggerChernyaevSummitOpportunity();
+  maybeTriggerRaisaPersonalPressure();
 }
 function applyLigachevDecline(){
   const enacted = new Set(gameState.enactedPolicies || []); const flags=gameState.advisorEventFlags || (gameState.advisorEventFlags={});
@@ -8368,7 +8615,7 @@ function getAdvisorWarnings(){
   const kry = getAdvisorById('kryuchkov');
   const kryLoyalty = Number(gameState.advisorLoyalty.kryuchkov ?? (kry ? kry.loyalty : 50));
   if (gameState.year >= 1990 && kryLoyalty < 25 && !isAdvisorResigned('kryuchkov')) {
-    warnings.push({ severity:'high', title:'Kryuchkov coup warning', body:`Kryuchkov loyalty is ${Math.round(kryLoyalty)}. Coup plotting accelerates by +10% per turn while he remains below 25 after 1990.` });
+    warnings.push({ severity:'high', title:'Kryuchkov coup warning', body:`Kryuchkov loyalty is ${Math.round(kryLoyalty)}. Coup plotting accelerates each turn while he remains below 25 after 1990; the monthly increase scales with Security Apparatus Power.` });
   }
   if (Number(gameState.securityApparatusPower || 0) >= 45) {
     warnings.push({ severity:'high', title:'Security apparatus power', body:`Security apparatus power is ${Math.round(gameState.securityApparatusPower)}. A strong KGB network magnifies coup risk if loyalty collapses.` });
@@ -8574,14 +8821,15 @@ function setupPravdaMasthead(eventImage, eventCaption, endingType){
   const fb = document.getElementById('pravda-photo-fallback');
   if (!img || !photo) return;
 
-  const src = eventImage
+  const isLogoFallback = eventImage && /Pravda_1971\.png|pravda-logo|Pravda/i.test(String(eventImage));
+  const src = (eventImage && !isLogoFallback)
     ? new URL(eventImage, document.baseURI).href
-    : new URL('images/pravda-placeholder.jpg', document.baseURI).href;
+    : '';
   const succeed = () => { photo.classList.add('loaded'); if (fb) fb.style.display = 'none'; };
   const fallbackSvg = 'data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%22800%22%20height%3D%22500%22%20viewBox%3D%220%200%20800%20500%22%3E%3Crect%20width%3D%22800%22%20height%3D%22500%22%20fill%3D%22%23e8dcc0%22/%3E%3Ctext%20x%3D%22400%22%20y%3D%22250%22%20text-anchor%3D%22middle%22%20font-family%3D%22Georgia%2Cserif%22%20font-size%3D%2226%22%20fill%3D%22%232b1f10%22%20opacity%3D%220.7%22%3EARCHIVAL%20PHOTOGRAPH%3C/text%3E%3C/svg%3E';
   img.onload = succeed;
   img.onerror = () => { img.src = fallbackSvg; succeed(); };
-  img.src = src + '?v=' + Date.now();
+  img.src = src ? (src + '?v=' + Date.now()) : fallbackSvg;
 }
 
 function playPaperCrackle() {
@@ -9177,6 +9425,9 @@ function resolveEventChoice(choiceIdx) {
     gameState.budget = clamp(gameState.budget + gain, 0, 9999);
     addLog(`Emergency mandate secured: +${gain} political capital`);
   }
+  if (choice.advisorLoyaltyEffects) applyAdvisorLoyaltyEffects(choice.advisorLoyaltyEffects);
+  if (choice.factionEffects) applyFactionEffects(choice.factionEffects);
+  if (choice.securityApparatusPowerEffect) gameState.securityApparatusPower = clamp(Number(gameState.securityApparatusPower || 0) + Number(choice.securityApparatusPowerEffect || 0), 0, 100);
   if (choice.advisorAction) {
     processAdvisorEventAction(choice.advisorAction);
   }
@@ -9427,10 +9678,11 @@ function updateAdvisorLoyaltyForTurn(){
         addLog(`${a.name}'s loyalty has collapsed to zero. The August Coup triggers immediately. Stability −15. Coup Probability +25%.`, 'advisor');
         triggerAugustCoupEarly("Kryuchkov's loyalty has collapsed to zero. The GKChP moves immediately.");
       } else if (next < 25 && gameState.year >= 1990) {
-        applyMetricChange('coupProbability', 10);
+        const coupGain = clamp(4 + Math.floor(Number(gameState.securityApparatusPower || 0) / 15), 4, 12);
+        applyMetricChange('coupProbability', coupGain);
         if (!status.coupWarningLogged || (gameState.turn - status.coupWarningLogged) >= 3) {
           status.coupWarningLogged = gameState.turn;
-          addLog(`${a.name}'s loyalty is below 25. Hardliner coup plotting accelerates: Coup Probability +10%.`, 'advisor');
+          addLog(`${a.name}'s loyalty is below 25. Hardliner coup plotting accelerates: Coup Probability +${coupGain}% this month, scaled by Security Apparatus Power.`, 'advisor');
         }
       }
     } else if (next < 20 && !status.resigned) {
@@ -11438,9 +11690,10 @@ function renderPolitburoVisual(){
 }
 
 function renderPressures() {
-  const sep = clamp(gameState.separatism || 0, 0, 100);
-  const cr  = clamp(gameState.militarySub.combatReadiness || 0, 0, 100);
-  const ml  = clamp(gameState.militarySub.loyalty || 0, 0, 100);
+  const sep = clamp(Math.round(Number(gameState.separatism || 0)), 0, 100);
+  const cr  = clamp(Math.round(Number(gameState.militarySub.combatReadiness || 0)), 0, 100);
+  const ml  = clamp(Math.round(Number(gameState.militarySub.loyalty || 0)), 0, 100);
+  const sec = clamp(Math.round(Number(gameState.securityApparatusPower || 0)), 0, 100);
 
   const setBar = (barId, valId, val, invert) => {
     const el = document.getElementById(barId);
@@ -11456,9 +11709,10 @@ function renderPressures() {
     vl.className = 'intl-val ' + cls;
   };
 
-  setBar('sep-bar',      'sep-val',      sep, true);  // high = bad
-  setBar('combat-bar',   'combat-val',   cr,  false);
-  setBar('mloyalty-bar', 'mloyalty-val', ml,  false);
+  setBar('sep-bar', 'sep-val', sep, true); // high = bad
+  setBar('security-autonomy-bar', 'security-autonomy-val', sec, true); // high = bad/risky
+  setBar('combat-bar', 'combat-val', cr, false);
+  setBar('mloyalty-bar', 'mloyalty-val', ml, false);
 }
 
 function renderPersonnelQuestions(){
