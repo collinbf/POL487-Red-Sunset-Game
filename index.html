@@ -273,6 +273,34 @@
   .advisor-status-chip.low { color:var(--red); border-color:rgba(139,26,26,.55); }
   .advisor-status-chip.high { color:var(--green); border-color:rgba(45,110,68,.45); }
   .advisor-card.resigned { opacity:.54; filter:grayscale(.35); }
+  .advisor-card.resigned::after {
+    content:'';
+    position:absolute;
+    inset:0;
+    background:repeating-linear-gradient(135deg, rgba(20,12,8,0.16) 0 8px, rgba(20,12,8,0.04) 8px 16px);
+    pointer-events:none;
+    z-index:2;
+  }
+  .advisor-state-ribbon {
+    position:absolute;
+    left:8px;
+    right:8px;
+    top:50%;
+    transform:translateY(-50%) rotate(-8deg);
+    z-index:5;
+    border:2px solid rgba(242,234,216,0.72);
+    background:rgba(92,17,17,0.86);
+    color:#f2ead8;
+    font-family:'Playfair Display',serif;
+    font-size:14px;
+    font-weight:900;
+    letter-spacing:.16em;
+    text-transform:uppercase;
+    text-align:center;
+    padding:6px 4px;
+    box-shadow:0 4px 12px rgba(0,0,0,0.28);
+    pointer-events:none;
+  }
 
   .utility-panel, .debug-panel, .tree-panel { background:rgba(232,220,192,0.92); border:2px solid rgba(139,26,26,0.35); border-radius:6px; padding:14px; margin-bottom:1rem; }
   .utility-row, .debug-row { display:flex; gap:6px; flex-wrap:wrap; align-items:center; margin-top:7px; }
@@ -8077,13 +8105,15 @@ function isAdvisorCandidateForVacantSlot(advisorId){
 function isAdvisorVisibleInPanel(a){
   const status = gameState.advisorStatus[a.id] || {};
   const f = uiState.advisorFaction || 'All';
+  const loyalty = Number(gameState.advisorLoyalty?.[a.id] ?? a.defaultLoyalty ?? a.loyalty ?? 50);
+  const base = isAdvisorActive(a.id) || isAdvisorCandidateForVacantSlot(a.id);
+  const inactiveRecord = !!(status.replaced || status.retired || status.resigned || status.fired || loyalty < 20);
   if (f === 'Active') return isAdvisorActive(a.id);
   if (f === 'Available') return isAdvisorCandidateForVacantSlot(a.id);
-  if (f === 'Replaced') return !!(status.replaced || status.retired || status.resigned || status.fired);
-  if (f === 'Office') return !!getAdvisorSlot(a) && (isAdvisorActive(a.id) || isAdvisorCandidateForVacantSlot(a.id) || status.replaced || status.retired);
-  const base = isAdvisorActive(a.id) || isAdvisorCandidateForVacantSlot(a.id);
+  if (f === 'Replaced') return inactiveRecord;
+  if (f === 'Office') return !!getAdvisorSlot(a) && (base || status.replaced || status.retired);
   if (f && f !== 'All') return base && String(a.faction || '').toLowerCase() === String(f).toLowerCase();
-  return base;
+  return base || inactiveRecord;
 }
 function getReplacementCandidatesForAdvisor(advisorId){
   ensureAdvisorSlotDefaults();
@@ -11414,7 +11444,9 @@ function renderAdvisors(){
     const loyaltyTone = loyalty >= 60 ? 'high' : loyalty >= 30 ? 'mid' : 'low';
     const loyaltyColor = loyalty >= 60 ? '#5dba7e' : loyalty >= 30 ? '#c9982e' : '#cc4040';
     const loyaltyBar = `<div class="advisor-loyalty-bar" data-advisor-id="${a.id}" data-loyalty="${loyalty}">${fillBarHtml('advisor-loyalty-fill ' + loyaltyTone, loyalty, loyaltyColor)}</div>`;
-    return `<div class="advisor-card${status.fired || status.resigned || loyalty < 20 ? ' resigned' : ''}" role="button" tabindex="0" title="View advisor profile" onclick="openAdvisorDetail('${a.id}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openAdvisorDetail('${a.id}')}">
+    const inactiveLabel = status.fired ? (a.id === 'raisa' ? 'Divorced' : 'Dismissed') : (a.id === 'raisa' && (status.resigned || loyalty < 15)) ? 'Departed' : (status.resigned || loyalty < 20) ? (a.id === 'akhromeyev' ? 'Dead' : 'Resigned') : status.retired ? 'Retired' : '';
+    const stateRibbon = inactiveLabel ? `<div class="advisor-state-ribbon">${escapeHtml(inactiveLabel)}</div>` : '';
+    return `<div class="advisor-card${inactiveLabel ? ' resigned' : ''}" role="button" tabindex="0" title="View advisor profile" onclick="openAdvisorDetail('${a.id}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openAdvisorDetail('${a.id}')}">${stateRibbon}
       <div class="card-corner tl${status.emboldened && a.id !== 'raisa' && !status.fired && !status.resigned && loyalty >= 20 ? ' emboldened' : ''}">${escapeHtml(a.faction || 'Advisor')}</div>
       <div class="card-corner br">${escapeHtml((a.role || '').length > 18 ? (a.role || '').slice(0,17)+'…' : (a.role || ''))}</div>${photoBg}<div class="advisor-card-overlay"></div><div class="card-body"><div class="advisor-name">${escapeHtml(a.name)}</div>${getAdvisorSlot(a) ? `<div class="advisor-slot-label">${escapeHtml(advisorSlotLabel(getAdvisorSlot(a)))}</div>` : ''}<div class="advisor-loyalty ${cls}">${a.id === 'raisa' ? 'Affection' : 'Loyalty'}: ${loyalty}${(() => { const prev = gameState.advisorLoyaltyPrev && gameState.advisorLoyaltyPrev[a.id]; if (prev == null) return ''; const delta = loyalty - prev; if (Math.abs(delta) < 1) return ' <span style="opacity:.55;font-size:10px;">→</span>'; const arrow = delta > 0 ? '↑' : '↓'; const col = delta > 0 ? '#7eeaa0' : '#ff7070'; return ' <span style="color:' + col + ';font-size:10px;font-weight:700;">' + arrow + Math.abs(delta) + '</span>'; })()}</div>${loyaltyBar}<div style="font-size:10px;opacity:.8;margin-top:3px;">Inf ${influence} · Comp ${competence}</div><div class="advisor-statuses">${chips.join('')}</div></div></div>`;
   }).join('');
