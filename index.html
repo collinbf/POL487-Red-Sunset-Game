@@ -8123,8 +8123,8 @@ function resolveEventChoice(choiceIdx) {
   if (!event || !event.choices || !event.choices[choiceIdx]) return;
   const choice = event.choices[choiceIdx];
 
-  // Play one-shot response audio, if this choice defines one. This runs inside
-  // the user's click/tap gesture, which keeps browser autoplay policy satisfied.
+  // Play response audio, if this choice defines one. This runs inside the
+  // user's click/tap gesture, which keeps browser autoplay policy satisfied.
   if (choice.sound) {
     playChoiceSound(choice.sound);
   }
@@ -8228,6 +8228,9 @@ function resolveEventChoice(choiceIdx) {
   // If the choice carries a long outcome narrative, show it in the
   // secondary Pravda Outcome modal before resuming the game loop.
   const finishResolution = () => {
+    // If there is no open consequence report, stop any response-specific sound.
+    // Sounds tied to choices should not continue after the event/report closes.
+    stopChoiceSound();
     if (checkEndConditions()) {
       render();
       renderPolicies();
@@ -10482,10 +10485,28 @@ function makeAudio(relPath){
 
 
 // ── ONE-SHOT CHOICE SOUND EFFECTS ───────────────────────────────────────────
+// Choice sounds are tied to the active event/report lifecycle. They stop when
+// the event resolves without a report or when the Pravda outcome report closes.
+let activeChoiceSoundAudio = null;
+
+function stopChoiceSound() {
+  try {
+    if (activeChoiceSoundAudio) {
+      activeChoiceSoundAudio.pause();
+      activeChoiceSoundAudio.currentTime = 0;
+      activeChoiceSoundAudio = null;
+    }
+  } catch(e) {
+    activeChoiceSoundAudio = null;
+  }
+}
+
 function playChoiceSound(relPath) {
   if (!relPath) return;
   try {
+    stopChoiceSound();
     const audio = makeAudio(relPath);
+    activeChoiceSoundAudio = audio;
     audio.volume = Math.min(1, uiState.audioMuted ? 0 : uiState.sfxVolume);
     audio.muted = !!uiState.audioMuted;
     audio.currentTime = 0;
@@ -11226,6 +11247,7 @@ function showPravdaOutcome(choiceTitle, outcomeText, effects, onClose) {
 function closePravdaOutcome() {
   const modal = document.getElementById('pravda-outcome-modal');
   if (modal) modal.classList.remove('active');
+  stopChoiceSound();
   const cb = _pendingOutcomeCallback;
   _pendingOutcomeCallback = null;
   if (cb) cb();
@@ -11353,6 +11375,261 @@ window.launcherStartGame = function(){
 <script>
 // ── DEV MENU MODAL ───────────────────────────────────────────────────────────
 
+
+
+// ── DEV EVENT REGISTRY: threshold/manual events ─────────────────────────────
+// These are inline trigger events that do not live in the main `events` array.
+// They are duplicated here so the Developer Menu dropdown can fire every event.
+const DEV_TRIGGER_EVENTS = [
+{
+      id: 'early_coup',
+      name: 'State Committee on the State of Emergency — Internal Memorandum',
+      devTriggerLabel: "crisis trigger: coup probability / instability threshold",
+      image: 'images/coup_attempt.jpg',
+      caption: 'Emergency session — Государственный комитет по чрезвычайному положению',
+      description: 'A faction of senior officials has formed a State Committee on the State of Emergency and demands recognition of extraordinary authority. Communications are uncertain, the loyalty of key institutions is contested, and the Union stands at the edge of decisive confrontation.',
+      choices: [
+        {
+          text: 'Refuse to recognise the committee — declare the action illegal and call on the army and people to resist',
+          effects: { popularAffection: +12, partyUnity: -5, stability: -15, foreignRelations: +8 },
+          outcomeText: `Gorbachev records a statement declaring the committee's actions unconstitutional and calling for resistance. The statement is broadcast — partially. Some units refuse orders. Others do not. In the streets, a crowd gathers outside the seat of the Russian government. Whether it will be enough is a question that history will answer over the next seventy-two hours.`,
+        },
+        {
+          text: 'Negotiate — seek a face-saving arrangement that preserves some form of the reform programme',
+          effects: { partyUnity: +5, popularAffection: -10, stability: -5 },
+          outcomeText: `Gorbachev attempts to negotiate. The committee listens, politely, and agrees to nothing. The offer of compromise is read as an admission of weakness. The apparatus that has already moved against the General Secretary is not interested in arrangements — it is interested in outcomes.`,
+        },
+        {
+          text: 'Capitulate — sign the emergency decrees; the alternative is something worse',
+          effects: { partyUnity: +15, popularAffection: -20, stability: +5, foreignRelations: -12 },
+          outcomeText: `The signature is given. The committee's declaration goes out over state television. Swan Lake plays on every channel. In Moscow, the tanks that had been sitting at their barracks are now moving. The reform era is over — not with an argument, but with a document.`,
+        },
+      ],
+    },
+{
+      id: 'dev_exhaustion_of_the_political_mandate',
+          name: 'Exhaustion of the Political Mandate',
+      devTriggerLabel: "threshold: political capital exhausted",
+          image: 'images/iron_market.jpg',
+          description: 'Comrade General Secretary — the political capital of the General Secretary\'s office has been expended without sufficient renewal. The reformist tendency within the leading organs has lost forward momentum; the conservative tendency has registered a corresponding consolidation of its position. The Politburo has entered a condition of procedural deadlock in which no initiative of consequence can be advanced through the apparatus without prior restoration of the executive mandate.\n\nThe situation does not admit of passive resolution. A directive is required.',
+          choices: [
+            { text: 'Address the population directly — transmit a general appeal through Soviet television, bypassing the Politburo and invoking the authority of the General Secretary over the heads of the party apparatus', effects: { popularAffection: +12, partyUnity: -8 }, budgetGain: 20 },
+            { text: 'Extend concessions to the conservative tendency — restore the conditions for Politburo consensus through measured accommodation of the positions of the hardliner faction', effects: { partyUnity: +10, popularAffection: -8 }, budgetGain: 15 },
+            { text: 'Advance a single measure of visible consequence — demonstrate the operative authority of the General Secretary\'s office through the unilateral enactment of a high-profile reform', effects: { popularAffection: +6, stability: -5 }, budgetGain: 10 },
+          ],
+        },
+{
+      id: 'dev_social_parasitism_crisis',
+      name: 'Social Parasitism Crisis',
+      devTriggerLabel: "threshold: socialParasitism >= 25",
+      image: 'images/social_parasitism.png',
+      description: 'Comrade General Secretary — the All-Union Central Council of Trade Unions, in coordination with the Ministry of Internal Affairs and the People\'s Control Committee, submits the following assessment of labour discipline conditions across the Union for the current reporting period.\n\nThe rate of unexcused absence from the workplace has increased for the fourth consecutive quarter. In certain branches of light industry, the figure now exceeds twelve percent of the scheduled workforce on any given shift. Inspectors of the People\'s Control Committee report a corresponding expansion of so-called "left-hand" activity — the manufacture and exchange of goods and services outside the planned economy — in urban residential districts in eleven of fifteen Union Republics. In several enterprises of the Donetsk coal basin, workers have been found to spend a significant portion of the working day in a condition incompatible with productive labour.\n\nThe relevant statutes remain in force. The problem is not the absence of legal instruments. The problem, as the Ministry of Internal Affairs has noted in a separate communication, is that enforcement requires a level of popular cooperation with state authority that cannot presently be assumed.\n\nThe socialist obligation to labour is a founding principle of the Union of Soviet Socialist Republics. The current situation is inconsistent with that principle.',
+      choices: [
+        { text: 'Launch anti-parasitism campaign', effects: { stability: +5, popularAffection: -8, partyUnity: +3 } },
+        { text: 'Ignore the problem', effects: { economy: -5, stability: -3 } },
+        { text: 'Offer economic incentives', effects: { economy: +3, popularAffection: +5, budget: -10 } },
+      ]
+    },
+{
+      id: 'dev_mass_protests',
+      name: 'Mass Protests',
+      devTriggerLabel: "threshold: popularAffection <= 30",
+      image: 'images/Mass_Protests.jpg',
+      description: 'Crowds of hooligans, provocateurs, and — let us be honest — Western-funded agitators have gathered in the squares of Moscow, Leningrad, Kyiv, and eleven other cities. They carry signs. They shout. TASS has not reported this. CNN has. The workers and peasants of the Soviet Union — the real Soviet people — did not ask for this. These are not the masses. These are elements. Nevertheless, there are rather a lot of them, the Politburo has been in emergency session since 6 a.m., and your press secretary is, technically, still waiting for guidance.',
+      choices: [
+        { text: 'Address the nation. Announce reforms. Remind them you are on their side.', effects: { popularAffection: +8, partyUnity: -5 } },
+        { text: 'Restore order. The Ministry of Interior knows what to do.', sound: 'sounds/543597__dwightsabeast__ak-47-action-rack-4_01.mp3', budgetCost: 10, effects: { stability: +5, popularAffection: -15, foreignRelations: -8 } },
+        { text: 'Declare emergency powers. Public assembly suspended until further notice.', budgetCost: 15, effects: { stability: +8, popularAffection: -20, partyUnity: -10 } },
+      ]
+    },
+{
+      id: 'dev_yeltsin_s_break_with_gorbachev',
+      name: 'Yeltsin\'s Break with Gorbachev',
+      devTriggerLabel: "threshold: reform faction <= 50",
+      description: 'Boris Yeltsin publicly denounces the pace of reform and resigns from the Politburo. His dramatic departure signals a fracturing of the reformist coalition and a growing rival power centre.',
+      choices: [
+        { text: 'Attempt reconciliation', effects: { partyUnity: +5, popularAffection: +3, stability: -3 } },
+        { text: 'Denounce Yeltsin publicly', effects: { partyUnity: -8, popularAffection: -5, stability: +2 } },
+        { text: 'Ignore the rupture', effects: { partyUnity: -5, stability: -2 } },
+      ]
+    },
+{
+      id: 'dev_the_boys_come_home',
+      name: 'The Boys Come Home',
+      devTriggerLabel: "follow-on: afghanistan-pullout enacted",
+      image: 'images/Afghan_withdrawal.jpg',
+      description: `Comrade General Secretary — the last Soviet troops have crossed the Amu Darya river back into Soviet territory. General Boris Gromov, commander of the 40th Army, walked across the Friendship Bridge alone. He told waiting reporters: "There is not a single Soviet soldier or officer left behind me." Nine years, fifty-one days. Fifteen thousand dead.
+
+The homecoming is not a triumph. The veterans return to a country that has no language for what happened — the official narrative of "internationalist duty" has collapsed, and the new glasnost press is already running first-person accounts from wounded soldiers and mothers of the dead. Pamyat nationalists are furious. Reformers are vindicated. The generals are silent.
+
+The world has taken notice. Reagan's team signals that the Geneva Process can now accelerate.`,
+      choices: [
+        {
+          text: 'National ceremony of honour — receive the troops publicly and acknowledge their sacrifice, however painful the truth of the war',
+          effects: { popularAffection: +12, foreignRelations: +5, partyUnity: -8, stability: +3 },
+        },
+        {
+          text: 'Quiet reintegration — no ceremony, no headlines; redirect the defence budget savings into consumer goods and social programmes',
+          effects: { economy: +8, popularAffection: +4, stability: +5, partyUnity: +3 },
+        },
+        {
+          text: 'Commission a public inquiry into the conduct of the war — names, decisions, and failures on the record',
+          effects: { popularAffection: +15, foreignRelations: +8, partyUnity: -15, militaryReadiness: -5 },
+        },
+      ],
+    },
+{
+      id: 'dev_republic_independence_movements',
+      name: 'Republic Independence Movements',
+      devTriggerLabel: "threshold: separatism pressure",
+      image: 'images/Republic_Independence_Movements.jpg',
+      description: 'Comrade General Secretary — the Department of Party Organisational Work submits the following summary of conditions in the Union Republics for the period under review.\n\nIn the Lithuanian, Latvian, and Estonian Soviet Socialist Republics, formations styling themselves as popular fronts have adopted resolutions calling for the restoration of so-called sovereignty. These formations enjoy a degree of mass participation that the relevant republican Party organs have proved unable to contain through existing organisational means. In the Georgian SSR, the Supreme Soviet has issued a declaration characterising the 1921 incorporation into the Union as an act of annexation. In the Armenian SSR, ongoing mobilisation over the Nagorno-Karabakh question has rendered normal Party functioning impossible in several raions.\n\nThe common thread in these developments is not, as certain comrades have suggested, the malign influence of foreign anti-Soviet centres — though such influence exists and is being monitored. The common thread is a crisis of confidence in the Union itself. Republican Party organisations are requesting guidance. Several first secretaries have indicated, in private communication, that they cannot guarantee compliance with central directives if the present situation continues.\n\nThe Union Treaty, in its current form, no longer commands the consent it requires.',
+      choices: [
+        { text: 'Offer genuine autonomy', effects: { stability: +5, partyUnity: -10, foreignRelations: +5 } },
+        { text: 'Military intervention', sound: 'sounds/329800__greatmganga__t26_moving_01_01.mp3', effects: { stability: +8, popularAffection: -15, foreignRelations: -15, militaryReadiness: -5 } },
+        { text: 'Negotiate a new Union Treaty', effects: { stability: -3, partyUnity: -5, popularAffection: +5 } },
+      ]
+    },
+{
+      id: 'dev_parade_of_sovereignties_urgent_report_from_the_department_of_nationalities',
+      name: 'Parade of Sovereignties — Urgent Report from the Department of Nationalities',
+      devTriggerLabel: "threshold: separatism escalation",
+      image: 'images/Republic_Independence_Movements.jpg',
+      caption: 'Заседание Верховного Совета, 1989–1990',
+      description: `Comrade General Secretary — the following report is submitted under the classification URGENT by the Department of Nationalities Policy and the Council of Ministers Secretariat.
+
+Over the past several months, the Supreme Soviets of the Lithuanian, Estonian, Latvian, Ukrainian, Russian, and Byelorussian Soviet Socialist Republics have each passed formal declarations of sovereignty — asserting the primacy of republican law over Union law. These are not symbolic gestures. They represent the formal beginning of a constitutional dismemberment of the Union from within.
+
+The declarations follow a common pattern: they do not yet use the word independence, but they claim the right to it. Republican newspapers, now largely beyond central editorial control, are treating each new declaration as a victory. The momentum is self-reinforcing: each declaration emboldens the next.
+
+Central authority is losing its grip not through revolution but through institutional withdrawal. If the Union is to survive in any form, that form must be actively constructed — it will not maintain itself.
+
+Your advisors have identified several courses of action that may still arrest the cascade. The Republic Autonomy Pact, the Cultural Autonomy Programme, Economic Incentives for the Republics, and the Novo-Ogaryovo process are the mechanisms most likely to offer the republics a credible reason to remain. Time is no longer a resource in surplus.`,
+      choices: [
+        {
+          text: 'Issue a public statement affirming the right of republics to cultural and economic self-determination within the Union',
+          effects: { separatism: -6, popularAffection: +5, partyUnity: -8, stability: +2 },
+          outcomeText: `Gorbachev addresses the nation. The statement is carefully worded — it affirms self-determination but not secession, federal partnership but not dissolution. Reformers call it overdue; conservatives call it capitulation. In Vilnius and Tallinn, the crowds are not wholly unimpressed. The cascade slows, but does not stop. The countermeasure policies are now the decisive terrain.`,
+        },
+        {
+          text: 'Convene an emergency session of the Congress of People\u2019s Deputies to debate a reformed Union Treaty',
+          effects: { separatism: -4, partyUnity: -5, stability: -3, popularAffection: +3 },
+          outcomeText: `The Congress convenes. The debate is raw and public in ways the Politburo finds alarming. Baltic deputies make speeches that would have earned years in the Gulag a decade ago. The reformist bloc demands a voluntary Union; the hardline bloc demands discipline. No resolution passes, but the act of convening signals that Moscow is willing to negotiate rather than simply command. Several republic leaderships indicate cautious openness to talks.`,
+        },
+        {
+          text: 'Do nothing — issue no statement and make no concessions; the declarations are legally void under the 1977 Constitution',
+          effects: { separatism: +5, stability: -5, partyUnity: +4, popularAffection: -4 },
+          outcomeText: `Moscow's silence is its own signal. The legal argument — that republican declarations cannot override the Union Constitution — is technically correct and politically catastrophic. In the absence of any credible offer from the centre, the moderate republican leaderships have nothing to show their populations. Hardliners in Moscow are satisfied; the republics draw the lesson that the centre will not negotiate and begin planning accordingly.`,
+        },
+      ],
+    },
+{
+      id: 'dev_the_union_on_the_brink',
+      name: 'The Union on the Brink',
+      devTriggerLabel: "threshold: separatism critical",
+      image: 'images/Republic_Independence_Movements.jpg',
+      description: 'Eleven of the fifteen republics have now either declared sovereignty or are in open confrontation with Moscow. The Union treaty exists only on paper. Gorbachev has days, not months, to either negotiate a final settlement or watch the USSR cease to exist. This is the last moment at which the centre can act.',
+      choices: [
+        {
+          text: 'Emergency Union Treaty — offer maximum autonomy to all republics',
+          effects: { separatism: -20, stability: +5, partyUnity: -15, popularAffection: +8 },
+        },
+        {
+          text: 'Address the nation — make a direct personal appeal for unity',
+          effects: { separatism: -10, popularAffection: +10, stability: -3 },
+        },
+        {
+          text: 'Accept the inevitable — begin orderly dissolution negotiations',
+          effects: { separatism: -5, stability: +10, partyUnity: -20, foreignRelations: +10 },
+        },
+      ],
+    },
+{
+      id: 'dev_superpower_crisis',
+      name: 'Superpower Crisis',
+      devTriggerLabel: "threshold: U.S. relations <= 20",
+      image: 'images/Superpower_Crisis.jpg',
+      description: 'Soviet-American relations have completely broken down. Both sides are on high alert. The world is closer to nuclear war than at any time since the Cuban Missile Crisis.',
+      choices: [
+        { text: 'Emergency diplomatic back-channel', effects: { foreignRelations: +15, partyUnity: -8, militaryReadiness: -5 } },
+        { text: 'Military posture — show strength', effects: { foreignRelations: -10, militaryReadiness: +10, economy: -10 } },
+        { text: 'Propose emergency summit', effects: { foreignRelations: +10, popularAffection: +5, partyUnity: -5 } },
+      ]
+    },
+{
+      id: 'dev_sino_soviet_border_tensions',
+      name: 'Sino-Soviet Border Tensions',
+      devTriggerLabel: "threshold: China relations <= 20",
+      image: 'images/Sino_Soviet_Border_Tensions.jpg',
+      description: `Comrade General Secretary — the General Staff of the Armed Forces of the Union of Soviet Socialist Republics submits the following assessment for your urgent consideration.
+
+Intelligence reports received through the Far Eastern Military District confirm a significant concentration of People's Liberation Army ground forces along the Sino-Soviet frontier in the Amur and Ussuri river sectors. The movements are consistent with a posture of forward deployment rather than routine exercise rotation. Border guard units of the KGB have reported increased aerial reconnaissance activity over Soviet territory in the Trans-Baikal region.
+
+The deterioration of fraternal relations between the Communist Party of the Soviet Union and the Communist Party of China — originating in the revisionist provocations of the Khrushchev period and deepened by the adventurist foreign policy line pursued by the Chinese leadership since 1969 — has created conditions in which miscalculation along the frontier cannot be excluded.
+
+The Ministry of Foreign Affairs has received no communication through established diplomatic channels. The General Staff requests guidance.`,
+      choices: [
+        { text: 'Authorise reinforcement of the Far Eastern Military District — additional motorised rifle divisions to be deployed to the frontier sectors', effects: { militaryReadiness: +3, economy: -5, foreignRelations: -3 } },
+        { text: 'Instruct the Ministry of Foreign Affairs to request an immediate exchange of military attaches and open a direct channel with the PLA General Staff', effects: { foreignRelations: +5, militaryReadiness: -2 } },
+        { text: 'No response — the General Staff is to maintain existing deployments and take no action that could be construed as provocative', effects: { stability: -3, militaryReadiness: -3 } },
+      ]
+    },
+{
+      id: 'dev_warsaw_pact_summit',
+      name: 'Warsaw Pact Summit',
+      devTriggerLabel: "threshold: Eastern Europe relations <= 25",
+      image: 'images/Warsaw_Pact_Summit.jpg',
+      description: `Comrade General Secretary — the First Secretaries of the fraternal socialist parties of the Polish People's Republic, the German Democratic Republic, the Hungarian People's Republic, the Czechoslovak Socialist Republic, the Socialist Republic of Romania, and the People's Republic of Bulgaria have requested an extraordinary convocation of the Political Consultative Committee of the Warsaw Treaty Organisation.
+
+The delegations have raised, through established fraternal channels, certain questions regarding the continuity of the principles governing mutual assistance and collective defence as codified in the 1955 Treaty. Specifically: whether the obligations of Article 4 remain operative in the event of internal disturbances directed against the leading role of the Party. The Hungarian comrades have raised this matter with particular insistence. The Polish delegation has forwarded materials documenting the activities of certain anti-socialist elements operating under the designation "Solidarity."
+
+The fraternal parties await clarification of the Union's position. The Military Council of the Warsaw Treaty Organisation has prepared contingency assessments. Your response will define the doctrine of socialist solidarity for the coming period.`,
+      choices: [
+        { text: 'Reaffirm the obligations of proletarian internationalism — the fraternal parties may count on the full support of the Union in defence of socialist gains', effects: { partyUnity: +5, foreignRelations: -8, popularAffection: -5 } },
+        { text: 'Each fraternal party bears responsibility for the defence of socialism within its own borders — the Union will not intervene in the internal affairs of sovereign states', effects: { partyUnity: -10, foreignRelations: +10, popularAffection: +5 } },
+        { text: 'Authorise an emergency programme of economic fraternal assistance to stabilise the most exposed People\'s Republics', effects: { economy: -8, stability: +3 } },
+      ]
+    },
+{
+      id: 'dev_revolutions_of_1989',
+      name: 'Revolutions of 1989',
+      devTriggerLabel: "threshold: Eastern Europe relations <= 10",
+      image: 'images/Revolutions_of_1989.JPG',
+      description: 'Comrade General Secretary — the International Department of the Central Committee submits an urgent summary of conditions in the fraternal socialist states of Eastern Europe.\n\nIn the Polish People\'s Republic, the United Workers\' Party has suffered a comprehensive defeat in elections to the newly constituted Senate. The so-called Solidarity trade union, which this Committee advised be suppressed in 1980 and which has instead been tolerated and then legalised, is forming a government. In the Hungarian People\'s Republic, the Party has voted to dissolve itself and reconstitute as a social democratic formation. The Hungarian government has furthermore opened its western border with Austria, rendering the entire system of frontier controls meaningless; several hundred thousand citizens of the German Democratic Republic have transited through Hungary to the Federal Republic in the past sixty days alone.\n\nIn the German Democratic Republic, mass demonstrations in Leipzig, Dresden, and East Berlin continue to grow. The request by Comrade Egon Krenz for clarification of the Union\'s position on the use of security forces has been received. In the Czechoslovak Socialist Republic, the security services have dispersed demonstrations in Prague; this action has produced no stabilising effect and has attracted significant international condemnation. In the Socialist Republic of Romania, the situation requires separate assessment.\n\nThe Military Council of the Warsaw Treaty Organisation has been convened. It has reached no conclusion. The International Department notes, for the record, that the doctrine of non-interference communicated by your office in 1988 is now producing its full consequences.',
+      choices: [
+        { text: 'Accept the revolutions — non-intervention', effects: { partyUnity: -10, foreignRelations: +15, popularAffection: +5 } },
+        { text: 'Selective military intervention', effects: { foreignRelations: -20, militaryReadiness: -8, popularAffection: -10 } },
+        { text: 'Emergency consultation with Politburo', effects: { partyUnity: -3, stability: -3 } },
+      ]
+    },
+{
+      id: 'dev_end_of_the_warsaw_pact',
+      name: 'End of the Warsaw Pact',
+      devTriggerLabel: "threshold: Eastern Europe relations <= 0",
+      image: 'images/End_of_the_Warsaw_Pact.jpg',
+      description: 'The satellite states are openly seeking NATO membership. The Warsaw Pact exists only on paper. Soviet strategic depth in Europe is gone.',
+      choices: [
+        { text: 'Formally dissolve the Pact — negotiate NATO assurances', effects: { foreignRelations: +10, partyUnity: -10, militaryReadiness: -5 } },
+        { text: 'Demand the Pact continue — issue warnings', effects: { foreignRelations: -10, partyUnity: +5 } },
+      ]
+    }
+];
+
+function getDeveloperEventList() {
+  const baseEvents = (typeof events !== 'undefined' && Array.isArray(events)) ? events : [];
+  const manualEvents = (typeof DEV_TRIGGER_EVENTS !== 'undefined' && Array.isArray(DEV_TRIGGER_EVENTS)) ? DEV_TRIGGER_EVENTS : [];
+  const merged = [];
+  const seen = new Set();
+  baseEvents.concat(manualEvents).forEach(function(ev) {
+    if (!ev) return;
+    const key = ev.id || ev.name;
+    if (!key || seen.has(key)) return;
+    seen.add(key);
+    merged.push(ev);
+  });
+  return merged;
+}
+
 function populateDevEventSelect() {
   var sel = document.getElementById('dev-event-select');
   if (!sel) return;
@@ -11362,7 +11639,7 @@ function populateDevEventSelect() {
   placeholder.value = '';
   placeholder.textContent = '— choose event —';
   sel.appendChild(placeholder);
-  var eventList = (typeof events !== 'undefined' && Array.isArray(events)) ? events : [];
+  var eventList = (typeof getDeveloperEventList === 'function') ? getDeveloperEventList() : ((typeof events !== 'undefined' && Array.isArray(events)) ? events : []);
   var seen = new Set();
   eventList.forEach(function(ev) {
     if (!ev || !ev.id || seen.has(ev.id)) return;
@@ -11372,9 +11649,10 @@ function populateDevEventSelect() {
     var label = ev.name || ev.id;
     var meta = [];
     if (ev.trigger && ev.trigger.month && ev.trigger.year) meta.push(String(ev.trigger.month).padStart(2, '0') + '/' + ev.trigger.year);
-    if (typeof ev.condition === 'function') meta.push(ev.trigger && ev.trigger.month && ev.trigger.year ? 'trigger-based' : 'conditional');
+    if (ev.devTriggerLabel) meta.push(ev.devTriggerLabel);
+    else if (typeof ev.condition === 'function') meta.push(ev.trigger && ev.trigger.month && ev.trigger.year ? 'trigger-based' : 'conditional');
     else if (ev.trigger && ev.trigger.month && ev.trigger.year) meta.push('dated');
-    else meta.push('manual');
+    else meta.push('manual fire');
     opt.textContent = label + ' [' + meta.join(' · ') + ']';
     sel.appendChild(opt);
   });
@@ -11411,7 +11689,7 @@ function devFireSelectedEvent() {
   var eventId = sel.value;
   // Find the event. NOTE: events is declared with `let` so window['events'] won't find it —
   // reference it directly. (Bug #1 fix)
-  var ev = (typeof events !== 'undefined' ? events : [])
+  var ev = ((typeof getDeveloperEventList === 'function') ? getDeveloperEventList() : (typeof events !== 'undefined' ? events : []))
     .find(function(e){ return e.id === eventId; });
   if (!ev && typeof gameEvents !== 'undefined') {
     ev = gameEvents.find(function(e){ return e.id === eventId; });
