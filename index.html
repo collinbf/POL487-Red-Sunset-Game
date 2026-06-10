@@ -1570,20 +1570,27 @@
 /* === PRAVDA PANEL — full-screen modal overlay === */
 .event-panel.pravda{
   display: none !important;
-  /* Modal positioning */
+  /* Modal positioning — scrollable full-screen container */
   position: fixed !important;
   inset: 0 !important;
   z-index: 8000 !important;
-  /* Backdrop */
-  background: rgba(10,6,3,0.82) !important;
-  /* Centre the newspaper */
-  align-items: center !important;
+  /* No background here — ::before handles the fixed dark overlay */
+  background: transparent !important;
+  align-items: flex-start !important;
   justify-content: center !important;
   overflow-y: auto !important;
-  padding: 5vh 1rem 4vh !important;
-  /* Reset border/radius from inline mode */
+  padding: 2.5vh 1rem 6vh !important;
   border: none !important;
   border-radius: 0 !important;
+}
+/* Fixed dark backdrop always covers full viewport regardless of scroll */
+.event-panel.pravda::before {
+  content: '';
+  position: fixed !important;
+  inset: 0 !important;
+  background: rgba(10,6,3,0.82) !important;
+  z-index: -1 !important;
+  pointer-events: none !important;
 }
 /* Coup event: tall content — anchor to top so TV is always visible */
 .event-panel.pravda.coup-active {
@@ -1602,23 +1609,23 @@
   padding: 18px 20px 22px;
   box-shadow: 0 28px 60px rgba(0,0,0,0.70), 0 4px 12px rgba(0,0,0,0.40);
   transform-origin: top center;
-  overflow-y: auto;
-  max-height: 90vh;
+  overflow-y: visible;
+  /* No max-height — card always grows to show full content */
 }
 .event-panel.pravda.paper-unfurl .pravda-modal-card {
   animation: paperThrow 0.78s cubic-bezier(0.22, 0.8, 0.32, 1) both;
   will-change: clip-path, transform, opacity, filter;
 }
-/* Backdrop fade-in */
+/* Backdrop fade-in — animate the ::before fixed overlay */
 @keyframes backdropIn {
-  from { background-color: rgba(10,6,3,0); }
-  to   { background-color: rgba(10,6,3,0.82); }
+  from { opacity: 0; }
+  to   { opacity: 1; }
 }
-.event-panel.pravda.active {
+.event-panel.pravda.active::before {
   animation: backdropIn 0.35s ease-out forwards;
 }
 .event-panel.pravda.paper-unfurl::before,
-.event-panel.pravda.paper-unfurl::after { display: none; }
+.event-panel.pravda.paper-unfurl::after { display: block; } /* keep backdrop visible during animation */
 .event-panel.pravda.paper-unfurl .pravda-modal-card::before{
   content:'';
   position:absolute;
@@ -2321,7 +2328,7 @@
 }
 
 /* ── AUGUST COUP 1991: SOVIET TV + TELEGRAM OVERLAY ─────────────── */
-.coup-overlay { display:flex; flex-direction:column; align-items:center; gap:0; width:100%; max-width:760px; padding:10px 24px 32px; }
+.coup-overlay { display:flex; flex-direction:column; align-items:center; gap:0; width:100%; max-width:760px; padding:2px 24px 32px; }
 .coup-tv-wrap { position:relative; width:min(640px,96%); }
 .coup-tv-svg { width:100%; height:auto; display:block; filter:drop-shadow(0 10px 40px rgba(0,0,0,0.75)); }
 @keyframes coup-led-blink { 0%,100%{opacity:1} 50%{opacity:0.2} }
@@ -7299,7 +7306,7 @@ function displayCoupEvent(event) {
           </linearGradient>
           <!-- screen clip uses new screen coords: x=120 y=42 w=372 h=236 rx=28 -->
           <clipPath id="screen-clip">
-            <rect x="128" y="46" width="328" height="220" rx="44" ry="40"/>
+            <rect x="132" y="50" width="320" height="214" rx="32" ry="32"/>
           </clipPath>
           <pattern id="scanlines" x="0" y="0" width="1" height="4" patternUnits="userSpaceOnUse">
             <rect width="1" height="4" fill="none"/>
@@ -7467,36 +7474,39 @@ function displayCoupEvent(event) {
 
 
         <!-- ── SCREEN AREA ── -->
-        <!-- Wood trim frame around bezel — visible warm brown border like real Rubin 714 -->
-        <rect x="112" y="22" width="360" height="264" fill="url(#wood-face)" rx="6"/>
-        <rect x="112" y="22" width="360" height="264" fill="url(#grain)" rx="6" opacity="0.5"/>
-        <!-- Chrome strip top of wood frame -->
-        <rect x="112" y="22" width="360" height="4" fill="url(#chrome)" rx="2" opacity="0.6"/>
-        <!-- Inner shadow on wood frame edges -->
-        <rect x="112" y="22" width="360" height="264" fill="none" stroke="rgba(0,0,0,0.35)" stroke-width="3" rx="6"/>
-        <!-- Outer bezel — black, sits inside wood frame -->
-        <rect x="122" y="32" width="340" height="244" fill="url(#bezel)" rx="8"/>
-        <!-- Inner bezel depth -->
-        <rect x="124" y="34" width="336" height="240" fill="#080808" rx="7"/>
-        <!-- CRT screen — very heavily rounded corners like actual tube -->
-        <rect x="128" y="46" width="328" height="220" fill="#050a08" rx="44" ry="40"/>
+        <!-- Wood frame — wide visible border, fills most of the cabinet face -->
+        <rect x="112" y="20" width="360" height="284" fill="url(#wood-face)" rx="4"/>
+        <rect x="112" y="20" width="360" height="284" fill="url(#grain)" rx="4" opacity="0.5"/>
+        <!-- Subtle inner shadow on wood edges -->
+        <rect x="112" y="20" width="360" height="284" fill="none" stroke="rgba(0,0,0,0.4)" stroke-width="4" rx="4"/>
+
+        <!-- Thin black plastic rim -->
+        <rect x="128" y="46" width="328" height="222" fill="#0a0a0a" rx="30"/>
+
+        <!-- CRT glass — large, moderate squircle corners -->
+        <rect x="132" y="50" width="320" height="214" fill="#050a08" rx="32" ry="32"/>
 
         <!-- Screen image -->
-        <foreignObject x="128" y="46" width="328" height="220" clip-path="url(#screen-clip)">
-          <div xmlns="http://www.w3.org/1999/xhtml" style="width:100%;height:100%;overflow:hidden;border-radius:44px/40px;background:#000;">
+        <foreignObject x="132" y="50" width="320" height="214" clip-path="url(#screen-clip)">
+          <div xmlns="http://www.w3.org/1999/xhtml" style="width:100%;height:100%;overflow:hidden;border-radius:32px;background:#000;">
             <img src="images/swan-lake.gif" alt="Soviet television — Swan Lake"
                  style="width:100%;height:100%;object-fit:cover;display:block;filter:saturate(0.65) brightness(0.88) contrast(1.12);"/>
           </div>
         </foreignObject>
 
         <!-- CRT vignette -->
-        <rect x="128" y="46" width="328" height="220" fill="url(#crt-vignette)" rx="44" ry="40"/>
+        <rect x="132" y="50" width="320" height="214" fill="url(#crt-vignette)" rx="32" ry="32"/>
         <!-- Scanlines -->
-        <rect class="coup-scanlines" x="128" y="46" width="328" height="220" fill="url(#scanlines)" rx="44" ry="40" opacity="0.7"/>
-        <!-- Glare -->
-        <rect x="128" y="46" width="328" height="220" fill="url(#glare)" rx="44" ry="40"/>
-        <!-- Bezel inner highlight -->
-        <rect x="124" y="34" width="336" height="2" fill="rgba(255,255,255,0.05)" rx="1"/>
+        <rect class="coup-scanlines" x="132" y="50" width="320" height="214" fill="url(#scanlines)" rx="32" ry="32" opacity="0.7"/>
+        <!-- Glass glare -->
+        <rect x="132" y="50" width="320" height="214" fill="url(#glare)" rx="32" ry="32"/>
+        <!-- Thin inner shadow around glass edge -->
+        <rect x="132" y="50" width="320" height="214" fill="none" stroke="rgba(0,0,0,0.6)" stroke-width="3" rx="32" ry="32"/>
+
+        <!-- РУБИН 714 nameplate — lower wood strip, left-aligned -->
+        <rect x="130" y="282" width="78" height="11" fill="#191919" rx="1.5"/>
+        <rect x="131" y="283" width="76" height="9"  fill="none" stroke="#555" stroke-width="0.5" rx="1"/>
+        <text x="169" y="290.5" text-anchor="middle" font-family="sans-serif" font-size="6.5" fill="#cccccc" letter-spacing="1.5" font-weight="bold">РУБИН 714</text>
 
         <!-- ── FEET ── -->
         <rect x="80"  y="306" width="20" height="16" fill="#3d1e08" rx="0 0 3 3"/>
@@ -10518,6 +10528,46 @@ document.addEventListener('keydown', function(e) {
         <button class="btn" onclick="debugForceEnding('dissolution')">Force Dissolution</button>
         <button class="btn" onclick="debugForceEnding('success')">Force Success</button>
       </div>
+      <!-- Fire any event by ID -->
+      <div style="margin-top:10px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+        <label style="font-family:'Playfair Display',serif;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--red-dark);white-space:nowrap;">Fire Event:</label>
+        <select id="dev-event-select" style="flex:1;min-width:0;font-family:'Playfair Display',serif;font-size:11px;background:var(--parchment);border:1px solid rgba(139,26,26,0.4);border-radius:3px;padding:4px 6px;color:var(--ink);cursor:pointer;">
+          <option value="">— choose event —</option>
+          <option value="april_1985_plenum">The Central Committee Plenum — April 1985</option>
+          <option value="chernenko_funeral">State Funeral: Comrade Chernenko</option>
+          <option value="geneva_summit_event">The Geneva Summit</option>
+          <option value="chernobyl">Reactor No. 4: Chernobyl</option>
+          <option value="rust_landing">Violation of Sovereign Airspace: West German Aircraft</option>
+          <option value="october_revolution_70">70th Anniversary of the October Revolution</option>
+          <option value="yeltsin_incident">The Yeltsin Affair</option>
+          <option value="oil_crash">Collapse of Oil Revenue</option>
+          <option value="moscow-coup">Hardliner Faction Demands Action</option>
+          <option value="economics-collapse">Deepening Economic Crisis</option>
+          <option value="free_talk_show">Vzglyad — TV Authorisation</option>
+          <option value="law_on_cooperatives">Law on Cooperatives</option>
+          <option value="tbilisi_protests_1989">Restore Order in Tbilisi</option>
+          <option value="august_coup_1991">The August Coup 1991</option>
+          <option value="freedom_of_conscience_event">Law on Freedom of Conscience</option>
+          <option value="libya_bombing_1986">Operation El Dorado Canyon: America Bombs Libya</option>
+          <option value="daniloff_affair_1986">The Daniloff Affair</option>
+          <option value="shultz_visit_1986">The Shultz Visit</option>
+          <option value="reykjavik_summit_1986">The Reykjavik Summit</option>
+          <option value="vladivostok_speech_1986">The Vladivostok Speech</option>
+          <option value="inf_ratification_1987">Early Ratification of the INF Treaty</option>
+          <option value="hockey_brawl_1987">World Junior Hockey Brawl</option>
+          <option value="washington_summit_1987">The Washington Summit</option>
+          <option value="tanker_war_1987">The Tanker War: Kuwaiti Reflagging</option>
+          <option value="thatcher_visit_1987">Thatcher Visit 1987</option>
+          <option value="sino_soviet_summit_1989">The Sino-Soviet Summit</option>
+          <option value="hungary_iron_curtain_1989">The Fall of the Iron Curtain</option>
+          <option value="malta_summit_1989">The Malta Summit</option>
+          <option value="nina_andreeva_letter">Nina Andreyeva Letter</option>
+          <option value="october_1987_plenum">Central Committee Plenum — October 1987</option>
+          <option value="bush_inauguration">A New Administration in Washington</option>
+          <option value="tiananmen_1989">Tiananmen Square</option>
+        </select>
+        <button class="btn" onclick="devFireSelectedEvent()" style="white-space:nowrap;">▶ Fire</button>
+      </div>
       <div class="debug-grid" id="debug-grid-modal"></div>
     </div>
   </div>
@@ -10569,6 +10619,33 @@ function toggleDevModal() {
   var overlay = document.getElementById('dev-modal-overlay');
   if (!overlay) return;
   if (overlay.style.display === 'none' || overlay.style.display === '') { openDevModal(); } else { closeDevModal(); }
+}
+
+function devFireSelectedEvent() {
+  var sel = document.getElementById('dev-event-select');
+  if (!sel || !sel.value) return;
+  var eventId = sel.value;
+  // Find the event in the events array
+  var ev = (typeof events !== 'undefined' ? events : (typeof gameEvents !== 'undefined' ? gameEvents : []))
+    .find(function(e){ return e.id === eventId; });
+  if (!ev) {
+    // Try looking in all possible event arrays
+    var allArrays = ['events','gameEvents','EVENTS','historicalEvents'];
+    for (var i = 0; i < allArrays.length; i++) {
+      var arr = window[allArrays[i]];
+      if (Array.isArray(arr)) { ev = arr.find(function(e){ return e.id === eventId; }); if (ev) break; }
+    }
+  }
+  if (!ev) { alert('Event "' + eventId + '" not found. Check console.'); console.warn('devFireSelectedEvent: no event with id', eventId); return; }
+  closeDevModal();
+  // Fire it immediately via displayEvent
+  if (typeof displayEvent === 'function') {
+    displayEvent(ev);
+  } else if (typeof showEvent === 'function') {
+    showEvent(ev);
+  } else {
+    console.warn('devFireSelectedEvent: no displayEvent or showEvent function found');
+  }
 }
 document.addEventListener('keydown', function(e) {
   if (e.key === 'Escape') {
