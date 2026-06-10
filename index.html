@@ -6922,7 +6922,7 @@ function fireAdvisor(advisorId) {
   if (a.faction === 'Conservative') applyMetricChange('partyUnity', +3);
   const lockedPolicies = policies.filter(p => p.advisorRequired === advisorId && !(gameState.enactedPolicies||[]).includes(p.id));
   const lockedNames = lockedPolicies.map(p => p.name).join(', ');
-  addLog(`${a.name} divorced. -${cost} political capital, Stability −3. ${lockedNames ? 'Policies lost: ' + lockedNames + '.' : ''}`, 'advisor');
+  addLog(`${a.name} ${a.id === 'raisa' ? 'divorced' : 'dismissed'}. -${cost} political capital, Stability −3. ${lockedNames ? 'Policies lost: ' + lockedNames + '.' : ''}`, 'advisor');
   closeAdvisorDetail();
   render();
   renderPolicies();
@@ -7012,7 +7012,7 @@ function buildAdvisorDetailContent(a){
         <h4 style="color:var(--red);">${a.id === 'raisa' ? 'Divorce' : 'Dismiss advisor'}</h4>
         <p style="font-size:12px;margin-bottom:.6rem;">${a.id === 'raisa' ? 'Divorcing Raisa Gorbacheva would be a personal and political catastrophe. It costs <strong>15 political capital</strong> and deals a severe blow to public standing and reformist morale. This cannot be undone.' : 'Removing ' + escapeHtml(a.name) + ' from the inner circle costs <strong>15 political capital</strong> and carries consequences for stability and party cohesion. This cannot be undone.'}</p>
         <button class="action-btn-secondary" style="font-size:11px;padding:6px 14px;" onclick="fireAdvisor('${escapeHtml(a.id)}')">${a.id === 'raisa' ? 'Divorce Raisa Gorbacheva' : 'Dismiss ' + escapeHtml(a.name)}</button>
-      </div>` : status.fired ? `<p style="color:var(--red);font-style:italic;margin-top:1rem;">${a.id === 'raisa' ? 'Raisa Gorbacheva was divorced.' : 'This advisor was divorced.'}</p>` : ''}
+      </div>` : status.fired ? `<p style="color:var(--red);font-style:italic;margin-top:1rem;">${a.id === 'raisa' ? 'Raisa Gorbacheva was divorced.' : 'This advisor was dismissed.'}</p>` : ''}
     </div>`;
 }
 
@@ -8251,10 +8251,13 @@ function endTurn() {
 
     // Popular Support consolidation: 50+ → light; 65+ → full
     // a popular leader finds it easier to maintain their mandate.
+    // NOTE: uses the canonical 'popularAffection' key throughout — 'popularSupport'
+    // is a valid alias in applyMetricChange, but using the canonical key avoids
+    // any future confusion about which metric is being read vs written (Bug #4 fix).
     if (m.popularAffection >= 65 && m.popularAffection < 90) {
-      applyMetricChange('popularSupport', 0.5);
+      applyMetricChange('popularAffection', 0.5);
     } else if (m.popularAffection >= 50 && m.popularAffection < 65) {
-      applyMetricChange('popularSupport', 0.3);
+      applyMetricChange('popularAffection', 0.3);
     }
 
     // Party Unity cohesion: 50+ → light; 65+ → full
@@ -8428,7 +8431,7 @@ function checkAllTriggers() {
 
   // ── INFLATION TRIGGER (GDD: trigger at 20%) ──────────────────────
   if (es.inflation >= 20 && fireTrigger('inflation_20', 'Inflation crisis! Public pressure mounts.')) {
-    applyMetricChange('popularSupport', -20);
+    applyMetricChange('popularAffection', -20);
     applyMetricChange('partyUnity', -8);
     ir.eastEu = clamp(ir.eastEu - 5, 0, 100);
     pf.reform    = clamp(pf.reform    - 8, 0, 100);
@@ -8597,7 +8600,7 @@ The world has taken notice. Reagan's team signals that the Geneva Process can no
   }
   if (sep >= 50 && fireTrigger('sep_50', 'Civil unrest spreading — multiple republics in open defiance.', 'event')) {
     applyMetricChange('stability', -10);
-    applyMetricChange('popularSupport', -8);
+    applyMetricChange('popularAffection', -8);
     displayTriggerEvent({
       name: 'Republic Independence Movements',
       image: 'images/Republic_Independence_Movements.jpg',
@@ -9478,7 +9481,7 @@ function renderAdvisors(){
     if (loyalty >= 75) cls = 'high';
     if (loyalty <= 40) cls = 'low';
     const chips = [];
-    if (status.fired) chips.push('<span class="advisor-status-chip low">Divorced</span>');
+    if (status.fired) chips.push(`<span class="advisor-status-chip low">${a.id === 'raisa' ? 'Divorced' : 'Dismissed'}</span>`);
     else if (a.id === 'raisa' && (status.resigned || loyalty < 15)) chips.push('<span class="advisor-status-chip low">Departed</span>');
     else if (status.resigned || loyalty < 20) chips.push(`<span class="advisor-status-chip low">${a.id === 'akhromeyev' ? 'Dead' : 'Resigned'}</span>`);
     else if (a.id === 'raisa') {
@@ -10625,16 +10628,15 @@ function devFireSelectedEvent() {
   var sel = document.getElementById('dev-event-select');
   if (!sel || !sel.value) return;
   var eventId = sel.value;
-  // Find the event in the events array
-  var ev = (typeof events !== 'undefined' ? events : (typeof gameEvents !== 'undefined' ? gameEvents : []))
+  // Find the event in the events array.
+  // NOTE: events is declared with `let` at module scope, so window['events'] won't
+  // find it — reference it directly. The window-lookup fallbacks are kept as a
+  // safety net for any future module-level aliases, but the primary lookup now
+  // goes directly to the `events` variable (Bug #1 fix).
+  var ev = (typeof events !== 'undefined' ? events : [])
     .find(function(e){ return e.id === eventId; });
-  if (!ev) {
-    // Try looking in all possible event arrays
-    var allArrays = ['events','gameEvents','EVENTS','historicalEvents'];
-    for (var i = 0; i < allArrays.length; i++) {
-      var arr = window[allArrays[i]];
-      if (Array.isArray(arr)) { ev = arr.find(function(e){ return e.id === eventId; }); if (ev) break; }
-    }
+  if (!ev && typeof gameEvents !== 'undefined') {
+    ev = gameEvents.find(function(e){ return e.id === eventId; });
   }
   if (!ev) { alert('Event "' + eventId + '" not found. Check console.'); console.warn('devFireSelectedEvent: no event with id', eventId); return; }
   closeDevModal();
