@@ -281,6 +281,110 @@
   .volume-wrap { display:grid; grid-template-columns:36px 1fr; gap:8px; align-items:center; width:100%; margin-top:7px; font-family:'IM Fell English',serif; font-size:12px; }
   .volume-wrap input { width:100%; accent-color:var(--red); }
 
+
+  /* SOVIET RADIO AUDIO OPTIONS */
+  .utility-panel.soviet-radio{position:relative;overflow:hidden;padding:14px 14px 16px;border:3px solid #4b1f0f;border-radius:12px;background:linear-gradient(90deg,rgba(255,255,255,.13),transparent 18%,transparent 82%,rgba(0,0,0,.20)),repeating-linear-gradient(90deg,rgba(90,39,16,.28) 0 2px,rgba(180,83,31,.15) 2px 5px),linear-gradient(145deg,#8a3f18 0%,#5a250f 42%,#3c170b 100%);box-shadow:inset 0 2px 0 rgba(255,210,135,.25),inset 0 -8px 14px rgba(0,0,0,.35),0 5px 12px rgba(43,31,16,.18)}
+  .utility-panel.soviet-radio::before,.utility-panel.soviet-radio::after{content:"";position:absolute;top:0;bottom:0;width:22px;background:radial-gradient(ellipse at center,rgba(255,180,95,.18),transparent 58%),repeating-linear-gradient(90deg,rgba(255,180,95,.20) 0 1px,transparent 1px 4px),linear-gradient(#9b4a1d,#4c1c0d);opacity:.9;pointer-events:none}.utility-panel.soviet-radio::before{left:0;border-right:1px solid rgba(255,210,135,.20)}.utility-panel.soviet-radio::after{right:0;border-left:1px solid rgba(255,210,135,.20)}
+  .soviet-radio>*{position:relative;z-index:1}.soviet-radio .section-title{color:#f3d58a;text-shadow:0 1px 0 #2b1208,0 0 8px rgba(243,213,138,.18);letter-spacing:.16em;border-bottom:1px solid rgba(243,213,138,.38);padding-bottom:5px}
+  .radio-speaker-grille{height:64px;margin:9px 20px 10px;border:2px solid rgba(35,16,8,.74);border-radius:6px;background:radial-gradient(circle at 10px 10px,rgba(255,214,132,.22) 0 2px,transparent 2.5px) 0 0/14px 12px,linear-gradient(180deg,rgba(188,123,58,.74),rgba(94,55,28,.86));box-shadow:inset 0 2px 8px rgba(0,0,0,.42),0 1px 0 rgba(255,221,150,.22)}
+  .radio-tuning-scale{margin:0 10px 10px;padding:6px 10px 5px;border:2px solid #1e120b;border-radius:7px;background:linear-gradient(180deg,#16100b,#070504);box-shadow:inset 0 0 0 1px rgba(226,179,84,.50),inset 0 0 14px rgba(226,179,84,.12)}.radio-scale-lines{height:24px;position:relative;background:repeating-linear-gradient(90deg,transparent 0 13px,rgba(232,195,106,.75) 13px 14px),linear-gradient(180deg,transparent 41%,rgba(232,195,106,.70) 42% 47%,transparent 48%)}.radio-scale-lines::before{content:"ДВ   СВ   КВ   УКВ";position:absolute;left:0;right:0;bottom:-1px;display:flex;justify-content:space-around;font-family:'IM Fell English',serif;font-size:8px;color:#e8c36a;letter-spacing:.08em}.radio-scale-lines::after{content:"";position:absolute;top:2px;left:54%;width:2px;height:21px;background:#f2ead8;box-shadow:0 0 6px rgba(242,234,216,.8)}
+  .soviet-radio .volume-wrap{grid-template-columns:42px 1fr;margin:8px 10px 0;padding:5px 7px;color:#f3d58a;background:rgba(18,10,5,.34);border:1px solid rgba(226,179,84,.26);border-radius:5px;text-shadow:0 1px 0 #120805}.soviet-radio .volume-wrap input{accent-color:#e7c06a;height:16px;cursor:pointer}.soviet-radio .volume-wrap input::-webkit-slider-runnable-track{height:5px;border-radius:999px;background:#130b06;border:1px solid rgba(226,179,84,.36)}.soviet-radio .volume-wrap input::-webkit-slider-thumb{margin-top:-6px;width:16px;height:16px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff1bf 0 15%,#d9a94e 16% 46%,#4a260d 48% 100%);border:1px solid #f0cf7a;box-shadow:0 1px 3px rgba(0,0,0,.55)}.soviet-radio .volume-wrap input::-moz-range-track{height:5px;border-radius:999px;background:#130b06;border:1px solid rgba(226,179,84,.36)}.soviet-radio .volume-wrap input::-moz-range-thumb{width:16px;height:16px;border-radius:50%;background:#d9a94e;border:1px solid #f0cf7a}
+  .radio-controls{justify-content:center;gap:10px;margin-top:10px}.radio-icon-btn{width:38px;height:30px;padding:0!important;display:inline-flex;align-items:center;justify-content:center;border:1px solid #dac07a;border-radius:4px;color:#1d1209;background:linear-gradient(180deg,#fff7dc 0%,#d7c093 47%,#a78a5a 100%);box-shadow:inset 0 1px 0 rgba(255,255,255,.75),inset 0 -3px 0 rgba(75,43,18,.24),0 2px 0 #231005,0 4px 8px rgba(0,0,0,.28);font-size:15px!important;line-height:1;cursor:pointer}.radio-icon-btn:hover{transform:translateY(1px);filter:brightness(1.05)}.radio-icon-btn:active{transform:translateY(2px);box-shadow:inset 0 2px 5px rgba(0,0,0,.32),0 1px 0 #231005}.radio-icon-btn .icon{display:block;transform:translateY(-1px)}.radio-icon-btn.muted{color:#6d140f;background:linear-gradient(180deg,#f0d5b5 0%,#c99a73 52%,#8b5a3a 100%)}.soviet-radio .save-status{color:#f3d58a;opacity:.80;text-shadow:0 1px 0 #120805;margin:6px 10px 0}
+
+
+
+  /* COMPACT RADIO CONTROL OVERRIDES */
+  .utility-panel.soviet-radio{padding:10px 12px 12px;min-height:0;}
+  .soviet-radio .section-title{padding-bottom:3px;margin-bottom:0;}
+  .radio-speaker-grille{height:42px;margin:7px 28px 7px;}
+  .radio-tuning-scale{margin:0 16px 7px;padding:4px 8px 3px;}
+  .radio-scale-lines{height:18px;}
+  .radio-scale-lines::before{font-size:7px;bottom:-2px;}
+  .radio-scale-lines::after{height:16px;top:1px;}
+  .soviet-radio .volume-wrap{grid-template-columns:48px minmax(0,1fr);gap:7px;margin:6px 14px 0;padding:4px 6px;font-size:11px;}
+  .soviet-radio .volume-wrap input{width:150px;max-width:100%;justify-self:end;}
+  .radio-controls{gap:7px;margin-top:8px;flex-wrap:nowrap;}
+  .radio-icon-btn{width:32px;height:27px;font-size:15px!important;color:#1d1209!important;opacity:1!important;text-shadow:none!important;}
+  .radio-icon-btn .icon{opacity:1!important;color:inherit!important;filter:none!important;font-family:Arial,Helvetica,sans-serif;font-weight:900;}
+
+
+  /* FINAL RADIO CONTROL TUNING */
+  .soviet-radio .volume-wrap{
+    grid-template-columns:58px 116px !important;
+    justify-content:center;
+    column-gap:10px !important;
+    margin:6px auto 0 !important;
+    width:220px !important;
+    max-width:calc(100% - 34px) !important;
+  }
+  .soviet-radio .volume-wrap input{
+    width:116px !important;
+    max-width:116px !important;
+    justify-self:end !important;
+  }
+  .radio-icon-btn,
+  .radio-icon-btn:hover,
+  .radio-icon-btn:focus,
+  .radio-icon-btn:active,
+  .radio-icon-btn.muted{
+    background:#d7cdb2 !important;
+    background-image:linear-gradient(180deg,#eee7d4 0%,#d7cdb2 54%,#bdb193 100%) !important;
+    border-color:#efe6cd !important;
+    color:#1b1108 !important;
+    opacity:1 !important;
+    text-shadow:none !important;
+    filter:none !important;
+  }
+  .radio-icon-btn .icon{
+    color:#1b1108 !important;
+    opacity:1 !important;
+    filter:none !important;
+    text-shadow:none !important;
+  }
+
+  /* WOVEN CLOTH SPEAKER GRILLE — inspired by the reference radio fabric */
+  .radio-speaker-grille{
+    position:relative !important;
+    overflow:hidden !important;
+    height:52px !important;
+    margin:7px 26px 8px !important;
+    border:2px solid rgba(70,32,12,.86) !important;
+    border-radius:7px !important;
+    background-color:#c7ad8d !important;
+    background-image:
+      linear-gradient(180deg,rgba(255,246,224,.30),rgba(97,61,33,.24)),
+      repeating-linear-gradient(90deg,rgba(246,232,206,.58) 0 6px,rgba(142,105,72,.28) 6px 9px,rgba(199,173,141,.16) 9px 18px),
+      repeating-linear-gradient(0deg,rgba(255,255,255,.20) 0 1px,rgba(78,50,31,.18) 1px 2px,transparent 2px 7px),
+      repeating-linear-gradient(60deg,transparent 0 10px,rgba(82,55,38,.36) 10px 12px,transparent 12px 22px),
+      repeating-linear-gradient(120deg,transparent 0 10px,rgba(82,55,38,.34) 10px 12px,transparent 12px 22px) !important;
+    background-size:auto,24px 100%,100% 8px,28px 18px,28px 18px !important;
+    box-shadow:
+      inset 0 2px 6px rgba(255,236,197,.26),
+      inset 0 -5px 10px rgba(55,31,14,.36),
+      inset 0 0 0 1px rgba(245,221,178,.16),
+      0 1px 0 rgba(255,221,150,.22) !important;
+  }
+  .radio-speaker-grille::before{
+    content:"";
+    position:absolute;
+    inset:5px 7px;
+    pointer-events:none;
+    background-image:
+      repeating-linear-gradient(90deg,transparent 0 15px,rgba(255,245,220,.40) 15px 20px,transparent 20px 30px),
+      repeating-linear-gradient(0deg,transparent 0 8px,rgba(85,54,34,.28) 8px 10px,transparent 10px 18px);
+    mix-blend-mode:screen;
+    opacity:.62;
+  }
+  .radio-speaker-grille::after{
+    content:"";
+    position:absolute;
+    inset:0;
+    pointer-events:none;
+    background:
+      radial-gradient(ellipse at center,rgba(255,244,218,.18),transparent 62%),
+      linear-gradient(90deg,rgba(58,29,10,.30),transparent 12%,transparent 88%,rgba(58,29,10,.30));
+    box-shadow:inset 0 0 16px rgba(35,18,8,.38);
+  }
   .policy-tree {
     display:flex;
     flex-direction:column;
@@ -2716,13 +2820,10 @@
 
     </div>
 
-    <div class="utility-panel" style="margin-top:10px;">
+    <div class="utility-panel soviet-radio" style="margin-top:10px;">
   <div class="section-title" style="font-size:10px;">Options</div>
-  <div class="utility-row">
-    
-    
-    
-  </div>
+  <div class="radio-speaker-grille" aria-hidden="true"></div>
+  <div class="radio-tuning-scale" aria-hidden="true"><div class="radio-scale-lines"></div></div>
   <div class="volume-wrap">
     <span>SFX</span>
     <input id="sfx-volume" type="range" min="0" max="100" value="70" oninput="setSfxVolume(this.value)" />
@@ -2731,11 +2832,11 @@
     <span>Music</span>
     <input id="music-volume" type="range" min="0" max="100" value="70" oninput="setMusicVolume(this.value)" />
   </div>
-  <div class="utility-row">
-    <button class="btn" id="skip-background-music" onclick="skipBackgroundMusic()" title="Skip to the next background music track">Next Music</button>
-  </div>
-  <div class="utility-row">
-    <button class="btn" id="audio-toggle" onclick="toggleAudioMute()">Mute</button>
+  <div class="utility-row radio-controls">
+    <button class="btn radio-icon-btn" id="prev-background-music" onclick="previousBackgroundMusic()" aria-label="Previous background music track" title="Previous track"><span class="icon" aria-hidden="true">⏮</span></button>
+    <button class="btn radio-icon-btn" id="play-pause-music" onclick="toggleBackgroundMusicPlayback()" aria-label="Pause background music" title="Pause music"><span class="icon" aria-hidden="true">⏸</span></button>
+    <button class="btn radio-icon-btn" id="audio-toggle" onclick="toggleAudioMute()" aria-label="Mute audio" title="Mute audio"><span class="icon" aria-hidden="true">🔊</span></button>
+    <button class="btn radio-icon-btn" id="skip-background-music" onclick="skipBackgroundMusic()" aria-label="Next background music track" title="Next track"><span class="icon" aria-hidden="true">⏭</span></button>
   </div>
   <div class="save-status" id="save-status"></div>
 </div>
@@ -9664,7 +9765,23 @@ function renderDebugPanel(){
 
 function renderUtility(){
   const toggle = document.getElementById('audio-toggle');
-  if (toggle) toggle.textContent = uiState.audioMuted ? 'Unmute' : 'Mute';
+  if (toggle) {
+    const muted = !!uiState.audioMuted;
+    toggle.innerHTML = `<span class="icon" aria-hidden="true">${muted ? '🔇' : '🔊'}</span>`;
+    toggle.setAttribute('aria-label', muted ? 'Unmute audio' : 'Mute audio');
+    toggle.title = muted ? 'Unmute audio' : 'Mute audio';
+    toggle.classList.toggle('muted', muted);
+  }
+  const playPause = document.getElementById('play-pause-music');
+  if (playPause) {
+    const musicReady = (typeof musicAudio !== 'undefined' && musicAudio);
+    const manualPause = (typeof musicManuallyPaused !== 'undefined' && !!musicManuallyPaused);
+    const suppressed = (typeof isBackgroundMusicSuppressed === 'function') ? isBackgroundMusicSuppressed() : false;
+    const paused = manualPause || (musicReady && musicAudio.paused && gameStarted && !suppressed);
+    playPause.innerHTML = `<span class="icon" aria-hidden="true">${paused ? '▶' : '⏸'}</span>`;
+    playPause.setAttribute('aria-label', paused ? 'Play background music' : 'Pause background music');
+    playPause.title = paused ? 'Play music' : 'Pause music';
+  }
   const sfxSlider = document.getElementById('sfx-volume');
   if (sfxSlider) sfxSlider.value = Math.round(uiState.sfxVolume * 100);
   const musicSlider = document.getElementById('music-volume');
@@ -10213,22 +10330,21 @@ const MUSIC_PLAYLIST = [
   'music/Letsgo.mp3',
   'music/gregorquendel-tetris-theme-korobeiniki-arranged-for-piano-186249.mp3'
 ];
-let musicTrackIndex = 0;
-const musicPauseReasons = new Set();
-const musicAudio = makeAudio(MUSIC_PLAYLIST[musicTrackIndex]);
+var musicTrackIndex = 0;
+var musicManuallyPaused = false;
+var musicPauseReasons = new Set();
+var musicAudio = makeAudio(MUSIC_PLAYLIST[musicTrackIndex]);
 musicAudio.setAttribute('data-music', '');
 musicAudio.loop = false;
 musicAudio.volume = uiState.musicVolume;
-musicAudio.preload = 'auto'; // fetch while launcher/intro screens are showing
+musicAudio.preload = 'auto';
 
 function currentMusicVolume(){
   return uiState.audioMuted ? 0 : clamp(uiState.musicVolume ?? 0.7, 0, 1);
 }
-
 function isBackgroundMusicSuppressed(){
-  return musicPauseReasons.size > 0;
+  return !!(musicPauseReasons && musicPauseReasons.size > 0);
 }
-
 function setBackgroundMusicTrack(index, autoplay = true){
   if (!Array.isArray(MUSIC_PLAYLIST) || MUSIC_PLAYLIST.length === 0) return;
   musicTrackIndex = ((Number(index) || 0) % MUSIC_PLAYLIST.length + MUSIC_PLAYLIST.length) % MUSIC_PLAYLIST.length;
@@ -10245,44 +10361,50 @@ function setBackgroundMusicTrack(index, autoplay = true){
     musicAudio.play().catch(() => {});
   }
 }
-
 function playBackgroundMusic(){
   try {
-    if (!gameStarted || isBackgroundMusicSuppressed() || uiState.audioMuted || currentMusicVolume() <= 0) return;
+    if (!gameStarted || musicManuallyPaused || isBackgroundMusicSuppressed() || uiState.audioMuted || currentMusicVolume() <= 0) return;
     musicAudio.volume = currentMusicVolume();
     musicAudio.play().catch(() => {});
   } catch(e) {}
 }
-
 function pauseBackgroundMusic(reason = 'event'){
-  try {
-    musicPauseReasons.add(reason);
-    if (musicAudio) musicAudio.pause();
-  } catch(e) {}
+  try { musicPauseReasons.add(reason); if (musicAudio) musicAudio.pause(); } catch(e) {}
 }
-
 function resumeBackgroundMusic(reason = 'event'){
-  try {
-    musicPauseReasons.delete(reason);
-    if (!isBackgroundMusicSuppressed()) playBackgroundMusic();
-  } catch(e) {}
+  try { musicPauseReasons.delete(reason); if (!isBackgroundMusicSuppressed()) playBackgroundMusic(); } catch(e) {}
 }
-
+function previousBackgroundMusic(){
+  if (typeof musicAudio === 'undefined' || !musicAudio) return;
+  musicManuallyPaused = false;
+  setBackgroundMusicTrack(musicTrackIndex - 1, true);
+  renderUtility();
+}
+function toggleBackgroundMusicPlayback(){
+  if (typeof musicAudio === 'undefined' || !musicAudio) return;
+  musicManuallyPaused = !musicManuallyPaused;
+  if (musicManuallyPaused) {
+    try { if (musicAudio) musicAudio.pause(); } catch(e) {}
+  } else {
+    playBackgroundMusic();
+  }
+  renderUtility();
+}
 function skipBackgroundMusic(){
+  if (typeof musicAudio === 'undefined' || !musicAudio) return;
+  musicManuallyPaused = false;
   setBackgroundMusicTrack(musicTrackIndex + 1, true);
+  renderUtility();
 }
-
 musicAudio.addEventListener('ended', () => {
   setBackgroundMusicTrack(musicTrackIndex + 1, true);
 });
-
 musicAudio.addEventListener('error', () => {
-  // If a future playlist entry is missing or misnamed, continue instead of killing the soundtrack.
   musicAudio.dataset.missing = 'true';
   if (MUSIC_PLAYLIST.length > 1) setTimeout(() => setBackgroundMusicTrack(musicTrackIndex + 1, true), 250);
 });
-
 function startSoundtrack() {
+  musicManuallyPaused = false;
   musicPauseReasons.clear();
   setBackgroundMusicTrack(0, false);
   playBackgroundMusic();
