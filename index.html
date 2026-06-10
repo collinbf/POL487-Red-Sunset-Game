@@ -8313,7 +8313,68 @@ function checkEndConditions(){
     return true;
   }
   if (m.partyUnity <= 0 || gameState.militarySub.loyalty <= 0) {
-    triggerGameOver('coup', 'The Party and security organs no longer obey the General Secretary. A hard-line committee seizes power, ends the reform programme, and places Gorbachev under guard.');
+    // Route through a year-sensitive coup event rather than a silent game-over,
+    // so the player gets a dramatic choice moment that mirrors the August 1991 event.
+    // After resolution, checkEndConditions fires again via finishResolution;
+    // partyUnity will still be at/near 0, so the coup ending triggers naturally then.
+    // Guard: if the named August 1991 event already fired, just end immediately
+    // (the player already had their dramatic moment via that event's own resolution).
+    if (gameState.firedTriggers['event_august_coup_1991']) {
+      triggerGameOver('coup', 'The Party and security organs no longer obey the General Secretary. The coup has succeeded.');
+      return true;
+    }
+    // Build a year-sensitive description so an early collapse (1986) reads differently
+    // from a late one (1990).
+    const _coupYear = gameState.year;
+    const _coupMonth = gameState.month;
+    const _monthName = ['January','February','March','April','May','June','July','August','September','October','November','December'][_coupMonth - 1] || '';
+    const _isEarly = _coupYear <= 1987;
+    const _isMid   = _coupYear >= 1988 && _coupYear <= 1989;
+    // _isLate = 1990+
+    const _coupContext = _isEarly
+      ? `It is ${_monthName} ${_coupYear}. The reform programme is barely underway. In the corridors of the Central Committee, the hardliners have been watching — and they have decided they have seen enough.
+
+The Politburo session that was supposed to discuss the coming economic programme did not go as planned. The conservative faction arrived with a document already prepared: a resolution declaring the General Secretary unfit to lead under the conditions of accelerating instability. The vote was brief. The KGB Chairman endorsed it. The Defence Minister signed it. Two marshals who might have objected were not in the room.
+
+The tanks have not moved yet. But the order has been given.`
+      : _isMid
+      ? `It is ${_monthName} ${_coupYear}. Three years of glasnost and perestroika have shaken the foundations of the Party apparatus. Some comrades call this progress. Others call it something else.
+
+The Central Committee emergency session was convened under the pretext of reviewing economic stabilisation measures. The real business was different. A memorandum, signed by the heads of the KGB, the Ministry of Defence, and the Council of Ministers, has been placed before the Politburo. It characterises the reform programme as a threat to the constitutional order. It requests that authority be transferred, temporarily, to a State Committee capable of restoring discipline.
+
+The document is on the table. The room is waiting.`
+      : `It is ${_monthName} ${_coupYear}. The Union is fraying at every seam. The hardliners have concluded that Gorbachev cannot — or will not — hold it together, and they have decided to act.
+
+The KGB Chairman has convened a private meeting at the Defence Ministry. Vice President Yanayev, Prime Minister Pavlov, and Marshal Yazov were present. The meeting produced a document: a declaration that the General Secretary is unable to perform his duties, and that a State Committee on the State of Emergency will assume temporary authority.
+
+Communications to your office are being quietly rerouted. The garrison commanders have received sealed orders. The decision has been made — the question is only whether you will contest it.`;
+
+    // Mark as fired so we don't display it twice
+    gameState.firedTriggers['early_coup_event'] = true;
+    displayTriggerEvent({
+      id: 'early_coup',
+      name: 'State Committee on the State of Emergency — Internal Memorandum',
+      image: 'images/coup_attempt.jpg',
+      caption: `${_monthName} ${_coupYear} — Государственный комитет по чрезвычайному положению`,
+      description: _coupContext,
+      choices: [
+        {
+          text: 'Refuse to recognise the committee — declare the action illegal and call on the army and people to resist',
+          effects: { popularAffection: +12, partyUnity: -5, stability: -15, foreignRelations: +8 },
+          outcomeText: `Gorbachev records a statement declaring the committee's actions unconstitutional and calling for resistance. The statement is broadcast — partially. Some units refuse orders. Others do not. In the streets, a crowd gathers outside the seat of the Russian government. Whether it will be enough is a question that history will answer over the next seventy-two hours.`,
+        },
+        {
+          text: 'Negotiate — seek a face-saving arrangement that preserves some form of the reform programme',
+          effects: { partyUnity: +5, popularAffection: -10, stability: -5 },
+          outcomeText: `Gorbachev attempts to negotiate. The committee listens, politely, and agrees to nothing. The offer of compromise is read as an admission of weakness. The apparatus that has already moved against the General Secretary is not interested in arrangements — it is interested in outcomes.`,
+        },
+        {
+          text: 'Capitulate — sign the emergency decrees; the alternative is something worse',
+          effects: { partyUnity: +15, popularAffection: -20, stability: +5, foreignRelations: -12 },
+          outcomeText: `The signature is given. The committee's declaration goes out over state television. Swan Lake plays on every channel. In Moscow, the tanks that had been sitting at their barracks are now moving. The reform era is over — not with an argument, but with a document.`,
+        },
+      ],
+    });
     return true;
   }
   if (m.popularAffection <= 0) {
@@ -8436,7 +8497,13 @@ function endTurn() {
       upkeep += Math.floor((sep - 25) / 25); // +1 per 25pts above 25 (max +3)
     }
 
-    const net = income - upkeep;
+    // Net income cap: even a popular, unified regime shouldn't earn more than
+    // 12 capital/month — keeps the resource meaningful in the mid-game when
+    // Glasnost + Perestroika can otherwise make the budget essentially unconstrained.
+    // The floor remains 0 (clamp); only the ceiling is capped, not the gross income
+    // used in the log message so the numbers still read truthfully to the player.
+    const rawNet = income - upkeep;
+    const net = Math.min(rawNet, 12);
     gameState.budget = clamp(gameState.budget + net, 0, 9999);
 
     // Log when income rate shifts meaningfully (≥5 pts) — at most every 6 turns
@@ -8445,7 +8512,8 @@ function endTurn() {
     const rateShift = Math.abs(net - lastIncome) >= 5;
     const cooldownExpired = (gameState.turn - lastLoggedTurn) >= 6;
     if (rateShift && cooldownExpired) {
-      addLog(`Political capital: +${income} income, −${upkeep} upkeep = ${net > 0 ? '+' : ''}${net}/month`, 'system');
+      const capNote = rawNet > 12 ? ' (capped)' : '';
+      addLog(`Political capital: +${income} income, −${upkeep} upkeep = ${net > 0 ? '+' : ''}${net}/month${capNote}`, 'system');
       gameState._lastCapitalIncome = net;
       gameState._lastCapitalLogTurn = gameState.turn;
     }
@@ -8935,6 +9003,45 @@ The world has taken notice. Reagan's team signals that the Geneva Process can no
         { text: 'Military intervention', effects: { stability: +8, popularAffection: -15, foreignRelations: -15, militaryReadiness: -5 } },
         { text: 'Negotiate a new Union Treaty', effects: { stability: -3, partyUnity: -5, popularAffection: +5 } },
       ]
+    });
+  }
+  // ── SEPARATISM 65 — PARADE OF SOVEREIGNTIES WARNING ─────────────
+  // Mid-crisis warning event. Fires between the sep_50 event (which gives
+  // the player a first response) and the sep_70 cascade (pure stat damage,
+  // no agency). This event names the countermeasure policies explicitly so
+  // the player knows they exist, and each choice applies a small immediate
+  // effect to reward engagement rather than letting the turn pass silently.
+  if (sep >= 65 && fireTrigger('sep_65', 'Parade of Sovereignties — republics issuing formal declarations.', 'crisis')) {
+    displayTriggerEvent({
+      name: 'Parade of Sovereignties — Urgent Report from the Department of Nationalities',
+      image: 'images/Republic_Independence_Movements.jpg',
+      caption: 'Заседание Верховного Совета, 1989–1990',
+      description: `Comrade General Secretary — the following report is submitted under the classification URGENT by the Department of Nationalities Policy and the Council of Ministers Secretariat.
+
+Over the past several months, the Supreme Soviets of the Lithuanian, Estonian, Latvian, Ukrainian, Russian, and Byelorussian Soviet Socialist Republics have each passed formal declarations of sovereignty — asserting the primacy of republican law over Union law. These are not symbolic gestures. They represent the formal beginning of a constitutional dismemberment of the Union from within.
+
+The declarations follow a common pattern: they do not yet use the word independence, but they claim the right to it. Republican newspapers, now largely beyond central editorial control, are treating each new declaration as a victory. The momentum is self-reinforcing: each declaration emboldens the next.
+
+Central authority is losing its grip not through revolution but through institutional withdrawal. If the Union is to survive in any form, that form must be actively constructed — it will not maintain itself.
+
+Your advisors have identified several courses of action that may still arrest the cascade. The Republic Autonomy Pact, the Cultural Autonomy Programme, Economic Incentives for the Republics, and the Novo-Ogaryovo process are the mechanisms most likely to offer the republics a credible reason to remain. Time is no longer a resource in surplus.`,
+      choices: [
+        {
+          text: 'Issue a public statement affirming the right of republics to cultural and economic self-determination within the Union',
+          effects: { separatism: -6, popularAffection: +5, partyUnity: -8, stability: +2 },
+          outcomeText: `Gorbachev addresses the nation. The statement is carefully worded — it affirms self-determination but not secession, federal partnership but not dissolution. Reformers call it overdue; conservatives call it capitulation. In Vilnius and Tallinn, the crowds are not wholly unimpressed. The cascade slows, but does not stop. The countermeasure policies are now the decisive terrain.`,
+        },
+        {
+          text: 'Convene an emergency session of the Congress of People\u2019s Deputies to debate a reformed Union Treaty',
+          effects: { separatism: -4, partyUnity: -5, stability: -3, popularAffection: +3 },
+          outcomeText: `The Congress convenes. The debate is raw and public in ways the Politburo finds alarming. Baltic deputies make speeches that would have earned years in the Gulag a decade ago. The reformist bloc demands a voluntary Union; the hardline bloc demands discipline. No resolution passes, but the act of convening signals that Moscow is willing to negotiate rather than simply command. Several republic leaderships indicate cautious openness to talks.`,
+        },
+        {
+          text: 'Do nothing — issue no statement and make no concessions; the declarations are legally void under the 1977 Constitution',
+          effects: { separatism: +5, stability: -5, partyUnity: +4, popularAffection: -4 },
+          outcomeText: `Moscow's silence is its own signal. The legal argument — that republican declarations cannot override the Union Constitution — is technically correct and politically catastrophic. In the absence of any credible offer from the centre, the moderate republican leaderships have nothing to show their populations. Hardliners in Moscow are satisfied; the republics draw the lesson that the centre will not negotiate and begin planning accordingly.`,
+        },
+      ],
     });
   }
   if (sep >= 70 && fireTrigger('sep_70', 'Political crisis — Union dissolving.', 'crisis')) {
@@ -9490,8 +9597,8 @@ function applyPolicyImmediate(policyId, { skipEffectsAndCost = false } = {}) {
     Object.entries(policy.advisorLoyaltyBonus).forEach(([aid, delta]) => {
       if (gameState.advisorLoyalty[aid] != null) {
         gameState.advisorLoyalty[aid] = clamp(Number(gameState.advisorLoyalty[aid]) + Number(delta), 0, 100);
-        if (delta > 0) addLog(`${aid.charAt(0).toUpperCase() + aid.slice(1)}'s loyalty improved (+${delta}).`, 'system');
-        else addLog(`${aid.charAt(0).toUpperCase() + aid.slice(1)}'s loyalty fell (${delta}).`, 'crisis');
+        if (delta > 0) addLog(`${advisorName(aid)}'s loyalty improved (+${delta}).`, 'system');
+        else addLog(`${advisorName(aid)}'s loyalty fell (${delta}).`, 'crisis');
       }
     });
   }
