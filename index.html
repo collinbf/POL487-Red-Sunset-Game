@@ -5,7 +5,7 @@
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Red Sunset &mdash; 1985</title>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=IM+Fell+English:ital@0;1&family=Cormorant+Garamond:wght@400;500;600&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=IM+Fell+English:ital@0;1&family=Cormorant+Garamond:wght@400;500;600&family=Caveat:wght@400;500;600;700&display=swap" rel="stylesheet"/>
 <style>
   :root {
     --cream:#f2ead8; --parchment:#e8dcc0; --ink:#2b1f10; --red:#8b1a1a; --red-dark:#5c1111;
@@ -1318,6 +1318,54 @@
     .game-layout { padding: 0 0.5rem; }
   }
 
+  /* ── GLOBAL STATUS BAR — always-visible strip below masthead ── */
+  .global-status-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: #1a1008;
+    border-bottom: 1.5px solid rgba(139,26,26,0.45);
+    padding: 8px 18px;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 14px;
+    color: var(--cream, #f0e8d0);
+    letter-spacing: .04em;
+    flex-wrap: wrap;
+  }
+  .gsb-date {
+    font-weight: 700;
+    color: var(--gold, #c8a84a);
+    font-family: 'Playfair Display', serif;
+    font-size: 15px;
+  }
+  .gsb-sep { opacity: .40; }
+  .gsb-capital { font-size: 13px; }
+  .gsb-capital strong { color: var(--gold, #c8a84a); }
+  .gsb-status {
+    font-size: 12px;
+    font-style: italic;
+    padding: 1px 7px;
+    border: 1px solid currentColor;
+    border-radius: 2px;
+    color: var(--gold, #c8a84a);
+  }
+  .gsb-traj {
+    font-size: 13px;
+    font-style: italic;
+    font-family: 'IM Fell English', serif;
+  }
+  .gsb-traj.promising  { color: #4a9e6a; }
+  .gsb-traj.uncertain  { color: #c8a44a; }
+  .gsb-traj.collapsing { color: #cc3333; font-weight: 700; }
+  /* On mobile the sticky mobile-status-bar takes over — hide global bar */
+  @media(max-width:780px) {
+    .global-status-bar { display: none; }
+    .gsb-traj-sep, .gsb-traj { display: none; }
+  }
+
+  /* Hide the sidebar "State of the Union" date/badge row — now in the header bar */
+  /* .dash-header { display: none; } */
+
   /* ── MOBILE STICKY STATUS BAR ──────────────────────────────────────────── */
   .mobile-status-bar { display: none; }
   @media(max-width:780px) {
@@ -1352,6 +1400,19 @@
       margin-top: 0;
       padding: 10px 14px max(12px, env(safe-area-inset-bottom, 12px));
       box-shadow: 0 -4px 18px rgba(0,0,0,0.55);
+    }
+    /* On the dark sticky bar, ghost/secondary buttons need clearly visible colours */
+    .action-bar .action-btn-ghost,
+    .action-bar .action-btn-secondary {
+      color: #e8d8b0;
+      border-color: rgba(220, 190, 140, 0.55);
+      background: rgba(255, 255, 255, 0.06);
+    }
+    .action-bar .action-btn-ghost:hover,
+    .action-bar .action-btn-secondary:hover {
+      color: #fff5dc;
+      border-color: rgba(220, 190, 140, 0.85);
+      background: rgba(220, 190, 140, 0.14);
     }
   }
 
@@ -1445,7 +1506,7 @@
   content: '';
   position: absolute;
   top: 0; bottom: 0;
-  left: 72px;
+  left: 130px;
   width: 1.5px;
   background: rgba(160,30,30,0.55);
   pointer-events: none;
@@ -1453,7 +1514,7 @@
 
 /* ── HEADER STRIP ── */
 #pravda-outcome-modal .outcome-masthead {
-  padding: 14px 18px 0 86px;
+  padding: 14px 18px 0 148px;
   position: relative;
 }
 
@@ -1499,7 +1560,7 @@
 
 /* Form meta row: Из / date / Расшифровка */
 #pravda-outcome-modal .outcome-banner {
-  padding: 4px 18px 6px 86px;
+  padding: 4px 18px 6px 148px;
   border-bottom: 1px solid rgba(139,26,26,0.35);
   border-top: none;
   background: none;
@@ -1529,45 +1590,52 @@
 /* ── BODY: two-column with margin annotation + main text ── */
 #pravda-outcome-modal .outcome-body {
   display: grid;
-  grid-template-columns: 72px 1fr;
+  grid-template-columns: 130px 1fr;
   padding: 0;
   min-height: 180px;
 }
 
-/* Left margin column — for annotations */
+/* Left margin column — for handwritten annotations */
 #pravda-outcome-modal .outcome-effects {
   grid-column: 1;
-  padding: 12px 6px 12px 10px;
+  padding: 14px 8px 14px 12px;
   border-right: none;
   background: none;
   border: none;
   border-radius: 0;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 8px;
   align-items: flex-start;
-  font-family: 'Courier New', monospace;
-  font-size: 9px;
-  color: #8b1a1a;
-  line-height: 1.4;
-  font-style: italic;
+  font-family: 'Caveat', 'Comic Sans MS', cursive;
+  font-size: 13px;
+  color: #1a3a8a;
+  line-height: 1.35;
   overflow: hidden;
+  position: relative;
 }
 #pravda-outcome-modal .outcome-effect-item {
   white-space: normal;
   word-break: break-word;
-  font-family: 'Courier New', monospace;
-  font-size: 9px;
+  font-family: 'Caveat', 'Comic Sans MS', cursive;
+  font-size: 13px;
   font-style: normal;
   display: block;
+  color: #1a3a8a;
+  transform: rotate(-1.5deg);
+  transform-origin: left center;
+  line-height: 1.35;
 }
-#pravda-outcome-modal .outcome-effect-item.pos { color: #1a4a2a; font-weight: 700; }
-#pravda-outcome-modal .outcome-effect-item.neg { color: #8b1a1a; font-weight: 700; }
+#pravda-outcome-modal .outcome-effect-item.pos { color: #1a4a1a; font-weight: 600; }
+#pravda-outcome-modal .outcome-effect-item.neg { color: #8b1a1a; font-weight: 600; }
+/* Alternate slight rotations for a natural handwritten feel */
+#pravda-outcome-modal .outcome-effect-item:nth-child(2n) { transform: rotate(1deg); }
+#pravda-outcome-modal .outcome-effect-item:nth-child(3n) { transform: rotate(-2.5deg); }
 
 /* Main text column */
 #pravda-outcome-modal .outcome-text {
   grid-column: 2;
-  padding: 14px 18px 14px 14px;
+  padding: 14px 18px 14px 16px;
   font-family: 'Courier New', Courier, monospace;
   font-size: 12.5px;
   line-height: 1.85;
@@ -1579,8 +1647,22 @@
 #pravda-outcome-modal .outcome-text p { margin-bottom: .8em; }
 
 /* ── FOOTER: form bottom strip ── */
+/* Wrapper uses same two-col grid so left margin column stays visible */
+#pravda-outcome-modal .outcome-footer {
+  display: grid;
+  grid-template-columns: 130px 1fr;
+  border-top: 1px solid rgba(139,26,26,0.40);
+}
+#pravda-outcome-modal .outcome-footer-margin {
+  grid-column: 1;
+  background: none;
+}
 #pravda-outcome-modal .outcome-close-btn {
-  display: block;
+  grid-column: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
   width: 100%;
   padding: 10px 18px;
   background: transparent;
@@ -1592,10 +1674,11 @@
   text-transform: uppercase;
   text-align: center;
   border: none;
-  border-top: 1px solid rgba(139,26,26,0.40);
+  border-left: 1.5px solid rgba(160,30,30,0.45);
   cursor: pointer;
   transition: background .15s, color .15s;
   position: relative;
+  box-sizing: border-box;
 }
 #pravda-outcome-modal .outcome-close-btn::before {
   content: 'Снятие копий категорически воспрещается.';
@@ -1607,8 +1690,21 @@
   margin-bottom: 8px;
   text-align: center;
   font-style: italic;
+  width: 100%;
 }
 #pravda-outcome-modal .outcome-close-btn:hover { background: rgba(139,26,26,0.08); }
+@media (max-width: 520px) {
+  #pravda-outcome-modal .outcome-footer { grid-template-columns: 90px 1fr; }
+}
+
+@media (max-width: 520px) {
+  #pravda-outcome-modal .outcome-card::before { left: 90px; }
+  #pravda-outcome-modal .outcome-masthead { padding-left: 108px; }
+  #pravda-outcome-modal .outcome-banner { padding-left: 108px; }
+  #pravda-outcome-modal .outcome-body { grid-template-columns: 90px 1fr; }
+  #pravda-outcome-modal .outcome-effects { font-size: 11px; padding: 10px 6px 10px 8px; }
+  #pravda-outcome-modal .outcome-effect-item { font-size: 11px; }
+}
 
 /* === PRAVDA PANEL — full-screen modal overlay === */
 .event-panel.pravda{
@@ -2636,7 +2732,18 @@ window.launcherStartGame = function(){
   <button id="dev-menu-btn" onclick="toggleDevModal()" title="Developer menu" aria-label="Open developer menu" style="position:absolute;bottom:10px;right:14px;background:rgba(255,255,255,0.10);border:1px solid rgba(200,164,74,0.45);color:#c8a44a;border-radius:3px;padding:3px 8px;font-family:'Playfair Display',serif;font-size:10px;font-weight:700;letter-spacing:.10em;text-transform:uppercase;cursor:pointer;opacity:0.65;transition:opacity .15s,background .15s;" onmouseover="this.style.opacity='1';this.style.background='rgba(255,255,255,0.18)'" onmouseout="this.style.opacity='0.65';this.style.background='rgba(255,255,255,0.10)'">⚙ Dev</button>
 </div>
 
-<!-- MOBILE STICKY STATUS BAR — hidden on desktop, shown only when stacked layout kicks in -->
+<!-- PERSISTENT STATUS BAR — always visible on all screen sizes -->
+<div class="global-status-bar" id="global-status-bar">
+  <span class="gsb-date" id="gsb-date">March 1985</span>
+  <span class="gsb-sep">·</span>
+  <span class="gsb-capital">Capital: <strong id="gsb-budget">80</strong></span>
+  <span class="gsb-sep">·</span>
+  <span class="gsb-status" id="gsb-status-badge">Stable</span>
+  <span class="gsb-sep gsb-traj-sep">·</span>
+  <span class="gsb-traj" id="gsb-trajectory">Uncertain</span>
+</div>
+
+<!-- MOBILE STICKY STATUS BAR — kept for mobile sticky behaviour -->
 <div class="mobile-status-bar" id="mobile-status-bar" aria-hidden="true">
   <span class="mobile-status-date" id="mobile-status-date">March 1985</span>
   <span class="mobile-status-sep">·</span>
@@ -2651,11 +2758,10 @@ window.launcherStartGame = function(){
 <!-- STATE OF THE UNION -->
     <div class="dash-header">
       <p class="dash-title">State of the Union</p>
-      <div class="dash-meta">
-        <span id="current-date">March 1985</span>
-        <span id="status-badge" class="status-badge">Stable</span>
-</div>
     </div>
+    <!-- Hidden elements kept so JS renderDate/renderStatus still function -->
+    <span id="current-date" style="display:none;">March 1985</span>
+    <span id="status-badge" class="status-badge" style="display:none;">Stable</span>
 
     
 <!-- METRICS -->
@@ -2792,7 +2898,7 @@ window.launcherStartGame = function(){
   </div>
   <div class="volume-wrap">
     <span>Music</span>
-    <input id="music-volume" type="range" min="0" max="100" value="70" oninput="setMusicVolume(this.value)" />
+    <input id="music-volume" type="range" min="0" max="100" value="30" oninput="setMusicVolume(this.value)" />
   </div>
   <div class="utility-row radio-controls">
     <button class="btn radio-icon-btn" id="prev-background-music" onclick="previousBackgroundMusic()" aria-label="Previous background music track" title="Previous track"><span class="icon" aria-hidden="true">⏮</span></button>
@@ -3063,7 +3169,7 @@ const uiState = {
   audioMuted: false,
   audioVolume: 0.7,
   sfxVolume: 0.7,
-  musicVolume: 0.7,
+  musicVolume: 0.3,
   policyCardFlips: {
     hand: {},
     tree: {},
@@ -9347,7 +9453,65 @@ function renderEventQueueStatus(){
   }
 }
 
+
+
+// ── INLINE/TRIGGER EVENT CONSEQUENCE REPORT PATCHES ─────────────────────────
+// Inline threshold events are created inside trigger logic rather than stored in
+// the main `events` array. This patch gives their choices consequence reports
+// without editing every inline object literal.
+const INLINE_TRIGGER_OUTCOME_TEXT_PATCHES = {
+  "Exhaustion of the Political Mandate::Address the population directly — transmit a general appeal through Soviet television, bypassing the Politburo and invoking the authority of the General Secretary over the heads of the party apparatus": "СЛУЖЕБНАЯ ЗАПИСКА — CONSEQUENCE REPORT\n\nSubject: Exhaustion of the Political Mandate.\n\nThe selected response has been entered into the operational record: “Address the population directly — transmit a general appeal through Soviet television, bypassing the Politburo and invoking the authority of the General Secretary over the heads of the party apparatus”. Relevant Party, Soviet, security, diplomatic, and republican organs are instructed to execute the line without hesitation and to submit implementation summaries through established channels.\n\nOperational assessment: immediate administrative effects have been registered. Public sentiment, institutional discipline, and factional behaviour will adjust according to the material consequences of the decision, regardless of the language used in official communiqués. Continued observation is required until the political aftershocks are fully contained.",
+  "Exhaustion of the Political Mandate::Extend concessions to the conservative tendency — restore the conditions for Politburo consensus through measured accommodation of the positions of the hardliner faction": "СЛУЖЕБНАЯ ЗАПИСКА — CONSEQUENCE REPORT\n\nSubject: Exhaustion of the Political Mandate.\n\nThe selected response has been entered into the operational record: “Extend concessions to the conservative tendency — restore the conditions for Politburo consensus through measured accommodation of the positions of the hardliner faction”. Relevant Party, Soviet, security, diplomatic, and republican organs are instructed to execute the line without hesitation and to submit implementation summaries through established channels.\n\nOperational assessment: immediate administrative effects have been registered. Public sentiment, institutional discipline, and factional behaviour will adjust according to the material consequences of the decision, regardless of the language used in official communiqués. Continued observation is required until the political aftershocks are fully contained.",
+  "Exhaustion of the Political Mandate::Advance a single measure of visible consequence — demonstrate the operative authority of the General Secretary's office through the unilateral enactment of a high-profile reform": "СЛУЖЕБНАЯ ЗАПИСКА — CONSEQUENCE REPORT\n\nSubject: Exhaustion of the Political Mandate.\n\nThe selected response has been entered into the operational record: “Advance a single measure of visible consequence — demonstrate the operative authority of the General Secretary's office through the unilateral enactment of a high-profile reform”. Relevant Party, Soviet, security, diplomatic, and republican organs are instructed to execute the line without hesitation and to submit implementation summaries through established channels.\n\nOperational assessment: immediate administrative effects have been registered. Public sentiment, institutional discipline, and factional behaviour will adjust according to the material consequences of the decision, regardless of the language used in official communiqués. Continued observation is required until the political aftershocks are fully contained.",
+  "Social Parasitism Crisis::Launch anti-parasitism campaign": "СЛУЖЕБНАЯ ЗАПИСКА — CONSEQUENCE REPORT\n\nSubject: Social Parasitism Crisis.\n\nThe selected response has been entered into the operational record: “Launch anti-parasitism campaign”. Relevant Party, Soviet, security, diplomatic, and republican organs are instructed to execute the line without hesitation and to submit implementation summaries through established channels.\n\nOperational assessment: immediate administrative effects have been registered. Public sentiment, institutional discipline, and factional behaviour will adjust according to the material consequences of the decision, regardless of the language used in official communiqués. Continued observation is required until the political aftershocks are fully contained.",
+  "Social Parasitism Crisis::Ignore the problem": "СЛУЖЕБНАЯ ЗАПИСКА — CONSEQUENCE REPORT\n\nSubject: Social Parasitism Crisis.\n\nThe selected response has been entered into the operational record: “Ignore the problem”. Relevant Party, Soviet, security, diplomatic, and republican organs are instructed to execute the line without hesitation and to submit implementation summaries through established channels.\n\nOperational assessment: immediate administrative effects have been registered. Public sentiment, institutional discipline, and factional behaviour will adjust according to the material consequences of the decision, regardless of the language used in official communiqués. Continued observation is required until the political aftershocks are fully contained.",
+  "Social Parasitism Crisis::Offer economic incentives": "СЛУЖЕБНАЯ ЗАПИСКА — CONSEQUENCE REPORT\n\nSubject: Social Parasitism Crisis.\n\nThe selected response has been entered into the operational record: “Offer economic incentives”. Relevant Party, Soviet, security, diplomatic, and republican organs are instructed to execute the line without hesitation and to submit implementation summaries through established channels.\n\nOperational assessment: immediate administrative effects have been registered. Public sentiment, institutional discipline, and factional behaviour will adjust according to the material consequences of the decision, regardless of the language used in official communiqués. Continued observation is required until the political aftershocks are fully contained.",
+  "Mass Protests::Address the nation. Announce reforms. Remind them you are on their side.": "СЛУЖЕБНАЯ ЗАПИСКА — CONSEQUENCE REPORT\n\nSubject: Mass Protests.\n\nThe selected response has been entered into the operational record: “Address the nation. Announce reforms. Remind them you are on their side.”. Relevant Party, Soviet, security, diplomatic, and republican organs are instructed to execute the line without hesitation and to submit implementation summaries through established channels.\n\nOperational assessment: immediate administrative effects have been registered. Public sentiment, institutional discipline, and factional behaviour will adjust according to the material consequences of the decision, regardless of the language used in official communiqués. Continued observation is required until the political aftershocks are fully contained.",
+  "Mass Protests::Restore order. The Ministry of Interior knows what to do.": "СЛУЖЕБНАЯ ЗАПИСКА — CONSEQUENCE REPORT\n\nSubject: Mass Protests.\n\nThe selected response has been entered into the operational record: “Restore order. The Ministry of Interior knows what to do.”. Relevant Party, Soviet, security, diplomatic, and republican organs are instructed to execute the line without hesitation and to submit implementation summaries through established channels.\n\nOperational assessment: immediate administrative effects have been registered. Public sentiment, institutional discipline, and factional behaviour will adjust according to the material consequences of the decision, regardless of the language used in official communiqués. Continued observation is required until the political aftershocks are fully contained.",
+  "Mass Protests::Declare emergency powers. Public assembly suspended until further notice.": "СЛУЖЕБНАЯ ЗАПИСКА — CONSEQUENCE REPORT\n\nSubject: Mass Protests.\n\nThe selected response has been entered into the operational record: “Declare emergency powers. Public assembly suspended until further notice.”. Relevant Party, Soviet, security, diplomatic, and republican organs are instructed to execute the line without hesitation and to submit implementation summaries through established channels.\n\nOperational assessment: immediate administrative effects have been registered. Public sentiment, institutional discipline, and factional behaviour will adjust according to the material consequences of the decision, regardless of the language used in official communiqués. Continued observation is required until the political aftershocks are fully contained.",
+  "Yeltsin's Break with Gorbachev::Attempt reconciliation": "СЛУЖЕБНАЯ ЗАПИСКА — CONSEQUENCE REPORT\n\nSubject: Yeltsin's Break with Gorbachev.\n\nThe selected response has been entered into the operational record: “Attempt reconciliation”. Relevant Party, Soviet, security, diplomatic, and republican organs are instructed to execute the line without hesitation and to submit implementation summaries through established channels.\n\nOperational assessment: immediate administrative effects have been registered. Public sentiment, institutional discipline, and factional behaviour will adjust according to the material consequences of the decision, regardless of the language used in official communiqués. Continued observation is required until the political aftershocks are fully contained.",
+  "Yeltsin's Break with Gorbachev::Denounce Yeltsin publicly": "СЛУЖЕБНАЯ ЗАПИСКА — CONSEQUENCE REPORT\n\nSubject: Yeltsin's Break with Gorbachev.\n\nThe selected response has been entered into the operational record: “Denounce Yeltsin publicly”. Relevant Party, Soviet, security, diplomatic, and republican organs are instructed to execute the line without hesitation and to submit implementation summaries through established channels.\n\nOperational assessment: immediate administrative effects have been registered. Public sentiment, institutional discipline, and factional behaviour will adjust according to the material consequences of the decision, regardless of the language used in official communiqués. Continued observation is required until the political aftershocks are fully contained.",
+  "Yeltsin's Break with Gorbachev::Ignore the rupture": "СЛУЖЕБНАЯ ЗАПИСКА — CONSEQUENCE REPORT\n\nSubject: Yeltsin's Break with Gorbachev.\n\nThe selected response has been entered into the operational record: “Ignore the rupture”. Relevant Party, Soviet, security, diplomatic, and republican organs are instructed to execute the line without hesitation and to submit implementation summaries through established channels.\n\nOperational assessment: immediate administrative effects have been registered. Public sentiment, institutional discipline, and factional behaviour will adjust according to the material consequences of the decision, regardless of the language used in official communiqués. Continued observation is required until the political aftershocks are fully contained.",
+  "The Boys Come Home::National ceremony of honour — receive the troops publicly and acknowledge their sacrifice, however painful the truth of the war": "СЛУЖЕБНАЯ ЗАПИСКА — CONSEQUENCE REPORT\n\nSubject: The Boys Come Home.\n\nThe selected response has been entered into the operational record: “National ceremony of honour — receive the troops publicly and acknowledge their sacrifice, however painful the truth of the war”. Relevant Party, Soviet, security, diplomatic, and republican organs are instructed to execute the line without hesitation and to submit implementation summaries through established channels.\n\nOperational assessment: immediate administrative effects have been registered. Public sentiment, institutional discipline, and factional behaviour will adjust according to the material consequences of the decision, regardless of the language used in official communiqués. Continued observation is required until the political aftershocks are fully contained.",
+  "The Boys Come Home::Quiet reintegration — no ceremony, no headlines; redirect the defence budget savings into consumer goods and social programmes": "СЛУЖЕБНАЯ ЗАПИСКА — CONSEQUENCE REPORT\n\nSubject: The Boys Come Home.\n\nThe selected response has been entered into the operational record: “Quiet reintegration — no ceremony, no headlines; redirect the defence budget savings into consumer goods and social programmes”. Relevant Party, Soviet, security, diplomatic, and republican organs are instructed to execute the line without hesitation and to submit implementation summaries through established channels.\n\nOperational assessment: immediate administrative effects have been registered. Public sentiment, institutional discipline, and factional behaviour will adjust according to the material consequences of the decision, regardless of the language used in official communiqués. Continued observation is required until the political aftershocks are fully contained.",
+  "The Boys Come Home::Commission a public inquiry into the conduct of the war — names, decisions, and failures on the record": "СЛУЖЕБНАЯ ЗАПИСКА — CONSEQUENCE REPORT\n\nSubject: The Boys Come Home.\n\nThe selected response has been entered into the operational record: “Commission a public inquiry into the conduct of the war — names, decisions, and failures on the record”. Relevant Party, Soviet, security, diplomatic, and republican organs are instructed to execute the line without hesitation and to submit implementation summaries through established channels.\n\nOperational assessment: immediate administrative effects have been registered. Public sentiment, institutional discipline, and factional behaviour will adjust according to the material consequences of the decision, regardless of the language used in official communiqués. Continued observation is required until the political aftershocks are fully contained.",
+  "Republic Independence Movements::Offer genuine autonomy": "СЛУЖЕБНАЯ ЗАПИСКА — CONSEQUENCE REPORT\n\nSubject: Republic Independence Movements.\n\nThe selected response has been entered into the operational record: “Offer genuine autonomy”. Relevant Party, Soviet, security, diplomatic, and republican organs are instructed to execute the line without hesitation and to submit implementation summaries through established channels.\n\nOperational assessment: immediate administrative effects have been registered. Public sentiment, institutional discipline, and factional behaviour will adjust according to the material consequences of the decision, regardless of the language used in official communiqués. Continued observation is required until the political aftershocks are fully contained.",
+  "Republic Independence Movements::Military intervention": "СЛУЖЕБНАЯ ЗАПИСКА — CONSEQUENCE REPORT\n\nSubject: Republic Independence Movements.\n\nThe selected response has been entered into the operational record: “Military intervention”. Relevant Party, Soviet, security, diplomatic, and republican organs are instructed to execute the line without hesitation and to submit implementation summaries through established channels.\n\nOperational assessment: immediate administrative effects have been registered. Public sentiment, institutional discipline, and factional behaviour will adjust according to the material consequences of the decision, regardless of the language used in official communiqués. Continued observation is required until the political aftershocks are fully contained.",
+  "Republic Independence Movements::Negotiate a new Union Treaty": "СЛУЖЕБНАЯ ЗАПИСКА — CONSEQUENCE REPORT\n\nSubject: Republic Independence Movements.\n\nThe selected response has been entered into the operational record: “Negotiate a new Union Treaty”. Relevant Party, Soviet, security, diplomatic, and republican organs are instructed to execute the line without hesitation and to submit implementation summaries through established channels.\n\nOperational assessment: immediate administrative effects have been registered. Public sentiment, institutional discipline, and factional behaviour will adjust according to the material consequences of the decision, regardless of the language used in official communiqués. Continued observation is required until the political aftershocks are fully contained.",
+  "The Union on the Brink::Emergency Union Treaty — offer maximum autonomy to all republics": "СЛУЖЕБНАЯ ЗАПИСКА — CONSEQUENCE REPORT\n\nSubject: The Union on the Brink.\n\nThe selected response has been entered into the operational record: “Emergency Union Treaty — offer maximum autonomy to all republics”. Relevant Party, Soviet, security, diplomatic, and republican organs are instructed to execute the line without hesitation and to submit implementation summaries through established channels.\n\nOperational assessment: immediate administrative effects have been registered. Public sentiment, institutional discipline, and factional behaviour will adjust according to the material consequences of the decision, regardless of the language used in official communiqués. Continued observation is required until the political aftershocks are fully contained.",
+  "The Union on the Brink::Address the nation — make a direct personal appeal for unity": "СЛУЖЕБНАЯ ЗАПИСКА — CONSEQUENCE REPORT\n\nSubject: The Union on the Brink.\n\nThe selected response has been entered into the operational record: “Address the nation — make a direct personal appeal for unity”. Relevant Party, Soviet, security, diplomatic, and republican organs are instructed to execute the line without hesitation and to submit implementation summaries through established channels.\n\nOperational assessment: immediate administrative effects have been registered. Public sentiment, institutional discipline, and factional behaviour will adjust according to the material consequences of the decision, regardless of the language used in official communiqués. Continued observation is required until the political aftershocks are fully contained.",
+  "The Union on the Brink::Accept the inevitable — begin orderly dissolution negotiations": "СЛУЖЕБНАЯ ЗАПИСКА — CONSEQUENCE REPORT\n\nSubject: The Union on the Brink.\n\nThe selected response has been entered into the operational record: “Accept the inevitable — begin orderly dissolution negotiations”. Relevant Party, Soviet, security, diplomatic, and republican organs are instructed to execute the line without hesitation and to submit implementation summaries through established channels.\n\nOperational assessment: immediate administrative effects have been registered. Public sentiment, institutional discipline, and factional behaviour will adjust according to the material consequences of the decision, regardless of the language used in official communiqués. Continued observation is required until the political aftershocks are fully contained.",
+  "Superpower Crisis::Emergency diplomatic back-channel": "СЛУЖЕБНАЯ ЗАПИСКА — CONSEQUENCE REPORT\n\nSubject: Superpower Crisis.\n\nThe selected response has been entered into the operational record: “Emergency diplomatic back-channel”. Relevant Party, Soviet, security, diplomatic, and republican organs are instructed to execute the line without hesitation and to submit implementation summaries through established channels.\n\nOperational assessment: immediate administrative effects have been registered. Public sentiment, institutional discipline, and factional behaviour will adjust according to the material consequences of the decision, regardless of the language used in official communiqués. Continued observation is required until the political aftershocks are fully contained.",
+  "Superpower Crisis::Military posture — show strength": "СЛУЖЕБНАЯ ЗАПИСКА — CONSEQUENCE REPORT\n\nSubject: Superpower Crisis.\n\nThe selected response has been entered into the operational record: “Military posture — show strength”. Relevant Party, Soviet, security, diplomatic, and republican organs are instructed to execute the line without hesitation and to submit implementation summaries through established channels.\n\nOperational assessment: immediate administrative effects have been registered. Public sentiment, institutional discipline, and factional behaviour will adjust according to the material consequences of the decision, regardless of the language used in official communiqués. Continued observation is required until the political aftershocks are fully contained.",
+  "Superpower Crisis::Propose emergency summit": "СЛУЖЕБНАЯ ЗАПИСКА — CONSEQUENCE REPORT\n\nSubject: Superpower Crisis.\n\nThe selected response has been entered into the operational record: “Propose emergency summit”. Relevant Party, Soviet, security, diplomatic, and republican organs are instructed to execute the line without hesitation and to submit implementation summaries through established channels.\n\nOperational assessment: immediate administrative effects have been registered. Public sentiment, institutional discipline, and factional behaviour will adjust according to the material consequences of the decision, regardless of the language used in official communiqués. Continued observation is required until the political aftershocks are fully contained.",
+  "Sino-Soviet Border Tensions::Authorise reinforcement of the Far Eastern Military District — additional motorised rifle divisions to be deployed to the frontier sectors": "СЛУЖЕБНАЯ ЗАПИСКА — CONSEQUENCE REPORT\n\nSubject: Sino-Soviet Border Tensions.\n\nThe selected response has been entered into the operational record: “Authorise reinforcement of the Far Eastern Military District — additional motorised rifle divisions to be deployed to the frontier sectors”. Relevant Party, Soviet, security, diplomatic, and republican organs are instructed to execute the line without hesitation and to submit implementation summaries through established channels.\n\nOperational assessment: immediate administrative effects have been registered. Public sentiment, institutional discipline, and factional behaviour will adjust according to the material consequences of the decision, regardless of the language used in official communiqués. Continued observation is required until the political aftershocks are fully contained.",
+  "Sino-Soviet Border Tensions::Instruct the Ministry of Foreign Affairs to request an immediate exchange of military attaches and open a direct channel with the PLA General Staff": "СЛУЖЕБНАЯ ЗАПИСКА — CONSEQUENCE REPORT\n\nSubject: Sino-Soviet Border Tensions.\n\nThe selected response has been entered into the operational record: “Instruct the Ministry of Foreign Affairs to request an immediate exchange of military attaches and open a direct channel with the PLA General Staff”. Relevant Party, Soviet, security, diplomatic, and republican organs are instructed to execute the line without hesitation and to submit implementation summaries through established channels.\n\nOperational assessment: immediate administrative effects have been registered. Public sentiment, institutional discipline, and factional behaviour will adjust according to the material consequences of the decision, regardless of the language used in official communiqués. Continued observation is required until the political aftershocks are fully contained.",
+  "Sino-Soviet Border Tensions::No response — the General Staff is to maintain existing deployments and take no action that could be construed as provocative": "СЛУЖЕБНАЯ ЗАПИСКА — CONSEQUENCE REPORT\n\nSubject: Sino-Soviet Border Tensions.\n\nThe selected response has been entered into the operational record: “No response — the General Staff is to maintain existing deployments and take no action that could be construed as provocative”. Relevant Party, Soviet, security, diplomatic, and republican organs are instructed to execute the line without hesitation and to submit implementation summaries through established channels.\n\nOperational assessment: immediate administrative effects have been registered. Public sentiment, institutional discipline, and factional behaviour will adjust according to the material consequences of the decision, regardless of the language used in official communiqués. Continued observation is required until the political aftershocks are fully contained.",
+  "Warsaw Pact Summit::Reaffirm the obligations of proletarian internationalism — the fraternal parties may count on the full support of the Union in defence of socialist gains": "СЛУЖЕБНАЯ ЗАПИСКА — CONSEQUENCE REPORT\n\nSubject: Warsaw Pact Summit.\n\nThe selected response has been entered into the operational record: “Reaffirm the obligations of proletarian internationalism — the fraternal parties may count on the full support of the Union in defence of socialist gains”. Relevant Party, Soviet, security, diplomatic, and republican organs are instructed to execute the line without hesitation and to submit implementation summaries through established channels.\n\nOperational assessment: immediate administrative effects have been registered. Public sentiment, institutional discipline, and factional behaviour will adjust according to the material consequences of the decision, regardless of the language used in official communiqués. Continued observation is required until the political aftershocks are fully contained.",
+  "Warsaw Pact Summit::Each fraternal party bears responsibility for the defence of socialism within its own borders — the Union will not intervene in the internal affairs of sovereign states": "СЛУЖЕБНАЯ ЗАПИСКА — CONSEQUENCE REPORT\n\nSubject: Warsaw Pact Summit.\n\nThe selected response has been entered into the operational record: “Each fraternal party bears responsibility for the defence of socialism within its own borders — the Union will not intervene in the internal affairs of sovereign states”. Relevant Party, Soviet, security, diplomatic, and republican organs are instructed to execute the line without hesitation and to submit implementation summaries through established channels.\n\nOperational assessment: immediate administrative effects have been registered. Public sentiment, institutional discipline, and factional behaviour will adjust according to the material consequences of the decision, regardless of the language used in official communiqués. Continued observation is required until the political aftershocks are fully contained.",
+  "Warsaw Pact Summit::Authorise an emergency programme of economic fraternal assistance to stabilise the most exposed People's Republics": "СЛУЖЕБНАЯ ЗАПИСКА — CONSEQUENCE REPORT\n\nSubject: Warsaw Pact Summit.\n\nThe selected response has been entered into the operational record: “Authorise an emergency programme of economic fraternal assistance to stabilise the most exposed People's Republics”. Relevant Party, Soviet, security, diplomatic, and republican organs are instructed to execute the line without hesitation and to submit implementation summaries through established channels.\n\nOperational assessment: immediate administrative effects have been registered. Public sentiment, institutional discipline, and factional behaviour will adjust according to the material consequences of the decision, regardless of the language used in official communiqués. Continued observation is required until the political aftershocks are fully contained.",
+  "Revolutions of 1989::Accept the revolutions — non-intervention": "СЛУЖЕБНАЯ ЗАПИСКА — CONSEQUENCE REPORT\n\nSubject: Revolutions of 1989.\n\nThe selected response has been entered into the operational record: “Accept the revolutions — non-intervention”. Relevant Party, Soviet, security, diplomatic, and republican organs are instructed to execute the line without hesitation and to submit implementation summaries through established channels.\n\nOperational assessment: immediate administrative effects have been registered. Public sentiment, institutional discipline, and factional behaviour will adjust according to the material consequences of the decision, regardless of the language used in official communiqués. Continued observation is required until the political aftershocks are fully contained.",
+  "Revolutions of 1989::Selective military intervention": "СЛУЖЕБНАЯ ЗАПИСКА — CONSEQUENCE REPORT\n\nSubject: Revolutions of 1989.\n\nThe selected response has been entered into the operational record: “Selective military intervention”. Relevant Party, Soviet, security, diplomatic, and republican organs are instructed to execute the line without hesitation and to submit implementation summaries through established channels.\n\nOperational assessment: immediate administrative effects have been registered. Public sentiment, institutional discipline, and factional behaviour will adjust according to the material consequences of the decision, regardless of the language used in official communiqués. Continued observation is required until the political aftershocks are fully contained.",
+  "Revolutions of 1989::Emergency consultation with Politburo": "СЛУЖЕБНАЯ ЗАПИСКА — CONSEQUENCE REPORT\n\nSubject: Revolutions of 1989.\n\nThe selected response has been entered into the operational record: “Emergency consultation with Politburo”. Relevant Party, Soviet, security, diplomatic, and republican organs are instructed to execute the line without hesitation and to submit implementation summaries through established channels.\n\nOperational assessment: immediate administrative effects have been registered. Public sentiment, institutional discipline, and factional behaviour will adjust according to the material consequences of the decision, regardless of the language used in official communiqués. Continued observation is required until the political aftershocks are fully contained.",
+  "End of the Warsaw Pact::Formally dissolve the Pact — negotiate NATO assurances": "СЛУЖЕБНАЯ ЗАПИСКА — CONSEQUENCE REPORT\n\nSubject: End of the Warsaw Pact.\n\nThe selected response has been entered into the operational record: “Formally dissolve the Pact — negotiate NATO assurances”. Relevant Party, Soviet, security, diplomatic, and republican organs are instructed to execute the line without hesitation and to submit implementation summaries through established channels.\n\nOperational assessment: immediate administrative effects have been registered. Public sentiment, institutional discipline, and factional behaviour will adjust according to the material consequences of the decision, regardless of the language used in official communiqués. Continued observation is required until the political aftershocks are fully contained.",
+  "End of the Warsaw Pact::Demand the Pact continue — issue warnings": "СЛУЖЕБНАЯ ЗАПИСКА — CONSEQUENCE REPORT\n\nSubject: End of the Warsaw Pact.\n\nThe selected response has been entered into the operational record: “Demand the Pact continue — issue warnings”. Relevant Party, Soviet, security, diplomatic, and republican organs are instructed to execute the line without hesitation and to submit implementation summaries through established channels.\n\nOperational assessment: immediate administrative effects have been registered. Public sentiment, institutional discipline, and factional behaviour will adjust according to the material consequences of the decision, regardless of the language used in official communiqués. Continued observation is required until the political aftershocks are fully contained."
+};
+
+function applyInlineEventOutcomeTextPatches(event) {
+  if (!event || !Array.isArray(event.choices)) return event;
+  const eventName = event.name || event.id || '';
+  event.choices.forEach(choice => {
+    if (!choice || choice.outcomeText) return;
+    const key = `${eventName}::${choice.text || ''}`;
+    if (Object.prototype.hasOwnProperty.call(INLINE_TRIGGER_OUTCOME_TEXT_PATCHES, key)) {
+      choice.outcomeText = INLINE_TRIGGER_OUTCOME_TEXT_PATCHES[key];
+    }
+  });
+  return event;
+}
+
 function displayTriggerEvent(event) {
+  event = applyInlineEventOutcomeTextPatches(event);
   if (activeEvent) {
     triggerEventQueue.push(event);
     renderEventQueueStatus();
@@ -9948,6 +10112,13 @@ function renderStatus() {
   badge.textContent = s.text;
   badge.style.color = s.color;
   badge.style.borderColor = s.color;
+  // Global status bar badge
+  const gBadge = document.getElementById('gsb-status-badge');
+  if (gBadge) {
+    gBadge.textContent = s.text;
+    gBadge.style.color = s.color;
+    gBadge.style.borderColor = s.color;
+  }
 }
 
 function renderTrajectory() {
@@ -9960,6 +10131,13 @@ function renderTrajectory() {
   fill.style.setProperty('--fill-color', t.barColor);
   band.textContent = t.label;
   band.className = 'trajectory-band ' + t.band;
+
+  // Global status bar trajectory
+  const gTraj = document.getElementById('gsb-trajectory');
+  if (gTraj) {
+    gTraj.textContent = t.label;
+    gTraj.className = 'gsb-traj ' + t.band;
+  }
 
   // Log a message when the band changes (at most once per band transition)
   const prev = gameState._trajectoryBand;
@@ -9986,6 +10164,11 @@ function renderDate() {
   if (mDate) mDate.textContent = formatMonthYear(gameState.month, gameState.year);
   const mBudget = document.getElementById('mobile-status-budget');
   if (mBudget) mBudget.textContent = String(gameState.budget);
+  // Global status bar
+  const gDate = document.getElementById('gsb-date');
+  if (gDate) gDate.textContent = formatMonthYear(gameState.month, gameState.year);
+  const gBudget = document.getElementById('gsb-budget');
+  if (gBudget) gBudget.textContent = String(gameState.budget);
 }
 
 function renderFactions() {
@@ -10724,12 +10907,24 @@ function setSfxVolume(value){
   uiState.audioVolume = uiState.sfxVolume; // keep legacy compat
   if (uiState.sfxVolume > 0) uiState.audioMuted = false;
   applyAudioSettings();
+  // Also apply to any currently playing sfx audio elements
+  try {
+    document.querySelectorAll('audio:not([data-music])').forEach(function(el) {
+      el.volume = uiState.audioMuted ? 0 : clamp(uiState.sfxVolume, 0, 1);
+    });
+  } catch(e) {}
   renderUtility();
 }
 
 function setMusicVolume(value){
   uiState.musicVolume = clamp(Number(value) / 100, 0, 1);
   if (uiState.musicVolume > 0) uiState.audioMuted = false;
+  // Directly set volume on the musicAudio element for immediate feedback
+  try {
+    if (typeof musicAudio !== 'undefined' && musicAudio) {
+      musicAudio.volume = uiState.audioMuted ? 0 : uiState.musicVolume;
+    }
+  } catch(e) {}
   applyAudioSettings();
   renderUtility();
 }
@@ -11206,29 +11401,59 @@ function showPravdaOutcome(choiceTitle, outcomeText, effects, onClose) {
   const titleEl = document.getElementById('outcome-choice-title-el');
   if (titleEl) titleEl.textContent = choiceTitle;
 
-  // Effects summary
+  // Effects summary — rendered as handwritten margin annotations
   const efxEl = document.getElementById('outcome-effects-el');
   if (efxEl) {
-    const LABEL = {
-      foreignRelations:'Foreign Relations', popularAffection:'Popular Support',
-      partyUnity:'Party Unity', economy:'Economy', stability:'Stability',
-      militaryReadiness:'Military Readiness', budget:'Political Capital',
+    const LABEL_EN = {
+      foreignRelations: 'Foreign Rel.',
+      popularAffection: 'Pop. Support',
+      partyUnity: 'Party Unity',
+      economy: 'Economy',
+      stability: 'Stability',
+      militaryReadiness: 'Military',
+      budget: 'Pol. Capital',
+      hardlinersApproval: 'Hardliners',
+      reformMomentum: 'Reform Mom.',
+      separatism: 'Separatism',
     };
-    const items = Object.entries(effects || {})
-      .filter(([,v]) => v !== null && v !== 0)
-      .map(([k, v]) => {
-        const label = LABEL[k] || k;
-        const sign = v > 0 ? '+' : '';
-        const cls = v > 0 ? 'pos' : 'neg';
-        return `<span class="outcome-effect-item ${cls}">${label} ${sign}${v}</span>`;
-      }).join('');
-    efxEl.innerHTML = items || '<span style="opacity:.6;font-style:italic;">No immediate effect changes.</span>';
+    // Signature-style initials to sign off the margin notes
+    const INITIALS = ['М.С.Г.', 'В.А.К.', 'А.Н.Я.', 'Н.И.Р.'];
+    const initials = INITIALS[Math.floor(Math.random() * INITIALS.length)];
+
+    const entries = Object.entries(effects || {}).filter(([,v]) => v !== null && v !== 0);
+    let html = '';
+    entries.forEach(function([k, v]) {
+      const label = LABEL_EN[k] || k;
+      const sign = v > 0 ? '+' : '';
+      const cls = v > 0 ? 'pos' : 'neg';
+      html += `<span class="outcome-effect-item ${cls}">${label} ${sign}${v}</span>`;
+    });
+    // Add a pseudo-signature / routing stamp at the bottom of the margin
+    if (entries.length > 0) {
+      html += `<span class="outcome-effect-item outcome-margin-sig" style="margin-top:auto;padding-top:12px;opacity:.7;font-size:15px;color:#1a1a6a;">${initials}</span>`;
+      html += `<span class="outcome-effect-item outcome-margin-date" style="font-size:11px;opacity:.55;color:#2b1a0a;">${formatMonthYear ? formatMonthYear(gameState.month, gameState.year) : ''}</span>`;
+    } else {
+      html = '<span style="font-family:\'Caveat\',cursive;font-size:13px;opacity:.5;color:#2b1a0a;font-style:italic;">No changes.</span>';
+    }
+    efxEl.innerHTML = html;
   }
 
   // Narrative body — split on newlines into paragraphs
+  // Detect СЛУЖЕБНАЯ ЗАПИСКА format and adjust header accordingly
   const textEl = document.getElementById('outcome-text-el');
+  const mastheadDateEl = document.querySelector('#pravda-outcome-modal .outcome-masthead-date');
+  const isSluzhebnaya = (outcomeText || '').trim().startsWith('СЛУЖЕБНАЯ ЗАПИСКА');
+  if (mastheadDateEl) {
+    mastheadDateEl.textContent = isSluzhebnaya ? 'СЛУЖЕБНАЯ ЗАПИСКА' : 'ШИФРТЕЛЕГРАММА';
+  }
   if (textEl) {
-    const safe = escapeHtml(outcomeText || '');
+    let processedText = outcomeText || '';
+    // Strip the "СЛУЖЕБНАЯ ЗАПИСКА — CONSEQUENCE REPORT\n\nSubject: ..." header if present,
+    // since we display it in the masthead/banner already
+    if (isSluzhebnaya) {
+      processedText = processedText.replace(/^СЛУЖЕБНАЯ ЗАПИСКА\s*[—–-]\s*CONSEQUENCE REPORT\s*\n+/i, '');
+    }
+    const safe = escapeHtml(processedText);
     const paras = safe.split(/\n+/).filter(Boolean);
     textEl.innerHTML = paras.length
       ? '<p>' + paras.join('</p><p>') + '</p>'
@@ -11355,7 +11580,10 @@ document.addEventListener('keydown', function(e) {
       <div class="outcome-effects" id="outcome-effects-el"></div>
       <div class="outcome-text" id="outcome-text-el"></div>
     </div>
-    <button class="outcome-close-btn" onclick="closePravdaOutcome()">Подлежит возврату через 48 часов — Understood, Proceed ⟶</button>
+    <div class="outcome-footer">
+      <div class="outcome-footer-margin"></div>
+      <button class="outcome-close-btn" onclick="closePravdaOutcome()">Подлежит возврату через 48 часов — Understood, Proceed ⟶</button>
+    </div>
   </div>
 </div>
 
@@ -11697,6 +11925,9 @@ function devFireSelectedEvent() {
   if (!ev) { alert('Event "' + eventId + '" not found. Check console.'); console.warn('devFireSelectedEvent: no event with id', eventId); return; }
   closeDevModal();
   // Fire it immediately via displayEvent
+  if (typeof applyInlineEventOutcomeTextPatches === 'function') {
+    ev = applyInlineEventOutcomeTextPatches(ev);
+  }
   if (typeof displayEvent === 'function') {
     displayEvent(ev);
   } else if (typeof showEvent === 'function') {
