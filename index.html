@@ -2732,6 +2732,9 @@
     <input id="music-volume" type="range" min="0" max="100" value="70" oninput="setMusicVolume(this.value)" />
   </div>
   <div class="utility-row">
+    <button class="btn" id="skip-background-music" onclick="skipBackgroundMusic()" title="Skip to the next background music track">Next Music</button>
+  </div>
+  <div class="utility-row">
     <button class="btn" id="audio-toggle" onclick="toggleAudioMute()">Mute</button>
   </div>
   <div class="save-status" id="save-status"></div>
@@ -5989,7 +5992,7 @@ Your direction is required.`,
         text: 'Submit the question to the Plenum — ask the membership whether it wishes to hear from Comrade Yeltsin, in the spirit of inner-party democracy',
         effects: { partyUnity: -3, popularAffection: +8 },
         followUp: {
-          id: 'october_1987_plenum_stage2',
+          id: 'october_1987_plenum_stage2b',
           name: 'The Plenum — Comrade Yeltsin Addresses the Central Committee',
           image: 'images/plenum_1987_stage2.jpg',
           caption: 'Б. Н. Ельцин на трибуне Пленума ЦК КПСС, октябрь 1987',
@@ -6359,6 +6362,24 @@ let advisors = [
     threshold: 20,
     thresholdEffect: 'Publicly criticises Gorbachev — Party Unity -5, Foreign Relations -3',
     availableUntil: { year: 1988 },
+  },
+
+  // ── KRYUCHKOV ─────────────────────────────────────────────────────────────
+  {
+    id: 'kryuchkov',
+    name: 'Vladimir Kryuchkov',
+    role: 'Chairman, KGB (1988–1991)',
+    faction: 'Conservative',
+    loyalty: 50,
+    effectiveness: 85,
+    image: 'images/Vladimir_Kryuchkov.jpg',
+    description: 'A career KGB officer who rose through the ranks under Andropov, Kryuchkov succeeded Chebrikov as KGB Chairman in 1988. Outwardly supportive of perestroika, he privately believed Gorbachev was destroying the Soviet state and feeding intelligence to the West. He was the principal organiser of the August 1991 coup attempt. Loyal to the apparatus above all else — and convinced that glasnost had become a weapon in the hands of Soviet enemies.',
+    specialty: 'Counters foreign intelligence operations. Can suppress domestic opposition movements. His high loyalty blocks liberal reform policies; his defection triggers coup conditions.',
+    reactionLiberal: -12,
+    reactionConservative: +10,
+    threshold: 15,
+    thresholdEffect: 'Begins organising the GKChP — Stability -15, Coup Probability +25%',
+    availableFrom: { year: 1988 },
   },
 ];
 
@@ -6775,37 +6796,24 @@ function checkEvents() {
     return false;
   });
 
-if (triggered.length > 0) {
+  if (triggered.length > 0) {
+    triggered.forEach(e => {
+      gameState.firedTriggers['event_' + e.id] = true;
+    });
 
-  triggered.forEach(e => {
+    if (activeEvent) {
+      triggerEventQueue.push(...triggered);
+      renderEventQueueStatus();
+      return true;
+    }
 
-    gameState.firedTriggers['event_' + e.id] = true;
-
-  });
-
-  if (activeEvent) {
-
-    triggerEventQueue.push(...triggered);
-
+    displayEvent(triggered[0]);
+    for (let i = 1; i < triggered.length; i++) {
+      triggerEventQueue.push(triggered[i]);
+    }
     renderEventQueueStatus();
-
     return true;
-
   }
-
-  displayEvent(triggered[0]);
-
-  for (let i = 1; i < triggered.length; i++) {
-
-    triggerEventQueue.push(triggered[i]);
-
-  }
-
-  renderEventQueueStatus();
-
-  return true;
-
-}
 
   return false;
 }
@@ -7103,10 +7111,12 @@ function playPaperCrackle() {
 let coupAudio = null;
 function playCoupAnthem() {
   try {
+    pauseBackgroundMusic('coup-anthem');
     if (coupAudio) { coupAudio.pause(); coupAudio.currentTime = 0; }
     coupAudio = makeAudio('sounds/national_antham.mp3');
     coupAudio.volume = uiState.audioMuted ? 0 : Math.min(1, uiState.musicVolume ?? 0.7);
     coupAudio.loop = false;
+    coupAudio.addEventListener('ended', () => resumeBackgroundMusic('coup-anthem'), { once:true });
     coupAudio.play().catch(() => {});
   } catch(e) {}
 }
@@ -7116,10 +7126,7 @@ let chernobylPhoneAudio = null;
 function startChernobylPhone() {
   try {
     if (chernobylPhoneAudio) { chernobylPhoneAudio.pause(); chernobylPhoneAudio.currentTime = 0; }
-    if (typeof musicAudio !== 'undefined' && musicAudio) {
-      musicAudio.pause();
-      musicAudio.dataset.pausedForChernobyl = 'true';
-    }
+    pauseBackgroundMusic('chernobyl');
     chernobylPhoneAudio = makeAudio('sounds/telephone_Chernobyl_disaster.mp3');
     chernobylPhoneAudio.volume = uiState.audioMuted ? 0 : Math.min(1, uiState.sfxVolume ?? 0.7);
     chernobylPhoneAudio.loop = true;
@@ -7133,12 +7140,7 @@ function stopChernobylPhone() {
       chernobylPhoneAudio.currentTime = 0;
       chernobylPhoneAudio = null;
     }
-    if (typeof musicAudio !== 'undefined' && musicAudio &&
-        musicAudio.dataset.pausedForChernobyl === 'true' &&
-        (!pripyatAudio || pripyatAudio.paused)) {
-      delete musicAudio.dataset.pausedForChernobyl;
-      if (!uiState.audioMuted && gameStarted) musicAudio.play().catch(() => {});
-    }
+    resumeBackgroundMusic('chernobyl');
   } catch(e) {}
 }
 
@@ -7147,10 +7149,7 @@ let pripyatAudio = null;
 function startPripyatAudio() {
   try {
     if (pripyatAudio) { pripyatAudio.pause(); pripyatAudio.currentTime = 0; }
-    if (typeof musicAudio !== 'undefined' && musicAudio) {
-      musicAudio.pause();
-      musicAudio.dataset.pausedForPripyat = 'true';
-    }
+    pauseBackgroundMusic('pripyat');
     pripyatAudio = makeAudio('sounds/Pripyat_evacuation_1986.mp3');
     pripyatAudio.volume = uiState.audioMuted ? 0 : Math.min(1, uiState.sfxVolume ?? 0.7);
     pripyatAudio.loop = true;
@@ -7164,12 +7163,7 @@ function stopPripyatAudio() {
       pripyatAudio.currentTime = 0;
       pripyatAudio = null;
     }
-    if (typeof musicAudio !== 'undefined' && musicAudio &&
-        musicAudio.dataset.pausedForPripyat === 'true' &&
-        (!chernobylPhoneAudio || chernobylPhoneAudio.paused)) {
-      delete musicAudio.dataset.pausedForPripyat;
-      if (!uiState.audioMuted && gameStarted) musicAudio.play().catch(() => {});
-    }
+    resumeBackgroundMusic('pripyat');
   } catch(e) {}
 }
 
@@ -7214,10 +7208,7 @@ function smartQuotes(str) {
 function displayCoupEvent(event) {
   // Pause background music; Swan Lake takes over
   try {
-    if (typeof musicAudio !== 'undefined' && musicAudio) {
-      musicAudio.pause();
-      musicAudio.dataset.pausedForCoup = 'true';
-    }
+    pauseBackgroundMusic('coup');
     if (swanLakeAudio && swanLakeAudio.dataset.missing !== 'true') {
       swanLakeAudio.currentTime = 0;
       swanLakeAudio.volume = uiState.audioMuted ? 0 : clamp(uiState.musicVolume ?? 0.7, 0, 1);
@@ -7587,11 +7578,7 @@ function displayCoupEvent(event) {
 function stopSwanLake() {
   try {
     if (swanLakeAudio) { swanLakeAudio.pause(); swanLakeAudio.currentTime = 0; }
-    if (typeof musicAudio !== 'undefined' && musicAudio &&
-        musicAudio.dataset.pausedForCoup === 'true') {
-      delete musicAudio.dataset.pausedForCoup;
-      if (!uiState.audioMuted && gameStarted) musicAudio.play().catch(() => {});
-    }
+    resumeBackgroundMusic('coup');
   } catch(e) {}
 }
 
@@ -7673,14 +7660,12 @@ function displayEvent(event) {
           console.error('[ElDorado] play() rejected:', err);
         });
       }
-      // Pause music while flyover plays, resume when it ends
-      if (typeof musicAudio !== 'undefined' && musicAudio && !musicAudio.paused) {
-        musicAudio.pause();
-        eldoradoFlyoverAudio.addEventListener('ended', function resumeAfterFlyover() {
-          eldoradoFlyoverAudio.removeEventListener('ended', resumeAfterFlyover);
-          if (!uiState.audioMuted) musicAudio.play().catch(() => {});
-        });
-      }
+      // Pause background music while flyover plays, resume when it ends
+      pauseBackgroundMusic('eldorado');
+      eldoradoFlyoverAudio.addEventListener('ended', function resumeAfterFlyover() {
+        eldoradoFlyoverAudio.removeEventListener('ended', resumeAfterFlyover);
+        resumeBackgroundMusic('eldorado');
+      });
     } catch(e) {
       console.error('[ElDorado] exception:', e);
     }
@@ -7915,16 +7900,6 @@ function updateAdvisorLoyaltyForTurn(){
       }
     }
     gameState.advisorLoyalty[a.id] = next;
-    if (a.id === 'raisa') {
-      const st = gameState.advisorStatus[a.id] || {};
-      st.devoted = next >= 85;
-      st.concerned = next >= 40 && next < 60;
-      st.alienated = next >= 15 && next < 40;
-      st.divorced = next < 15;
-      st.emboldened = false;
-      gameState.advisorStatus[a.id] = st;
-    }
-
       if (a.id === 'raisa') {
         const status = gameState.advisorStatus[a.id] || {};
         if (next >= 85 && !status.supportive) {
@@ -8251,11 +8226,8 @@ function endTurn() {
 
     // Popular Support consolidation: 50+ → light; 65+ → full
     // a popular leader finds it easier to maintain their mandate.
-    // NOTE: uses the canonical 'popularAffection' key throughout — 'popularSupport'
-    // is a valid alias in applyMetricChange, but using the canonical key avoids
-    // any future confusion about which metric is being read vs written (Bug #4 fix).
     if (m.popularAffection >= 65 && m.popularAffection < 90) {
-      applyMetricChange('popularAffection', 0.5);
+      applyMetricChange('popularAffection', 0.5); // use canonical key (Bug #4 fix)
     } else if (m.popularAffection >= 50 && m.popularAffection < 65) {
       applyMetricChange('popularAffection', 0.3);
     }
@@ -8354,6 +8326,9 @@ function resetGame() {
 
 
 function applyMetricChange(metricKey, delta) {
+  // Alias map — both 'popularSupport' and 'popularAffection' are valid in effects objects.
+  // The canonical internal key is 'popularAffection'. Content authors may use either;
+  // the engine always resolves to the canonical key before writing to gameState.metrics.
   const mapKey = {
     'economy': 'economy',
     'stability': 'stability',
@@ -8962,7 +8937,7 @@ function triggerGameOver(type, message) {
   `;
   document.getElementById('event-choices').innerHTML = type === 'dissolution'
     ? `<button class="event-btn" onclick="resetGame()" style="font-size:13px;padding:10px 20px;font-weight:700;letter-spacing:.1em;border-width:2px;">↺ New Game</button>
-       <button class="event-btn" id="btn-pizza-hut" onclick="openVideoModal('https://www.youtube-nocookie.com/embed/fgm14D1jHUw?start=8&autoplay=1&rel=0','Gorbachev Pizza Hut Commercial (1997)','https://www.youtube.com/watch?v=fgm14D1jHUw&t=8')" style="font-size:13px;padding:10px 20px;font-weight:700;letter-spacing:.1em;border-width:2px;">🍕 Agree to be in a Pizza Hut Commercial</button>
+       <button class="event-btn" id="btn-pizza-hut" onclick="openVideoModal('https://www.youtube-nocookie.com/embed/fgm14D1jHUw?start=8&autoplay=1&rel=0','Gorbachev Pizza Hut Commercial (1997)','https://www.youtube.com/watch?v=fgm14D1jHUw&t=10')" style="font-size:13px;padding:10px 20px;font-weight:700;letter-spacing:.1em;border-width:2px;">🍕 Agree to be in a Pizza Hut Commercial</button>
        <button class="event-btn" id="btn-lv" onclick="openLVPhotoModal()" style="font-size:13px;padding:10px 20px;font-weight:700;letter-spacing:.1em;border-width:2px;">📸 Agree to a Louis Vuitton Photoshoot</button>`
     : '<button class="event-btn" onclick="resetGame()" style="font-size:13px;padding:10px 20px;font-weight:700;letter-spacing:.1em;border-width:2px;">↺ New Game</button>';
   // ── ENDING IMAGES ─────────────────────────────────────────────────
@@ -9064,6 +9039,16 @@ function applyPolicyImmediate(policyId) {
     policy.advisorOpposition.forEach(aid => {
       if (gameState.advisorLoyalty && gameState.advisorLoyalty[aid] != null) {
         gameState.advisorLoyalty[aid] = clamp(Number(gameState.advisorLoyalty[aid]) - 5, 0, 100);
+      }
+    });
+  }
+  // advisorSupport: supporting advisors gain +3 loyalty when a policy they back is enacted.
+  // Mirrors the opposition penalty — policies aligned with an advisor's agenda strengthen
+  // the relationship. (Bug #2 fix — field was declared on content but never processed)
+  if (policy.advisorSupport && Array.isArray(policy.advisorSupport)) {
+    policy.advisorSupport.forEach(aid => {
+      if (gameState.advisorLoyalty && gameState.advisorLoyalty[aid] != null) {
+        gameState.advisorLoyalty[aid] = clamp(Number(gameState.advisorLoyalty[aid]) + 3, 0, 100);
       }
     });
   }
@@ -10010,7 +9995,11 @@ function getSavedGameMeta(){
   }
 }
 
-function saveGame(){ return false; }
+function saveGame(){
+  // Save/load is disabled in this prototype build — buttons are intentionally non-functional.
+  setSaveStatus('Save/load not available in this build.');
+  return false;
+}
 
 function restoreGameState(savedState){
   Object.keys(gameState).forEach(key => delete gameState[key]);
@@ -10024,7 +10013,10 @@ function restoreGameState(savedState){
   ensureAdvisorLoyaltyDefaults();
 }
 
-function loadGame(){ return false; }
+function loadGame(){
+  setSaveStatus('Save/load not available in this build.');
+  return false;
+}
 
 function clearSavedGame(){
   try { localStorage.removeItem(SAVE_KEY); } catch(e) {}
@@ -10069,7 +10061,7 @@ function applyAudioSettings(){
       musicAudio.volume = musicVol;
       if (muted || musicVol === 0) {
         musicAudio.pause();
-      } else if (gameStarted && musicAudio.paused && musicAudio.dataset.missing !== 'true') {
+      } else if (gameStarted && musicAudio.paused && musicAudio.dataset.missing !== 'true' && !isBackgroundMusicSuppressed()) {
         musicAudio.play().catch(() => {});
       }
     }
@@ -10215,48 +10207,85 @@ function startGame() {
 }
 
 // ── SOUNDTRACK ──────────────────────────────────────────────────────────────
-const musicAudio = makeAudio('music/gregorquendel-tetris-theme-korobeiniki-arranged-for-piano-186249.mp3');
+// Background music lives in /music. Add future tracks to this array in play order.
+const MUSIC_PLAYLIST = [
+  'music/comminist-youth.mp3',
+  'music/Letsgo.mp3',
+  'music/gregorquendel-tetris-theme-korobeiniki-arranged-for-piano-186249.mp3'
+];
+let musicTrackIndex = 0;
+const musicPauseReasons = new Set();
+const musicAudio = makeAudio(MUSIC_PLAYLIST[musicTrackIndex]);
 musicAudio.setAttribute('data-music', '');
-musicAudio.loop = true;
+musicAudio.loop = false;
 musicAudio.volume = uiState.musicVolume;
 musicAudio.preload = 'auto'; // fetch while launcher/intro screens are showing
 
+function currentMusicVolume(){
+  return uiState.audioMuted ? 0 : clamp(uiState.musicVolume ?? 0.7, 0, 1);
+}
+
+function isBackgroundMusicSuppressed(){
+  return musicPauseReasons.size > 0;
+}
+
+function setBackgroundMusicTrack(index, autoplay = true){
+  if (!Array.isArray(MUSIC_PLAYLIST) || MUSIC_PLAYLIST.length === 0) return;
+  musicTrackIndex = ((Number(index) || 0) % MUSIC_PLAYLIST.length + MUSIC_PLAYLIST.length) % MUSIC_PLAYLIST.length;
+  const wasPlaying = !musicAudio.paused;
+  try {
+    musicAudio.pause();
+    musicAudio.currentTime = 0;
+    musicAudio.src = new URL(MUSIC_PLAYLIST[musicTrackIndex], document.baseURI).href;
+    delete musicAudio.dataset.missing;
+    musicAudio.load();
+  } catch(e) {}
+  applyAudioSettings();
+  if (autoplay && (wasPlaying || gameStarted) && !isBackgroundMusicSuppressed() && !uiState.audioMuted && currentMusicVolume() > 0) {
+    musicAudio.play().catch(() => {});
+  }
+}
+
+function playBackgroundMusic(){
+  try {
+    if (!gameStarted || isBackgroundMusicSuppressed() || uiState.audioMuted || currentMusicVolume() <= 0) return;
+    musicAudio.volume = currentMusicVolume();
+    musicAudio.play().catch(() => {});
+  } catch(e) {}
+}
+
+function pauseBackgroundMusic(reason = 'event'){
+  try {
+    musicPauseReasons.add(reason);
+    if (musicAudio) musicAudio.pause();
+  } catch(e) {}
+}
+
+function resumeBackgroundMusic(reason = 'event'){
+  try {
+    musicPauseReasons.delete(reason);
+    if (!isBackgroundMusicSuppressed()) playBackgroundMusic();
+  } catch(e) {}
+}
+
+function skipBackgroundMusic(){
+  setBackgroundMusicTrack(musicTrackIndex + 1, true);
+}
+
+musicAudio.addEventListener('ended', () => {
+  setBackgroundMusicTrack(musicTrackIndex + 1, true);
+});
+
+musicAudio.addEventListener('error', () => {
+  // If a future playlist entry is missing or misnamed, continue instead of killing the soundtrack.
+  musicAudio.dataset.missing = 'true';
+  if (MUSIC_PLAYLIST.length > 1) setTimeout(() => setBackgroundMusicTrack(musicTrackIndex + 1, true), 250);
+});
+
 function startSoundtrack() {
-  // Stop and silence the default music track
-  musicAudio.pause();
-  musicAudio.currentTime = 0;
-  musicAudio.volume = 0;
-
-  // Play questnight.mp3 with fade in and fade out
-  const qn = makeAudio('sounds/questnight.mp3');
-  const qnTarget   = uiState.audioMuted ? 0 : (uiState.musicVolume ?? 1);
-  const qnSteps    = 40;
-  const qnFadeInMs = 1500;
-  const qnFadeOutMs = 2000;
-  qn.volume = 0;
-  qn.play().catch(() => {});
-
-  // Fade in
-  let qnInStep = 0;
-  const qnInTimer = setInterval(() => {
-    qnInStep++;
-    qn.volume = Math.min(qnTarget, qnTarget * (qnInStep / qnSteps));
-    if (qnInStep >= qnSteps) clearInterval(qnInTimer);
-  }, qnFadeInMs / qnSteps);
-
-  // Fade out near end
-  qn.addEventListener('timeupdate', function qnFadeOut() {
-    if (!qn.duration) return;
-    if (qn.duration - qn.currentTime <= qnFadeOutMs / 1000) {
-      qn.removeEventListener('timeupdate', qnFadeOut);
-      let qnOutStep = 0;
-      const qnOutTimer = setInterval(() => {
-        qnOutStep++;
-        qn.volume = Math.max(0, qnTarget * (1 - qnOutStep / qnSteps));
-        if (qnOutStep >= qnSteps) clearInterval(qnOutTimer);
-      }, qnFadeOutMs / qnSteps);
-    }
-  });
+  musicPauseReasons.clear();
+  setBackgroundMusicTrack(0, false);
+  playBackgroundMusic();
 }
 
 // ── EL DORADO CANYON: FLYOVER SOUND ─────────────────────────────────────────
@@ -10561,6 +10590,7 @@ document.addEventListener('keydown', function(e) {
           <option value="washington_summit_1987">The Washington Summit</option>
           <option value="tanker_war_1987">The Tanker War: Kuwaiti Reflagging</option>
           <option value="thatcher_visit_1987">Thatcher Visit 1987</option>
+          <option value="assad_visit_1987">Assad Visit 1987</option>
           <option value="sino_soviet_summit_1989">The Sino-Soviet Summit</option>
           <option value="hungary_iron_curtain_1989">The Fall of the Iron Curtain</option>
           <option value="malta_summit_1989">The Malta Summit</option>
@@ -10628,11 +10658,8 @@ function devFireSelectedEvent() {
   var sel = document.getElementById('dev-event-select');
   if (!sel || !sel.value) return;
   var eventId = sel.value;
-  // Find the event in the events array.
-  // NOTE: events is declared with `let` at module scope, so window['events'] won't
-  // find it — reference it directly. The window-lookup fallbacks are kept as a
-  // safety net for any future module-level aliases, but the primary lookup now
-  // goes directly to the `events` variable (Bug #1 fix).
+  // Find the event. NOTE: events is declared with `let` so window['events'] won't find it —
+  // reference it directly. (Bug #1 fix)
   var ev = (typeof events !== 'undefined' ? events : [])
     .find(function(e){ return e.id === eventId; });
   if (!ev && typeof gameEvents !== 'undefined') {
