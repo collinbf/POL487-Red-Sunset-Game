@@ -311,15 +311,12 @@
   /* FINAL RADIO CONTROL TUNING - consolidated */
   .utility-panel.soviet-radio{padding:10px 12px 12px !important;min-height:0 !important;}
   .soviet-radio .section-title{padding-bottom:3px !important;margin-bottom:0 !important;}
-  .radio-speaker-grille{position:relative !important;overflow:hidden !important;height:52px !important;margin:7px 26px 8px !important;border:2px solid rgba(70,32,12,.86) !important;border-radius:7px !important;background-color:#c7ad8d !important;background-image:linear-gradient(180deg,rgba(255,246,224,.30),rgba(97,61,33,.24)),repeating-linear-gradient(90deg,rgba(246,232,206,.58) 0 6px,rgba(142,105,72,.28) 6px 9px,rgba(199,173,141,.16) 9px 18px),repeating-linear-gradient(0deg,rgba(255,255,255,.20) 0 1px,rgba(78,50,31,.18) 1px 2px,transparent 2px 7px),repeating-linear-gradient(60deg,transparent 0 10px,rgba(82,55,38,.36) 10px 12px,transparent 12px 22px),repeating-linear-gradient(120deg,transparent 0 10px,rgba(82,55,38,.34) 10px 12px,transparent 12px 22px) !important;background-size:auto,24px 100%,100% 8px,28px 18px,28px 18px !important;box-shadow:inset 0 2px 6px rgba(255,236,197,.26),inset 0 -5px 10px rgba(55,31,14,.36),inset 0 0 0 1px rgba(245,221,178,.16),0 1px 0 rgba(255,221,150,.22) !important;}
-  .radio-speaker-grille::before{content:"";position:absolute;inset:5px 7px;pointer-events:none;background-image:repeating-linear-gradient(90deg,transparent 0 15px,rgba(255,245,220,.40) 15px 20px,transparent 20px 30px),repeating-linear-gradient(0deg,transparent 0 8px,rgba(85,54,34,.28) 8px 10px,transparent 10px 18px);mix-blend-mode:screen;opacity:.62;}
-  .radio-speaker-grille::after{content:"";position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at center,rgba(255,244,218,.18),transparent 62%),linear-gradient(90deg,rgba(58,29,10,.30),transparent 12%,transparent 88%,rgba(58,29,10,.30));box-shadow:inset 0 0 16px rgba(35,18,8,.38);}
-  .radio-tuning-scale{margin:0 16px 7px !important;padding:4px 8px 3px !important;}.radio-scale-lines{height:18px !important;}.radio-scale-lines::before{font-size:7px !important;bottom:-2px !important;}.radio-scale-lines::after{height:16px !important;top:1px !important;}
   .soviet-radio .volume-wrap{grid-template-columns:58px 116px !important;justify-content:center !important;column-gap:10px !important;margin:6px auto 0 !important;width:220px !important;max-width:calc(100% - 34px) !important;padding:4px 6px !important;font-size:11px !important;}
   .soviet-radio .volume-wrap input{width:116px !important;max-width:116px !important;justify-self:end !important;}
   .radio-controls{gap:7px !important;margin-top:8px !important;flex-wrap:nowrap !important;}
   .radio-icon-btn,.radio-icon-btn:hover,.radio-icon-btn:focus,.radio-icon-btn:active,.radio-icon-btn.muted{width:32px !important;height:27px !important;padding:0 !important;background:#d7cdb2 !important;background-image:linear-gradient(180deg,#eee7d4 0%,#d7cdb2 54%,#bdb193 100%) !important;border-color:#efe6cd !important;color:#1b1108 !important;opacity:1 !important;text-shadow:none !important;filter:none !important;font-size:15px !important;}
   .radio-icon-btn .icon{color:#1b1108 !important;opacity:1 !important;filter:none !important;text-shadow:none !important;font-family:Arial,Helvetica,sans-serif !important;font-weight:900 !important;}
+  .radio-speaker-grille{position:relative !important;overflow:hidden !important;height:52px !important;margin:7px 26px 8px !important;border:2px solid rgba(70,32,12,.86) !important;border-radius:7px !important;background-color:#c7ad8d !important;background-image:linear-gradient(180deg,rgba(255,246,224,.30),rgba(97,61,33,.24)),repeating-linear-gradient(90deg,rgba(246,232,206,.58) 0 6px,rgba(142,105,72,.28) 6px 9px,rgba(199,173,141,.16) 9px 18px),repeating-linear-gradient(60deg,transparent 0 10px,rgba(82,55,38,.36) 10px 12px,transparent 12px 22px),repeating-linear-gradient(120deg,transparent 0 10px,rgba(82,55,38,.34) 10px 12px,transparent 12px 22px) !important;}
   .policy-tree {
     display:flex;
     flex-direction:column;
@@ -3057,8 +3054,30 @@ let activeEvent = null;
 
 // ── POLICY VISIBILITY GATE (Option D: date + metric + advisor) ────────
 function checkPolicyVisible(policy) {
+  // -- Advisor time-window gate --
+  // If a policy requires an advisor with a defined availableFrom/availableUntil
+  // window, hide the policy entirely once the advisor has departed (or before
+  // they arrive). This mirrors the renderAdvisors filter and ensures timed
+  // advisor policies never appear in the pool after the advisor leaves office,
+  // regardless of whether the card was already in the dealt hand.
+  if (policy.advisorRequired) {
+    const a = advisors.find(x => x.id === policy.advisorRequired);
+    if (a) {
+      const y = gameState.year;
+      const mo = gameState.month;
+      if (a.availableFrom) {
+        if (y < a.availableFrom.year) return false;
+        if (a.availableFrom.month && y === a.availableFrom.year && mo < a.availableFrom.month) return false;
+      }
+      if (a.availableUntil) {
+        if (y > a.availableUntil.year) return false;
+        if (a.availableUntil.month && y === a.availableUntil.year && mo > a.availableUntil.month) return false;
+      }
+    }
+  }
+
   const v = policy.visibleIf;
-  if (!v) return true; // no gate — always visible
+  if (!v) return true; // no further gates
   const m  = gameState.metrics;
   const pf = gameState.partyFactions;
   const y  = gameState.year;
@@ -3362,7 +3381,7 @@ let policies = [
     category: 'Domestic',
     cost: 0,
     description: 'Lift decades of censorship across all Soviet media. Citizens and journalists are permitted to openly discuss and criticise the government and party.',
-    effects: { popularSupport: +8, partyUnity: -8, stability: -5 },
+    effects: { popularAffection: +8, partyUnity: -8, stability: -5 },
     duration: 'permanent',
     advisorRequired: 'yakovlev',
     advisorOpposition: ['ligachev'],
@@ -3426,7 +3445,7 @@ let policies = [
     category: 'Foreign',
     cost: 3,
     description: 'Deploy additional troops to crack down on the Islamist insurgency in Afghanistan, displaying strength both at home and abroad.',
-    effects: { popularSupport: -5, economy: +10, hardlinersApproval: +10, reformersApproval: -5, us: -2 },
+    effects: { popularAffection: -5, economy: +10, hardlinersApproval: +10, reformersApproval: -5, us: -2 },
     duration: '1 year',
     advisorRequired: 'akhromeyev',
     advisorSupport: ['gromyko'],
@@ -3440,7 +3459,7 @@ let policies = [
     category: 'Domestic',
     cost: 3,
     description: 'Direct and fund the development of a new mid-range missile platform. The Americans should tread carefully in their proxy conflicts.',
-    effects: { popularSupport: -5, economy: -5, hardlinersApproval: +10, us: -3, eastEu: -3, westEu: -3, nonAlign: -3 },
+    effects: { popularAffection: -5, economy: -5, hardlinersApproval: +10, us: -3, eastEu: -3, westEu: -3, nonAlign: -3 },
     duration: '2 years',
     advisorRequired: 'akhromeyev',
     advisorOpposition: ['gromyko'],
@@ -3452,7 +3471,7 @@ let policies = [
     category: 'Foreign',
     cost: 0,
     description: 'Ease global tensions through an arms-control treaty that eliminates an entire class of nuclear weapons. We can all take a breath.',
-    effects: { popularSupport: +5, economy: +5, budgetBalance: +5, stability: +2, us: +2, china: +2, eastEu: +2, westEu: +2, nonAlign: +2, hardlinersApproval: -5 },
+    effects: { popularAffection: +5, economy: +5, budgetBalance: +5, stability: +2, us: +2, china: +2, eastEu: +2, westEu: +2, nonAlign: +2, hardlinersApproval: -5 },
     duration: 'permanent',
     advisorRequired: 'akhromeyev',
     advisorSupport: ['gromyko'],
@@ -3465,7 +3484,7 @@ let policies = [
     category: 'Foreign',
     cost: 3,
     description: 'Quell protests in the Eastern Bloc. No more threat of revolution: the Eastern Bloc remains stable and intact.',
-    effects: { eastEu: +4, separatism: -4, popularSupport: -5, reformersApproval: -15, hardlinersApproval: +15 },
+    effects: { eastEu: +4, separatism: -4, popularAffection: -5, reformersApproval: -15, hardlinersApproval: +15 },
     duration: 'permanent',
     advisorRequired: 'akhromeyev',
     advisorSupport: ['medvedev', 'kryuchkov'],
@@ -4145,7 +4164,7 @@ let policies = [
     cost: 5,
     description: 'Public opinion surveys — conducted with all appropriate rigour by authorised state organs — confirm that 75% of respondents identify drunkenness as the foremost affliction of Soviet society. Alcohol consumption degrades the health of the working class, elevates rates of hooliganism and absenteeism, and drags down the productive output of our factories and collective farms. It is a problem unworthy of a great socialist civilisation. That said, revenues from state alcohol sales represent a significant contribution to the treasury. A comprehensive anti-alcohol campaign is launched, modelled on earlier initiatives under Comrade Andropov, with firm legal penalties for possession or public intoxication.',
     image: 'images/anti-alcohol.jpg',
-    effects: { economy: -5, budget: +2, popularSupport: -8, partyUnity: +3, stability: +3 },
+    effects: { economy: -5, budget: +2, popularAffection: -8, partyUnity: +3, stability: +3 },
     duration: 'permanent',
     once: true,
     visibleIf: { maxYear: 1987 },
@@ -4157,7 +4176,7 @@ let policies = [
     cost: 3,
     description: 'Alcohol sales are not prohibited, but police organs are instructed to intensify enforcement against public drunkenness and workplace consumption. A middle path between the imperatives of fiscal responsibility and the moral obligations of the socialist state.',
     image: 'images/anti-alcohol.jpg',
-    effects: { economy: -2, budget: -1, popularSupport: -3, stability: +1 },
+    effects: { economy: -2, budget: -1, popularAffection: -3, stability: +1 },
     duration: 'permanent',
     once: true,
     visibleIf: { maxYear: 1987 },
@@ -4171,7 +4190,7 @@ let policies = [
     cost: 0,
     description: 'The decades-long confrontation with the imperialist powers has imposed upon the Soviet state an extraordinary burden of defence expenditure. The USSR\'s defence spending constitutes a substantially greater proportion of state output than that of our adversaries. Resources freed from military appropriations shall be redirected toward the wellbeing of Soviet workers and the modernisation of our civilian economy.',
     image: 'images/Review_military_spending.jpg',
-    effects: { budget: +10, militaryReadiness: -12, popularSupport: +3, economy: +5 },
+    effects: { budget: +10, militaryReadiness: -12, popularAffection: +3, economy: +5 },
     duration: 'permanent',
     advisorOpposition: ['akhromeyev', 'varennikov'],
     visibleIf: { minYear: 1985, maxYear: 1991 },
@@ -4198,7 +4217,7 @@ let policies = [
     cost: 10,
     description: 'Competitive elections, encompassing multiple candidates and multiple parties at every level of the governmental hierarchy, are to be introduced as a concrete expression of socialist democratisation. You have argued that genuine participation by Soviet citizens in the governance of their own affairs is not merely compatible with socialism — it is its fullest expression. Questions remain about the readiness of the citizenry for such a transformation. Nevertheless, the directive is yours to issue.',
     image: 'images/competitive_elections.jpg',
-    effects: { popularSupport: +10, partyUnity: -12, foreignRelations: +8, stability: -5 },
+    effects: { popularAffection: +10, partyUnity: -12, foreignRelations: +8, stability: -5 },
     duration: 'permanent',
     prerequisites: ['glasnost'],
     advisorRequired: 'yakovlev',
@@ -4213,7 +4232,7 @@ let policies = [
     cost: 5,
     description: 'Competitive elections at lower levels of the governmental hierarchy are introduced within the framework of the Communist Party of the Soviet Union. Citizens shall exercise genuine choice among vetted candidates. The constitutional leading role of the Party is reaffirmed. This measure demonstrates that reform within socialist discipline is possible — a meaningful step that stops short of a full transformation of the political order.',
     image: 'images/competitive_elections.jpg',
-    effects: { popularSupport: +5, partyUnity: -5, foreignRelations: +4, stability: -2 },
+    effects: { popularAffection: +5, partyUnity: -5, foreignRelations: +4, stability: -2 },
     duration: 'permanent',
     prerequisites: ['glasnost'],
     advisorOpposition: ['ligachev'],
@@ -4229,7 +4248,7 @@ let policies = [
     cost: 0,
     description: 'The catastrophe at Chernobyl has provided irrefutable evidence of the consequences of a governing apparatus that operates without accountability or transparency. The state\'s habitual instinct toward concealment has been exposed before the entire world — and before the Soviet people themselves. In furtherance of the policy of glasnost, all remaining restrictions on the expression of opinion in the press, in public assemblies, and in the organs of state shall be lifted. The right to criticise is hereby recognised as a constitutional guarantee.',
     image: 'images/following_chernobyl.jpg',
-    effects: { popularSupport: +8, partyUnity: -10, stability: -5, separatism: +5 },
+    effects: { popularAffection: +8, partyUnity: -10, stability: -5, separatism: +5 },
     duration: 'permanent',
     prerequisites: ['glasnost'],
     advisorRequired: 'yakovlev',
@@ -4244,7 +4263,7 @@ let policies = [
     cost: 0,
     description: 'The suppression of dissent and the muzzling of information have produced stagnation, not stability. In the spirit of glasnost, independent publications shall be encouraged to print freely without fear of repercussion — a cautious opening that stops short of full constitutional guarantees, but demonstrates that the Party is capable of honest public discourse.',
     image: 'images/following_chernobyl.jpg',
-    effects: { popularSupport: +4, partyUnity: -5, separatism: +3 },
+    effects: { popularAffection: +4, partyUnity: -5, separatism: +3 },
     duration: 'permanent',
     prerequisites: ['glasnost'],
     advisorRequired: 'yakovlev',
@@ -4260,7 +4279,7 @@ let policies = [
     cost: 0,
     description: 'The state budget deficit now exceeds 120 billion rubles. Economic advisors of the highest qualification are unanimous in their assessment: this trajectory is unsustainable. Following the example of certain Western governments, expenditure is curtailed across social and state programmes in order to arrest the deterioration of state revenues. Hardliners have noted with concern that such measures risk further alienating a population already strained by shortages and uncertainty.',
     image: 'images/austerity_measures.jpg',
-    effects: { budget: +8, economy: +3, popularSupport: -8, stability: -4 },
+    effects: { budget: +8, economy: +3, popularAffection: -8, stability: -4 },
     duration: 'permanent',
     advisorOpposition: ['ligachev'],
     visibleIf: { minYear: 1989, maxYear: 1991 },
@@ -4272,7 +4291,7 @@ let policies = [
     cost: 0,
     description: 'Ambitious and non-essential state projects are wound back, but social expenditure is protected. A ruble preserved is a ruble for socialism — and the public need not feel the pinch. All ministries are directed to identify and suspend expenditure on programmes that have not met their planned targets. Savings achieved shall be reported to the Council of Ministers within sixty days.',
     image: 'images/austerity_measures.jpg',
-    effects: { budget: +4, popularSupport: +3, economy: +1 },
+    effects: { budget: +4, popularAffection: +3, economy: +1 },
     duration: 'permanent',
     visibleIf: { minYear: 1989, maxYear: 1991 },
   },
@@ -4285,7 +4304,7 @@ let policies = [
     cost: 0,
     description: 'The mismanagement of the Chernobyl reactor has given rise to a grassroots movement among the Soviet citizenry demanding a complete moratorium on the construction of new nuclear installations. Reformist allies within the apparatus argue that conceding to these demands would represent a meaningful gesture of reconciliation between the government and a people whose trust has been gravely damaged. All authorisations for new nuclear construction are hereby suspended pending a comprehensive safety review.',
     image: 'images/anti_nuclear.jpg',
-    effects: { popularSupport: +8, budget: +3, militaryReadiness: -6, stability: +4 },
+    effects: { popularAffection: +8, budget: +3, militaryReadiness: -6, stability: +4 },
     duration: 'permanent',
     prerequisites: [],
     advisorOpposition: ['akhromeyev', 'varennikov'],
@@ -4299,7 +4318,7 @@ let policies = [
     cost: 8,
     description: 'Nuclear development is indispensable to the defence capability and energy sovereignty of the USSR. The State Committee for Nuclear Energy Supervision shall be reconstituted with expanded authority and increased staffing. All operating reactor facilities are to undergo immediate safety audit. Construction of new facilities shall continue under revised protocols. Safety and progress shall advance in tandem.',
     image: 'images/anti_nuclear.jpg',
-    effects: { popularSupport: +4, budget: -3, militaryReadiness: +3, foreignRelations: +4 },
+    effects: { popularAffection: +4, budget: -3, militaryReadiness: +3, foreignRelations: +4 },
     duration: 'permanent',
     visibleIf: { minYear: 1986, maxYear: 1991 },
     once: true,
@@ -4313,7 +4332,7 @@ let policies = [
     cost: 0,
     description: 'The principle of glasnost necessarily confronts us with the most difficult chapters of our history. Among these: the mass starvation that swept through Ukraine in 1932 and 1933. A national day of remembrance is instituted. A state museum is commissioned. The historical record is opened, and the events of those years are formally acknowledged as constituting a deliberate act of mass destruction. The matter is resolved — historical truth in service of the future.',
     image: 'images/Holodomor_red_train.jpg',
-    effects: { popularSupport: +8, partyUnity: -8, stability: -5, separatism: -6 },
+    effects: { popularAffection: +8, partyUnity: -8, stability: -5, separatism: -6 },
     duration: 'permanent',
     prerequisites: ['glasnost'],
     advisorRequired: 'yakovlev',
@@ -4328,7 +4347,7 @@ let policies = [
     cost: 0,
     description: 'A national day of remembrance is established for the victims of the 1932 and 1933 famine in the Ukrainian SSR. The term \'genocide\' is not applied. Questions of legal characterisation remain under review and shall not be prejudged by this decree. Remembrance without accusation — a careful, politically considered act of partial historical honesty.',
     image: 'images/Holodomor_red_train.jpg',
-    effects: { popularSupport: +3, partyUnity: -4, separatism: +2 },
+    effects: { popularAffection: +3, partyUnity: -4, separatism: +2 },
     duration: 'permanent',
     prerequisites: ['glasnost'],
     visibleIf: { minYear: 1985, maxYear: 1990 },
@@ -4343,7 +4362,7 @@ let policies = [
     cost: 0,
     description: 'The Soviet educational system has for decades served as the foremost instrument by which Marxist-Leninist values are transmitted to new generations of citizens. Many reformers now argue that this pedagogical tradition sits in direct contradiction with the stated principles of glasnost. The Ministry of Education is directed to reduce the proportion of instructional time allocated to prescriptive ideological formation. Marxist-Leninist social science shall remain a required subject, but its presentation shall emphasise critical engagement over rote recitation.',
     image: 'images/soviet_childrens_book.jpg',
-    effects: { popularSupport: +5, partyUnity: -8, stability: -3 },
+    effects: { popularAffection: +5, partyUnity: -8, stability: -3 },
     duration: 'permanent',
     prerequisites: ['glasnost'],
     advisorRequired: 'yakovlev',
@@ -4358,7 +4377,7 @@ let policies = [
     cost: 5,
     description: 'A reformed curriculum framework is introduced across all levels of secondary and higher education. Students shall receive structured instruction in the comparative analysis of political and ideological systems, including bourgeois democratic, social democratic, and scientific socialist doctrines. The children are the future of socialism — and the Party is confident that socialist principles, honestly examined, will demonstrate their superiority without resort to exclusion of alternatives.',
     image: 'images/soviet_childrens_book.jpg',
-    effects: { popularSupport: +8, partyUnity: -12, stability: -6, foreignRelations: +5 },
+    effects: { popularAffection: +8, partyUnity: -12, stability: -6, foreignRelations: +5 },
     duration: 'permanent',
     prerequisites: ['glasnost', 'ideological_education_rollback'],
     advisorRequired: 'yakovlev',
@@ -4375,7 +4394,7 @@ let policies = [
     cost: 12,
     description: 'Economic stagnation and chronic shortages continue to undermine confidence in the Soviet system. The Law on State Enterprises is enacted in full. Enterprise directors and workers\' collectives are granted authority over production decisions, wage distribution, and the disposition of retained profit. The authority of Gosplan is correspondingly adjusted. Reformers celebrate; hardliners decry the loss of socialist discipline.',
     image: 'images/state_enterprise.png',
-    effects: { economy: +8, popularSupport: +6, partyUnity: -8, separatism: -3 },
+    effects: { economy: +8, popularAffection: +6, partyUnity: -8, separatism: -3 },
     duration: 'permanent',
     prerequisites: ['uskoreniye'],
     advisorOpposition: ['ligachev'],
@@ -4389,7 +4408,7 @@ let policies = [
     cost: 5,
     description: 'Selected enterprises are permitted to experiment with limited autonomy under close Party oversight. Managers and workers receive greater operational flexibility while central authority remains intact. Results shall be evaluated after two planning cycles before any determination is made regarding broader application. Controlled enterprise trials — reform within socialist discipline.',
     image: 'images/state_enterprise.png',
-    effects: { economy: +3, popularSupport: +3, partyUnity: +4, separatism: -2 },
+    effects: { economy: +3, popularAffection: +3, partyUnity: +4, separatism: -2 },
     duration: 'permanent',
     prerequisites: ['uskoreniye'],
     visibleIf: { minYear: 1987, maxYear: 1991 },
@@ -4404,7 +4423,7 @@ let policies = [
     cost: 15,
     description: 'The Buran Space Shuttle programme was conceived as the definitive proof that the Soviet Union remained the technological and military equal of the imperialist powers. The blizzard continues — the USSR reaffirms its full commitment to Buran and the Energia rocket systems. Technological breakthroughs shall proceed. Comrades in the civilian ministries are advised to identify compensating economies elsewhere.',
     image: 'images/Flight_of_Ambition.jpg',
-    effects: { militaryReadiness: +6, budget: -8, popularSupport: +6, economy: +3, partyUnity: +4 },
+    effects: { militaryReadiness: +6, budget: -8, popularAffection: +6, economy: +3, partyUnity: +4 },
     duration: 'permanent',
     advisorRequired: 'akhromeyev',
     advisorOpposition: ['ryzhkov'],
@@ -4418,7 +4437,7 @@ let policies = [
     cost: 0,
     description: 'Resources consumed by orbital ambitions would be better directed toward the immediate needs of the Soviet people. The Buran programme is cancelled. A symbolic blow to Soviet space ambitions; modest financial relief for the treasury. Personnel and facilities shall be transferred to civilian aerospace and materials research functions where applicable.',
     image: 'images/Flight_of_Ambition.jpg',
-    effects: { budget: +10, popularSupport: -6, militaryReadiness: -6, partyUnity: -6, economy: -3 },
+    effects: { budget: +10, popularAffection: -6, militaryReadiness: -6, partyUnity: -6, economy: -3 },
     duration: 'permanent',
     advisorRequired: 'ryzhkov',
     advisorOpposition: ['akhromeyev', 'varennikov'],
@@ -4432,7 +4451,7 @@ let policies = [
     cost: 0,
     description: 'Funding for the Buran programme is curtailed. Select aerospace and research components are preserved. A pragmatic retreat, presented as responsible governance — prestige on a socialist budget. Flight operations and full-system integration work are suspended pending a review of state priorities.',
     image: 'images/Flight_of_Ambition.jpg',
-    effects: { budget: +4, popularSupport: -3, militaryReadiness: -3, economy: -3 },
+    effects: { budget: +4, popularAffection: -3, militaryReadiness: -3, economy: -3 },
     duration: 'permanent',
     visibleIf: { minYear: 1985, maxYear: 1991 },
     once: true,
@@ -4446,7 +4465,7 @@ let policies = [
     cost: 8,
     description: 'Mounting evidence confirms that Soviet industrial enterprises have for too long prioritised the fulfilment of output quotas over the actual quality of goods reaching our citizens. The factories flood the economy with defective products. A system of independent state inspectors — Gospriyomka — is hereby established across all major sectors of Soviet industrial production. Goods that do not meet the standard shall be returned for rework or written off. Quality improves; output may decline. The people receive goods that function.',
     image: 'images/Seal_of_Quality.jpg',
-    effects: { economy: +6, budget: -3, popularSupport: -3, partyUnity: -5, stability: +3 },
+    effects: { economy: +6, budget: -3, popularAffection: -3, partyUnity: -5, stability: +3 },
     duration: 'permanent',
     advisorOpposition: ['ligachev'],
     visibleIf: { minYear: 1985, maxYear: 1991 },
@@ -4459,7 +4478,7 @@ let policies = [
     cost: 4,
     description: 'Gospriyomka is introduced on a phased schedule, beginning with the machine-building and electronics sectors. Enterprises shall be afforded an adjustment period during which inspection findings will be reported but not yet used to invalidate plan quota fulfilment. A controlled rollout — allowing enterprise adjustment while demonstrating the state\'s commitment to quality over mere statistical output.',
     image: 'images/Seal_of_Quality.jpg',
-    effects: { economy: +5, popularSupport: +5, partyUnity: +4, stability: +2 },
+    effects: { economy: +5, popularAffection: +5, partyUnity: +4, stability: +2 },
     duration: 'permanent',
     visibleIf: { minYear: 1985, maxYear: 1991 },
     once: true,
@@ -4473,7 +4492,7 @@ let policies = [
     cost: 10,
     description: 'Under the present monobank structure, state financial institutions serve merely as conduits for distributing funds according to central plan directives. There is no meaningful assessment of investment risk, no pressure for enterprise efficiency. Gosbank is to be reorganised into specialised state and commercial banks authorised to issue credit and monitor enterprise performance. Reformers celebrate; critics warn that decentralising financial authority risks opening the door to market forces that will prove impossible to contain.',
     image: 'images/Monobank.jpg',
-    effects: { economy: -3, popularSupport: +3, partyUnity: -6, stability: -6 },
+    effects: { economy: -3, popularAffection: +3, partyUnity: -6, stability: -6 },
     duration: 'permanent',
     prerequisites: ['perestroika'],
     advisorRequired: 'ryzhkov',
@@ -4488,7 +4507,7 @@ let policies = [
     cost: 4,
     description: 'No structural reform of the banking system is undertaken. Instead, stricter reporting requirements and expanded anti-corruption investigations are launched within existing institutions. Inspection over innovation — a measured response that strengthens accountability without dismantling the foundations of socialist planning.',
     image: 'images/Monobank.jpg',
-    effects: { popularSupport: +6, stability: +3, economy: -3, partyUnity: +4 },
+    effects: { popularAffection: +6, stability: +3, economy: -3, partyUnity: +4 },
     duration: 'permanent',
     visibleIf: { minYear: 1988, maxYear: 1991 },
     once: true,
@@ -4531,7 +4550,7 @@ let policies = [
     cost: 8,
     description: 'As glasnost expands across the Union, the question of state media\'s role in shaping public discourse becomes unavoidable. Gosteleradio has long functioned as a reliable instrument of ideological transmission. Additional resources are allocated and Party control over programming is relaxed. Public debate flourishes. Scrutiny of Party shortcomings intensifies accordingly — airwaves of openness.',
     image: 'images/anti_nuclear.jpg',
-    effects: { popularSupport: +10, partyUnity: -10, budget: -3, stability: -5, separatism: +8 },
+    effects: { popularAffection: +10, partyUnity: -10, budget: -3, stability: -5, separatism: +8 },
     duration: 'permanent',
     prerequisites: ['glasnost'],
     advisorRequired: 'yakovlev',
@@ -4546,7 +4565,7 @@ let policies = [
     cost: 4,
     description: 'Additional resources are directed toward scientific, cultural, and educational content. Political discussion is not encouraged. A compromise that acknowledges the imperatives of glasnost while maintaining the controlled signal of Party authority — education, not agitation. The ideological mission of Gosteleradio is upheld.',
     image: 'images/anti_nuclear.jpg',
-    effects: { popularSupport: +8, partyUnity: +10, budget: -2, stability: +3, separatism: -5 },
+    effects: { popularAffection: +8, partyUnity: +10, budget: -2, stability: +3, separatism: -5 },
     duration: 'permanent',
     prerequisites: ['glasnost'],
     visibleIf: { minYear: 1986, maxYear: 1990 },
@@ -4561,7 +4580,7 @@ let policies = [
     cost: 0,
     description: 'As glasnost opens previously sealed chapters of Soviet history to scrutiny, the question of Katyn presses forward. In 1940, approximately 22,000 Polish officers, intellectuals, and officials were executed by organs of the NKVD under Stalin\'s authority. The government officially confirms Soviet responsibility. State archives are partially opened. Historical accountability is extended — the credibility of glasnost demands no less.',
     image: 'images/Katyn.jpg',
-    effects: { popularSupport: +5, partyUnity: -8, foreignRelations: +8, stability: -4 },
+    effects: { popularAffection: +5, partyUnity: -8, foreignRelations: +8, stability: -4 },
     duration: 'permanent',
     prerequisites: ['glasnost'],
     advisorRequired: 'yakovlev',
@@ -4576,7 +4595,7 @@ let policies = [
     cost: 0,
     description: 'Rather than an immediate admission, a commission of historians and legal experts is convened to investigate the events at Katyn. The gradual approach limits immediate controversy. A report shall be submitted to the Politburo within twelve months. No public statement shall be issued pending receipt of the commission\'s findings — controlled disclosure, responsibility without immediate accusation.',
     image: 'images/Katyn.jpg',
-    effects: { popularSupport: +2, foreignRelations: +4, partyUnity: -3 },
+    effects: { popularAffection: +2, foreignRelations: +4, partyUnity: -3 },
     duration: 'permanent',
     prerequisites: ['glasnost'],
     visibleIf: { minYear: 1985, maxYear: 1990 },
@@ -4591,7 +4610,7 @@ let policies = [
     cost: 6,
     description: 'The internal passport system has for decades enabled the state to manage population distribution and direct labour in accordance with the needs of the planned economy. As Perestroika advances, these restrictions have become a major obstacle to economic modernisation. Internal migration restrictions are significantly relaxed. Labour mobility increases. Major cities face growing pressure on housing and public services. Let the people move.',
     image: 'images/Freedom_of_Movement.jpg',
-    effects: { popularSupport: +6, economy: +4, stability: -5, partyUnity: -4 },
+    effects: { popularAffection: +6, economy: +4, stability: -5, partyUnity: -4 },
     duration: 'permanent',
     prerequisites: ['perestroika'],
     advisorRequired: 'yakovlev',
@@ -4606,7 +4625,7 @@ let policies = [
     cost: 3,
     description: 'The propiska system is retained. Limited exemptions are introduced for skilled workers, students, and critical labour categories. A controlled increase in mobility that does not open the floodgates — preserving social order and urban resource management while acknowledging the productive case for selective labour flexibility.',
     image: 'images/Freedom_of_Movement.jpg',
-    effects: { economy: +3, popularSupport: +3, stability: -1 },
+    effects: { economy: +3, popularAffection: +3, stability: -1 },
     duration: 'permanent',
     visibleIf: { minYear: 1986, maxYear: 1990 },
     once: true,
@@ -4620,7 +4639,7 @@ let policies = [
     cost: 15,
     description: 'The Semashko system of universal healthcare was once a point of genuine pride for the Soviet Union. Today it suffers from decades of underinvestment and administrative stagnation. Funding increases substantially. Medical cooperatives are authorised. Physicians gain greater professional autonomy. Standards improve; disparities may begin to emerge. The Semashko system is to be renewed, not abandoned — for the health of the nation.',
     image: 'images/healing_people.jpg',
-    effects: { popularSupport: +8, budget: -8, economy: +3, stability: +4 },
+    effects: { popularAffection: +8, budget: -8, economy: +3, stability: +4 },
     duration: 'permanent',
     advisorOpposition: ['ligachev'],
     visibleIf: { minYear: 1987, maxYear: 1991 },
@@ -4633,7 +4652,7 @@ let policies = [
     cost: 10,
     description: 'Healthcare spending is substantially increased and new facilities are funded. Cooperative and market elements are excluded as inconsistent with the principle of universal and equal access to medical care. Improve the system, keep it socialist — administrative inefficiencies will remain, but the egalitarian foundations of Soviet medicine are preserved.',
     image: 'images/healing_people.jpg',
-    effects: { popularSupport: +5, budget: -6, stability: +2 },
+    effects: { popularAffection: +5, budget: -6, stability: +2 },
     duration: 'permanent',
     visibleIf: { minYear: 1987, maxYear: 1991 },
     once: true,
@@ -4646,7 +4665,7 @@ let policies = [
     category: 'Domestic',
     cost: 0,
     description: 'The Soviet pension system faces mounting strain. Benefits remain modest by international standards, yet rising life expectancy, economic contraction, and accelerating inflation are placing growing pressure upon the state budget. The retirement age is raised by decree. Pension payments are indexed to inflation, ensuring the system\'s long-term viability. Many citizens approaching retirement react with significant anger — but what was once a cornerstone of the Soviet social contract must be modernised to survive.',
-    effects: { budget: +5, popularSupport: -6, stability: -3, economy: +3 },
+    effects: { budget: +5, popularAffection: -6, stability: -3, economy: +3 },
     duration: 'permanent',
     advisorOpposition: ['ligachev'],
     visibleIf: { minYear: 1988, maxYear: 1991 },
@@ -4658,7 +4677,7 @@ let policies = [
     category: 'Domestic',
     cost: 0,
     description: 'Pension payments are linked to inflation to preserve retirees\' purchasing power. The politically sensitive question of the retirement age is not reopened. Immediate social pressures ease; long-term fiscal challenges remain unresolved. Reform with compassion — the workers\' promise is honoured within the limits of what the state can sustain.',
-    effects: { popularSupport: +4, budget: -4, stability: +2 },
+    effects: { popularAffection: +4, budget: -4, stability: +2 },
     duration: 'permanent',
     visibleIf: { minYear: 1988, maxYear: 1991 },
     once: true,
@@ -4671,7 +4690,7 @@ let policies = [
     category: 'Domestic',
     cost: 12,
     description: 'The Union continues to experience chronic food shortages, low agricultural productivity, and an increasingly costly system of state subsidies. Decades after collectivisation transformed the Soviet countryside, collective farms remain beset by weak incentives and bureaucratic mismanagement. Land, livestock, and equipment are leased to individual farmers and family enterprises. Freedom to the fields — output improves; food shortages ease in some regions. Hardliners view this as a repudiation of one of socialism\'s foundational achievements.',
-    effects: { economy: +8, popularSupport: +6, partyUnity: -10, stability: -4, budget: -5 },
+    effects: { economy: +8, popularAffection: +6, partyUnity: -10, stability: -4, budget: -5 },
     duration: 'permanent',
     prerequisites: ['perestroika'],
     advisorRequired: 'yakovlev',
@@ -4685,7 +4704,7 @@ let policies = [
     category: 'Domestic',
     cost: 5,
     description: 'Peasants are granted expanded rights to lease small plots and sell surplus goods, while the collective farm structure is preserved. The household plot compromise — harness private incentives without dismantling the socialist structure of rural life. A useful first step; fundamental transformation of the agricultural system is deferred.',
-    effects: { economy: +5, popularSupport: +3, partyUnity: -3, stability: +1 },
+    effects: { economy: +5, popularAffection: +3, partyUnity: -3, stability: +1 },
     duration: 'permanent',
     prerequisites: ['uskoreniye'],
     visibleIf: { minYear: 1985, maxYear: 1991 },
@@ -4699,7 +4718,7 @@ let policies = [
     category: 'Domestic',
     cost: 0,
     description: 'The unity of the Communist Party is fracturing. Hardliners are offered greater influence over policy discussions; reformers are counselled to moderate the pace of change. A fragile peace — tensions ease temporarily; neither side is satisfied. A communiqué affirming the unity of the Party around the programme of socialist renewal shall be distributed to all regional Party committees.',
-    effects: { partyUnity: +10, popularSupport: -3, economy: -2 },
+    effects: { partyUnity: +10, popularAffection: -3, economy: -2 },
     duration: 'permanent',
     visibleIf: { minHardlinerFaction: 25 },
     once: true,
@@ -4710,7 +4729,7 @@ let policies = [
     category: 'Domestic',
     cost: 0,
     description: 'Conservative officials are removed from key positions; reform-minded cadres are elevated. Reforms proceed rapidly. Resentment among hardliners intensifies and goes underground. A purge of the old guard — those who obstruct the programme of socialist renewal shall be relieved of their responsibilities and offered appropriate positions commensurate with their service record.',
-    effects: { partyUnity: -8, popularSupport: +6, foreignRelations: +4, stability: -5 },
+    effects: { partyUnity: -8, popularAffection: +6, foreignRelations: +4, stability: -5 },
     duration: 'permanent',
     prerequisites: ['glasnost'],
     advisorRequired: 'yakovlev',
@@ -4724,7 +4743,7 @@ let policies = [
     category: 'Domestic',
     cost: 0,
     description: 'The return to orthodoxy. Reformist officials are censured. Political debate is curtailed. Party discipline is reasserted. The Central Committee notes with concern that certain members of the apparatus have advanced positions that undermine the leading role of the CPSU and the unity of the Soviet state. Party organisations at all levels are reminded of their obligation to maintain ideological discipline — public confidence in reform declines sharply.',
-    effects: { partyUnity: +12, popularSupport: -8, stability: +5, foreignRelations: -5 },
+    effects: { partyUnity: +12, popularAffection: -8, stability: +5, foreignRelations: -5 },
     duration: 'permanent',
     advisorOpposition: ['yakovlev', 'shevardnadze'],
     visibleIf: { minHardlinerFaction: 25 },
@@ -4741,7 +4760,7 @@ let policies = [
     cost: 6,
     description: 'Among the earliest economic initiatives of Perestroika, the Law on Individual Labour Activity permits Soviet citizens limited engagement with private enterprise — after decades in which such activity was not merely prohibited but stigmatised as exploitative and capitalistic. This reform reflects Perestroika\'s ambition to construct a liberalised form of socialism. Soviet citizens shall engage in specified forms of self-employment subject to registration requirements and applicable taxation. Speculative activity remains prohibited.',
     image: 'images/Labour_Rights.jpg',
-    effects: { economy: +5, popularSupport: +3, partyUnity: -6, stability: -3 },
+    effects: { economy: +5, popularAffection: +3, partyUnity: -6, stability: -3 },
     duration: 'permanent',
     prerequisites: ['uskoreniye'],
     advisorOpposition: ['ligachev'],
@@ -4756,7 +4775,7 @@ let policies = [
     category: 'Domestic',
     cost: 0,
     description: 'Gorbachev\'s government targets income derived from private profit, socially unproductive labour, and corrupt practices — so-called \'unearned income.\' The law reflects the conviction that socialism can be more democratic in form while preserving the moral discipline that distinguishes socialist society from bourgeois individualism. Citizens are reminded that income must correspond to socially useful labour. The law clashes, inevitably, with concurrent reforms permitting limited private economic activity.',
-    effects: { economy: -3, popularSupport: -3, partyUnity: +5, stability: +2 },
+    effects: { economy: -3, popularAffection: -3, partyUnity: +5, stability: +2 },
     duration: 'permanent',
     advisorRequired: 'ligachev',
     advisorOpposition: ['yakovlev', 'ryzhkov'],
@@ -4772,7 +4791,7 @@ let policies = [
     cost: 8,
     description: 'Centralised pricing for consumer goods has contributed to the chronic distortions plaguing Soviet economic life: stagnating growth, misaligned production and consumption, and the shortages that afflict our citizens daily. Prices in designated categories shall be permitted to move in response to actual consumer demand. Citizens have reacted with anxiety to the prospect of rising prices — and under glasnost, this anxiety finds public expression. Flexible prices serve the socialist economy.',
     image: 'images/Economic_Reforms.jpg',
-    effects: { economy: +6, budget: +4, popularSupport: -6, stability: -4, partyUnity: -4 },
+    effects: { economy: +6, budget: +4, popularAffection: -6, stability: -4, partyUnity: -4 },
     duration: 'permanent',
     prerequisites: ['perestroika'],
     advisorOpposition: ['ligachev'],
@@ -4786,7 +4805,7 @@ let policies = [
     cost: 4,
     description: 'A first phase of price reform affecting wholesale and inter-enterprise prices is implemented. Retail consumer prices shall remain fixed at current levels. Reform for industry first, then for the people — a phased introduction that attempts to capture efficiency gains while protecting citizens from immediate inflation shocks. Results shall be assessed before any extension to the retail sector is considered.',
     image: 'images/Economic_Reforms.jpg',
-    effects: { economy: +4, budget: +2, popularSupport: -2, stability: -2 },
+    effects: { economy: +4, budget: +2, popularAffection: -2, stability: -2 },
     duration: 'permanent',
     prerequisites: ['uskoreniye'],
     visibleIf: { minYear: 1985, maxYear: 1988 },
@@ -4801,7 +4820,7 @@ let policies = [
     cost: 0,
     description: 'Anti-corruption campaigns target bribery, bureaucratic privilege, black-market activity, and embezzlement — the endemic abuses of power that have become inseparable from Soviet institutional life. What Gorbachev appears not to have fully appreciated is that corruption was not a deviation from the Soviet system. It was, in large measure, how the system functioned. To expose it under glasnost is not simply to cleanse the body politic. It is to invite the citizenry to observe, in unflinching detail, the condition of the institutions that govern them.',
     image: 'images/Against_Corruption.jpg',
-    effects: { popularSupport: -5, partyUnity: -5, stability: -5, foreignRelations: +3 },
+    effects: { popularAffection: -5, partyUnity: -5, stability: -5, foreignRelations: +3 },
     duration: 'permanent',
     prerequisites: ['glasnost'],
     advisorOpposition: ['ligachev'],
@@ -4814,7 +4833,7 @@ let policies = [
     cost: 0,
     description: 'Corruption among politicians and high officials is exposed and prosecuted through directed investigation. Matters pertaining to systemic institutional factors shall not be included in public communications. Selective exposure — target officials only; shield the public from full knowledge. The targeted purge asserts authority without undermining public faith in the system itself.',
     image: 'images/Against_Corruption.jpg',
-    effects: { partyUnity: -4, stability: +3, popularSupport: +2 },
+    effects: { partyUnity: -4, stability: +3, popularAffection: +2 },
     duration: 'permanent',
     advisorOpposition: ['yakovlev'],
     visibleIf: { minYear: 1985 },
@@ -4828,7 +4847,7 @@ let policies = [
     cost: 0,
     description: 'For decades, emigration was tightly controlled. Under the proposed reforms, minority groups and demographics previously subject to restrictions — dissidents, intellectuals, religious communities, Soviet Jews — gain new freedom of movement. The intent is to embody the principles of openness and transparency. Citizens who choose to remain are citizens who believe. OVIR procedures are substantially simplified.',
     image: 'images/Leap_into_Freedom.jpeg',
-    effects: { popularSupport: +5, partyUnity: -6, foreignRelations: +5, stability: -4 },
+    effects: { popularAffection: +5, partyUnity: -6, foreignRelations: +5, stability: -4 },
     duration: 'permanent',
     prerequisites: ['glasnost'],
     advisorRequired: 'yakovlev',
@@ -4843,7 +4862,7 @@ let policies = [
     cost: 0,
     description: 'Limited emigration is permitted under controlled conditions. Certain categories of citizens gain new freedom; the state retains oversight of who goes where and why. A controlled opening — limited and supervised movement that attempts to project openness without fully surrendering the Party\'s authority over the movement of its citizens.',
     image: 'images/Leap_into_Freedom.jpeg',
-    effects: { popularSupport: +2, partyUnity: -2, foreignRelations: +2, stability: -2 },
+    effects: { popularAffection: +2, partyUnity: -2, foreignRelations: +2, stability: -2 },
     duration: 'permanent',
     visibleIf: { minYear: 1986, maxYear: 1991 },
     once: true,
@@ -4857,7 +4876,7 @@ let policies = [
     cost: 0,
     description: 'After decades of state censorship, the proposed laws grant citizens, journalists, newspapers, and publishers the freedom to criticise government policies, discuss historical tragedies openly, and challenge those in authority. Gorbachev believed that openness would produce a more moral, more capable, and more legitimate socialist state. What it may produce instead is a public exhaustion with socialism, a renewed confrontation with collective historical trauma, and a decisive weakening of political authority. Full freedom — perhaps the people will speak well of us.',
     image: 'images/Freedom_Press.jpg',
-    effects: { popularSupport: +8, partyUnity: -10, stability: -6, foreignRelations: +6 },
+    effects: { popularAffection: +8, partyUnity: -10, stability: -6, foreignRelations: +6 },
     duration: 'permanent',
     prerequisites: ['glasnost'],
     advisorRequired: 'yakovlev',
@@ -4872,7 +4891,7 @@ let policies = [
     cost: 0,
     description: 'Freedom of the press is granted only to approved journalists and intellectuals. Accredited individuals and organs are relieved of the requirement of prior editorial approval for content on social, cultural, and historical subjects. Accreditation may be withdrawn in cases of persistent violation of the norms of socialist journalism. Selective freedom — trusted voices only; dissatisfaction must not find every voice.',
     image: 'images/Freedom_Press.jpg',
-    effects: { popularSupport: +3, partyUnity: -4, stability: -2, foreignRelations: +3 },
+    effects: { popularAffection: +3, partyUnity: -4, stability: -2, foreignRelations: +3 },
     duration: 'permanent',
     prerequisites: ['glasnost'],
     visibleIf: { minYear: 1990, maxYear: 1991 },
@@ -4887,7 +4906,7 @@ let policies = [
     cost: 8,
     description: 'These reforms are designed to increase judicial independence from the Party, strengthen legal protections for citizens, and introduce greater transparency into the proceedings of the state. After years of bureaucratic repression and arbitrary exercise of legal authority, Gorbachev saw an opportunity — and perhaps a necessity — for modernisation. A modernised judicial system — these citizens deserve better. This is not a weakening of the state. It is its perfection.',
     image: 'images/Judicial_Reform.jpg',
-    effects: { popularSupport: +6, partyUnity: -6, stability: -5, foreignRelations: +5 },
+    effects: { popularAffection: +6, partyUnity: -6, stability: -5, foreignRelations: +5 },
     duration: 'permanent',
     prerequisites: ['glasnost'],
     advisorRequired: 'yakovlev',
@@ -4902,7 +4921,7 @@ let policies = [
     cost: 4,
     description: 'Primary responsibility for the administration of justice is transferred from union-level institutions to the supreme courts and procurators\' offices of the union republics. Decentralise judicial authority — give each republic its own courts. Union legislation shall continue to establish the framework of criminal and civil law. The union-level Procurator\'s office retains jurisdiction in cases involving federal institutions and inter-republican matters.',
     image: 'images/Judicial_Reform.jpg',
-    effects: { popularSupport: +4, partyUnity: -8, stability: -6, separatism: +5 },
+    effects: { popularAffection: +4, partyUnity: -8, stability: -6, separatism: +5 },
     duration: 'permanent',
     prerequisites: ['glasnost', 'judicial_reform_full'],
     advisorRequired: 'yakovlev',
@@ -4918,7 +4937,7 @@ let policies = [
     category: 'Domestic',
     cost: 5,
     description: 'Gorbachev\'s commitment to Perestroika and glasnost has inevitably raised the question of the Committee for State Security. The KGB has been one of the primary instruments by which the Union has preserved its internal coherence. To touch it is to touch the foundations of Soviet power itself. An internal reform programme is implemented: the reach of its political repression apparatus is curtailed, its authority over state surveillance reduced. What the apparatus loses in authority, the state may also lose in cohesion.',
-    effects: { popularSupport: +5, partyUnity: -8, stability: -6, foreignRelations: +4 },
+    effects: { popularAffection: +5, partyUnity: -8, stability: -6, foreignRelations: +4 },
     duration: 'permanent',
     prerequisites: ['glasnost'],
     advisorOpposition: ['kryuchkov'],
@@ -4931,7 +4950,7 @@ let policies = [
     category: 'Domestic',
     cost: 8,
     description: 'The KGB is gradually replaced with a reformed security apparatus — one that adheres to the principles of modernisation, democratisation, and decentralisation of state power. Internal security, foreign intelligence, and counter-intelligence functions are separated into distinct institutions with defined mandates and appropriate oversight mechanisms. The existing Committee shall continue to function pending the full transition. A long-term reform with uncertain short-term consequences.',
-    effects: { popularSupport: +3, partyUnity: -5, stability: -4, foreignRelations: +3 },
+    effects: { popularAffection: +3, partyUnity: -5, stability: -4, foreignRelations: +3 },
     duration: 'permanent',
     prerequisites: ['glasnost', 'kgb_reform'],
     advisorOpposition: ['kryuchkov'],
@@ -4947,7 +4966,7 @@ let policies = [
     cost: 10,
     description: 'Veterans returning from Afghanistan are encountering a Union that has begun to question not only the war itself, but the ideology that sent them to fight it. Under glasnost, public engagement with the Afghan question has intensified. Rather than propaganda, genuine support is provided — augmented pensions, priority healthcare, acknowledgement of their service. The state withdraws and redirects resources toward the reform programme.',
     image: 'images/Afghan_war_veterans.jpg',
-    effects: { popularSupport: +5, budget: -5, militaryReadiness: +4, stability: +3 },
+    effects: { popularAffection: +5, budget: -5, militaryReadiness: +4, stability: +3 },
     duration: 'permanent',
     visibleIf: { minYear: 1989, maxYear: 1991 },
     once: true,
@@ -4959,7 +4978,7 @@ let policies = [
     cost: 0,
     description: 'What was once presented as a heroic act of socialist solidarity is increasingly viewed under glasnost as a costly misadventure. Nevertheless, the Main Political Directorate is instructed to maintain the propaganda — the war is what socialism requires. The Afghan campaign shall be characterised in all official communications as an expression of proletarian internationalism. Public discussion inconsistent with this characterisation shall be addressed through appropriate Party channels.',
     image: 'images/Afghan_war_veterans.jpg',
-    effects: { popularSupport: -5, partyUnity: +4, stability: +2, militaryReadiness: -2 },
+    effects: { popularAffection: -5, partyUnity: +4, stability: +2, militaryReadiness: -2 },
     duration: 'permanent',
     advisorOpposition: ['yakovlev'],
     visibleIf: { minYear: 1989, maxYear: 1991 },
@@ -4976,7 +4995,7 @@ let policies = [
     cost: 0,
     description: 'Deputy Andrei Sakharov — the most distinguished reformist voice in the Congress of People\'s Deputies — has proposed the repeal of Article 6 of the Soviet Constitution. This Article declares the Communist Party the sole legitimate political organisation of the Soviet Union. For hardliners, its repeal is not a reform — it is capitulation. Reformers argue that genuine Perestroika and glasnost are impossible so long as the Party\'s monopoly on power is constitutionally enshrined. Open society, open politics — the Party will earn its continued authority through the quality of its programme.',
     image: 'images/Article_6.jpg',
-    effects: { popularSupport: +12, partyUnity: -15, stability: -8, foreignRelations: +8 },
+    effects: { popularAffection: +12, partyUnity: -15, stability: -8, foreignRelations: +8 },
     duration: 'permanent',
     prerequisites: ['glasnost', 'competitive_elections_partial'],
     advisorRequired: 'yakovlev',
@@ -4991,7 +5010,7 @@ let policies = [
     cost: 5,
     description: 'Article 6 is not repealed outright. Instead, non-partisan reform-oriented civil society groups are strengthened as a stepping stone toward political transformation. The Ministry of Justice shall prepare a legal framework for the registration of public associations permitted to publish, organise meetings, and submit proposals to legislative bodies. Slow but steady — and avoids the immediate political earthquake of full repeal.',
     image: 'images/Article_6.jpg',
-    effects: { popularSupport: +4, partyUnity: -5, stability: -3, foreignRelations: +3 },
+    effects: { popularAffection: +4, partyUnity: -5, stability: -3, foreignRelations: +3 },
     duration: 'permanent',
     prerequisites: ['glasnost'],
     advisorRequired: 'yakovlev',
@@ -5007,7 +5026,7 @@ let policies = [
     category: 'Domestic',
     cost: 15,
     description: 'For all the rhetoric of restructuring, the national economy remains in a condition that can only be described as pitiful. Production stagnates. Shortages afflict most consumer goods. Economists Shatalin and Yavlinsky have proposed a comprehensive transition: small businesses privatised, government and defence spending cut, private property legalised, a stock market established, the state monopoly on foreign trade terminated. Leave it to the invisible hand — the command economy cannot be preserved, and the state must relinquish economic control if conditions are to improve.',
-    effects: { economy: +8, popularSupport: +4, partyUnity: -12, stability: -8, budget: +6, separatism: +6 },
+    effects: { economy: +8, popularAffection: +4, partyUnity: -12, stability: -8, budget: +6, separatism: +6 },
     duration: 'permanent',
     prerequisites: ['perestroika', 'state_enterprise_law_full'],
     advisorRequired: 'yakovlev',
@@ -5021,7 +5040,7 @@ let policies = [
     category: 'Domestic',
     cost: 8,
     description: 'Selected elements of the Shatalin-Yavlinsky proposals are adopted while retaining control over most of the economy. State budget expenditure is to be reduced. Small-scale commercial enterprises shall be offered for acquisition. The planning system, state banking structure, and regulatory framework of major industry shall be retained. A bit of this, a bit of that — partial implementation only.',
-    effects: { economy: +4, popularSupport: +2, partyUnity: -6, stability: -4, budget: +3 },
+    effects: { economy: +4, popularAffection: +2, partyUnity: -6, stability: -4, budget: +3 },
     duration: 'permanent',
     prerequisites: ['perestroika'],
     advisorOpposition: ['ligachev'],
@@ -5037,7 +5056,7 @@ let policies = [
     cost: 8,
     description: 'The workers of the Soviet mining industry — members of the proletariat whom the Party was constituted to serve — are suffering. They lack a common day of rest. They cannot obtain soap to wash themselves after a shift underground. Strikes have broken out in Siberia, the Donbas, and other mining regions. In a remarkable development, virtually the entire Soviet political spectrum is sympathetic. The Council of Ministers reviews their grievances and finds them substantially justified. Power to the working class — their demands are met.',
     image: 'images/miner_strikes1.jpg',
-    effects: { popularSupport: +8, budget: -6, economy: +2, partyUnity: +3, stability: +3 },
+    effects: { popularAffection: +8, budget: -6, economy: +2, partyUnity: +3, stability: +3 },
     duration: 'permanent',
     visibleIf: { minYear: 1988, maxYear: 1989 },
     once: true,
@@ -5049,7 +5068,7 @@ let policies = [
     cost: 0,
     description: 'Strikes are entirely unknown in the Soviet system — economic decisions are the province of the planning apparatus, not individual workers. The Council of Ministers determines that the demands submitted by workers\' collectives in the coal sector cannot be met within current plan obligations and budgetary constraints. Give them an inch, they take a mile. Enterprise directors are instructed to resume normal production schedules. The Ministry of Internal Affairs is placed on standby.',
     image: 'images/miner_strikes1.jpg',
-    effects: { popularSupport: -8, partyUnity: -6, stability: -4, militaryReadiness: +2 },
+    effects: { popularAffection: -8, partyUnity: -6, stability: -4, militaryReadiness: +2 },
     duration: 'permanent',
     visibleIf: { minYear: 1988, maxYear: 1989 },
     once: true,
@@ -5063,7 +5082,7 @@ let policies = [
     cost: 10,
     description: 'Emboldened by earlier concessions and by the expanding climate of glasnost, miners in Kazakhstan and the Donbas have resumed their strikes. On this occasion, their demands extend beyond the economic — they call for your resignation and the dissolution of the Congress of People\'s Deputies. Keep the momentum going: shift around bureaucrats and call local elections in affected areas without resigning. Accede to political and economic demands — the spirit of reform requires listening.',
     image: 'images/miner_strikes.jpg',
-    effects: { popularSupport: +5, partyUnity: -8, stability: -5, budget: -8 },
+    effects: { popularAffection: +5, partyUnity: -8, stability: -5, budget: -8 },
     duration: 'permanent',
     visibleIf: { minYear: 1991 },
     once: true,
@@ -5075,7 +5094,7 @@ let policies = [
     cost: 8,
     description: 'Increase economic benefits for miners — pay, consumer goods, holidays — but refuse the political demands. The carrot on the stick: push them away from calls for resignation through material improvements. Moderates propose this as the path that detaches the miners from the political agenda of those who have sought to exploit their grievances. Workers are urged to separate their economic interests from the demands of others.',
     image: 'images/miner_strikes.jpg',
-    effects: { popularSupport: +2, partyUnity: -3, stability: +2, budget: -5 },
+    effects: { popularAffection: +2, partyUnity: -3, stability: +2, budget: -5 },
     duration: 'permanent',
     visibleIf: { minYear: 1991 },
     once: true,
@@ -5087,7 +5106,7 @@ let policies = [
     cost: 0,
     description: 'The hardliners believe the miners will fall in line by economic necessity — they have already been given more than enough. All demands are rejected. Enterprise directors are instructed to declare the strikes illegal and to require workers to return to their positions. Enough is enough. The Ministry of Internal Affairs and the relevant union structures are to coordinate in restoring normal operations. Further delay will not be tolerated.',
     image: 'images/miner_strikes.jpg',
-    effects: { popularSupport: -8, partyUnity: +3, stability: -5, militaryReadiness: +3 },
+    effects: { popularAffection: -8, partyUnity: +3, stability: -5, militaryReadiness: +3 },
     duration: 'permanent',
     advisorOpposition: ['yakovlev'],
     visibleIf: { minYear: 1991 },
@@ -5102,7 +5121,7 @@ let policies = [
     cost: 0,
     description: 'In the assessment of many hardline elements of the Politburo, the Soviet economy suffers not from structural failure but from deliberate sabotage — by shadow millionaires hoarding large-denomination currency, by black-market operators, and perhaps by hostile foreign powers flooding the Union with counterfeit notes. Prime Minister Pavlov\'s plan: cancel all fifty- and one-hundred-ruble notes overnight. Citizens shall have seventy-two hours to exchange currency, up to one thousand rubles. No honest Soviet citizen could possibly possess more. Stop the flow — control the currency, eliminate the saboteurs.',
     image: 'images/Anti-Crisis_Plan.jpg',
-    effects: { economy: -4, budget: +5, popularSupport: -10, partyUnity: +4, stability: -6 },
+    effects: { economy: -4, budget: +5, popularAffection: -10, partyUnity: +4, stability: -6 },
     duration: 'permanent',
     advisorRequired: 'boldin',
     advisorOpposition: ['yakovlev', 'shevardnadze'],
@@ -5116,7 +5135,7 @@ let policies = [
     cost: 0,
     description: 'A modified version of the monetary stabilisation proposal is adopted. One-hundred-ruble denomination notes are withdrawn from circulation. Fifty-ruble notes shall remain valid. Bank withdrawal restrictions are implemented at a level that does not materially affect citizens of ordinary means. Small commercial enterprises shall receive supplementary operating credit through Sberbank. Soft currency control — some money is pulled from circulation; the least disruptive version of Pavlov\'s plan.',
     image: 'images/Anti-Crisis_Plan.jpg',
-    effects: { economy: -2, budget: +3, popularSupport: -4, partyUnity: +2, stability: -2 },
+    effects: { economy: -2, budget: +3, popularAffection: -4, partyUnity: +2, stability: -2 },
     duration: 'permanent',
     visibleIf: { minYear: 1991 },
     once: true,
@@ -5301,19 +5320,21 @@ The Western press is already speculating. Your handling of this matter will sign
   },
   {
     id: 'oil_crash',
-    name: 'Collapse of Oil Revenue',
+    name: 'The Oil Shock — Emergency Memorandum of Gosplan',
     image: 'images/oil_tanker.jpg',
-    caption: 'Советский нефтяной танкер в Персидском заливе, 1985',
+    caption: 'Советский нефтяной танкер в Персидском заливе, 1985–1986',
     trigger: { month: 7, year: 1986 },
-    description: `Comrade General Secretary — a communication from the Ministry of Finance and Gosplan requires your urgent attention.
+    condition: (state) => Number(state.budget || 0) <= 45 || Number((state.partyFactions && state.partyFactions.reform) || 0) <= 65,
+    description: `Comrade General Secretary — by instruction of Gosplan and the Ministry of Finance, the following matter is submitted for urgent review. The world price of petroleum has suffered a sharp and politically convenient collapse. Hard-currency receipts, upon which grain purchases, machinery imports, military allocations, and social obligations have increasingly depended, are contracting at a rate no responsible organ can ignore.
 
-Following the decision by the Kingdom of Saudi Arabia to sharply increase crude oil production, the world market price has fallen from approximately $30 per barrel in the previous year to below $10 per barrel at present. The Union's export revenues, which depend substantially on hydrocarbon sales to the capitalist world, have contracted severely. The balance of hard currency is deteriorating. Scheduled import obligations, including grain purchases, machinery acquisitions, and debt servicing, are now at risk.
+The imperialists will call this a market correction. Certain comrades will call it sabotage. The accounting department calls it an absence of money. Within the Council of Ministers, reformers demand restructuring, conservative cadres demand discipline, and the Armed Forces insist that defence allocations are not subject to arithmetic.
 
-Gosplan has prepared three courses of action for your consideration.`,
+A directive is required before the shortage becomes policy by other means.`,
     choices: [
-      { text: 'Increase production output to compensate for the price drop', effects: { budget: -5, economy: -8 } },
-      { text: 'Maintain current production levels and absorb the revenue shortfall', effects: { budget: -12 } },
-      { text: 'Reduce production to preserve equipment and defer capital expenditure', effects: { budget: -18, economy: +3 } },
+      { text: 'Austerity Reforms — reduce subsidies, trim state expenditure, and accelerate restructuring under Party supervision', effects: { budget: -2, reformMomentum: +4, hardlinersApproval: -3 }, outcomeText: `A restricted communiqué announces expenditure discipline, subsidy reductions, and limited price adjustments. Factory directors protest in the language of production targets; regional committees protest in the language of social peace. Conservative comrades allege capitulation to bourgeois accounting. Nevertheless, the reform bloc records movement, and cautious Western creditors detect signs of seriousness behind the slogans.` },
+      { text: 'The Military First — preserve defence allocations and transfer the burden to civilian ministries', effects: { budget: -4, hardlinersApproval: +3, reformMomentum: -2, us: -1 }, outcomeText: `The Ministry of Defence receives its guarantees. Housing, health, agriculture, and consumer supply receive instructions to be patient. The officer corps is reassured, and conservative opinion applauds the firmness of the line. Bread queues lengthen. Allied governments in Eastern Europe read the figures and grow quiet.` },
+      { text: 'The Hard-Currency Gamble — permit limited Western participation in Soviet oil development for immediate cash', effects: { budget: +5, us: +2, hardlinersApproval: -5, reformMomentum: +1 }, outcomeText: `A carefully worded decree authorises selected technical partnerships with capitalist oil firms while insisting that socialist ownership remains inviolable. Hard currency arrives quickly enough to silence the accountants and not quickly enough to silence the KGB. You have purchased time, but the receipt is stamped in red ink.` },
+      { text: 'Strategic Patience — denounce the price collapse as hostile manipulation and hold the existing line', effects: { budget: -1, hardlinersApproval: +2, reformMomentum: -1, us: -2 }, outcomeText: `Pravda is instructed to explain the matter as an externally encouraged attack on the economic sovereignty of the socialist camp. Rationing expands under administrative language. No reform is undertaken. The system remains upright, though the corridors ahead narrow perceptibly.` },
     ],
   },
 
@@ -6175,12 +6196,12 @@ The Ministry of Foreign Affairs and the Department of International Information 
       {
         text: "Deepen Economic Cooperation with China",
         effects: { china: +3, budget: +1, us: -1 },
-        outcomeText: "Expanded economic ties with China bring tangible trade benefits.",
+        outcomeText: "",
       },
       {
         text: "Maintain Correct but Cool Relations",
         effects: { china: +1, westEu: +1, us: +1, reformersApproval: +1 },
-        outcomeText: "A posture of diplomatic correctness preserves relations without ideological alignment.",
+        outcomeText: "",
       },
       {
         text: "No Diplomatic Visit to China",
@@ -6241,7 +6262,7 @@ The Ministry of Foreign Affairs and the Department of International Information 
     choices: [
       {
         text: "Economic Blockade",
-        effects: { us: -2, westEu: -2, budget: -2, hardlinersApproval: +2, popularSupport: -1 },
+        effects: { us: -2, westEu: -2, budget: -2, hardlinersApproval: +2, popularAffection: -1 },
         outcomeText: "An economic blockade is placed on Lithuania, cutting off critical supplies. The Lithuanians refuse to capitulate, and the standoff drags on for months. Western governments condemn the pressure as coercion, straining your relationship with Europe and America. The hardliners are satisfied, but popular sympathy for the Lithuanians grows at home and abroad.",
       },
       {
@@ -6312,7 +6333,7 @@ The Ministry of Foreign Affairs and the Department of International Information 
   {
     id: 'dissolution_of_warsaw_pact',
     name: "The Dissolution of the Warsaw Pact",
-    image: "images/Foundation_of_the_Visegrád_Group.tiff",
+    image: "images/Foundation_of_the_Visegrád_Group.jpg",
     trigger: { month: 2, year: 1991 },
     description: "Poland, Czechoslovakia, and Hungary, three states that have borne the brunt of Soviet military intervention, have jointly announced their intention to withdraw from the Warsaw Pact by the end of 1991. Meeting in Visegrád, the three nations have also signaled their intention to eventually seek membership in Western institutions, representing a seismic shift in European security architecture. The withdrawal does not come as a complete surprise, as the revolutions of 1989 made it inevitable in the long run, but the coordinated, joint nature of the announcement is a deliberate signal that these states are acting in concert and do not fear a Soviet response. Military planners in Moscow are already warning that the loss of the Pact's western buffer states fundamentally alters the strategic calculus on the European continent. You must determine the Soviet response to this formal unraveling of your alliance system before the announcement hardens into irreversible momentum.",
     choices: [
@@ -6342,14 +6363,47 @@ The Ministry of Foreign Affairs and the Department of International Information 
     choices: [
       {
         text: "Condemn the Violence Publicly",
-        effects: { us: +1, westEu: +1, hardlinersApproval: -2, reformersApproval: +2, moderatesApproval: -1, popularSupport: +1 },
+        effects: { us: +1, westEu: +1, hardlinersApproval: -2, reformersApproval: +2, moderatesApproval: -1, popularAffection: +1 },
         outcomeText: "You issue a public condemnation of the violence and promise accountability. The West partially accepts your statement, stabilizing diplomatic relations. However, the hardliners in the Politburo view your words as a betrayal of state authority, and your internal position weakens considerably.",
       },
       {
         text: "Defend the Operation",
-        effects: { us: -2, westEu: -3, hardlinersApproval: +2, reformersApproval: -2, separatism: +3, popularSupport: -1 },
+        effects: { us: -2, westEu: -3, hardlinersApproval: +2, reformersApproval: -2, separatism: +3, popularAffection: -1 },
         outcomeText: "You defend the crackdown as a lawful security operation. The West responds with fury in the form of sanctions threats and public denunciations. Far from deterring independence movements, the crackdown galvanizes separatists across all the republics. Your international standing suffers its worst blow in years.",
       },
+    ],
+  },
+
+
+  // ── MORE EVENTS PACKAGE: PRAVDA-STYLE 1985 GLOBAL PRESSURES ─────────────
+  {
+    id: 'sandinista_crisis_1985',
+    name: 'The Sandinista Question — Report from Managua',
+    trigger: { month: 9, year: 1985 },
+    condition: (state) => Number((state.intlRelations && state.intlRelations.us) || 0) <= 30 || Number(state.budget || 0) <= 45,
+    description: `Comrade General Secretary — materials received from Managua indicate that the Nicaraguan revolution is under mounting pressure. The American embargo restricts trade; contra formations, supplied and encouraged by Washington, continue operations in the countryside; Mexican oil shipments are uncertain; inflation and scarcity are weakening confidence in the Sandinista administration.
+
+The comrades in Managua request assistance, but assistance is not a slogan. It is oil, credit, ammunition, advisors, and ships. A line must be established: embrace, distance, negotiate, or wait.`,
+    choices: [
+      { text: 'The Soviet Embrace — deepen oil, military, and advisory commitments to Managua', effects: { sovietAid: +4, us: -3, hardlinersApproval: +2, budget: +1 }, outcomeText: `New arrangements are signed under the language of fraternal solidarity. Soviet advisors arrive, military supply channels thicken, and the Sandinista state receives enough fuel to continue breathing. Washington denounces the arrangement as proof of Soviet expansionism.` },
+      { text: 'The Non-Aligned Formula — reaffirm Nicaraguan independence while reducing visible Soviet ownership of the crisis', effects: { us: +1, sovietAid: -2, hardlinersApproval: -2, reformMomentum: +2 }, outcomeText: `Managua is encouraged to speak again in the vocabulary of non-alignment. Western European trade channels reopen by a crack. In Moscow, conservative comrades call this retreat by another name.` },
+      { text: 'Peace Talks — encourage negotiations with the contras and Washington to stop the bleeding', effects: { us: +3, hardlinersApproval: -4, reformMomentum: +1 }, outcomeText: `A ceasefire proposal is placed on the table with prisoner releases and international observation. Foreign newspapers praise responsibility; revolutionary committees hear surrender.` },
+      { text: 'Strategic Patience — keep the existing line and wait for the contras to exhaust themselves', effects: { us: -1, hardlinersApproval: +1, budget: -2, reformMomentum: -1 }, outcomeText: `The old policy is reapproved with new stamps. Arms continue, shortages continue, speeches continue, and civilians continue to pay the invoice.` },
+    ],
+  },
+  {
+    id: 'rajiv_gandhi_visit_1985',
+    name: 'Visit of Rajiv Gandhi — Asian Friendship Under Review',
+    trigger: { month: 11, year: 1985 },
+    condition: (state) => Number((state.intlRelations && state.intlRelations.us) || 0) >= 20 || Number((state.specialMetrics && state.specialMetrics.asiaInfluence) || 50) >= 45,
+    description: `Comrade General Secretary — Rajiv Gandhi, the new Prime Minister of India, arrives in Moscow under conditions requiring careful handling. India remains the Soviet Union's most important Asian partner, but the new leadership in New Delhi speaks the language of technology, modernisation, and wider diplomatic room.
+
+The Indian delegation seeks advanced machinery, military technology, and economic assurances. The visit is ceremonial in form and strategic in substance.`,
+    choices: [
+      { text: 'The Friendly Ally — promise continuity, military cooperation, and expanded trade', effects: { asiaInfluence: +3, budget: -2 }, outcomeText: `The communiqué is warm, disciplined, and heavy with the vocabulary of friendship. Advanced engine sales and trade expansion are approved. The Indian delegation departs satisfied.` },
+      { text: 'The Tough Negotiator — demand clear loyalty before extending further aid', effects: { us: -1, asiaInfluence: -2, budget: +1, hardlinersApproval: +2 }, outcomeText: `The Indian side is reminded that Soviet assistance is not an all-union charity. The conversation becomes correct, then cold. Money has been saved; influence has been spent.` },
+      { text: 'The Bold Offer — provide advanced technology, nuclear assistance, and favourable trade terms', effects: { us: +1, asiaInfluence: +5, budget: -4, hardlinersApproval: -3 }, outcomeText: `The offer exceeds expectations: computers, nuclear cooperation, technical access, and trade terms generous enough to be noticed in every embassy. The Asian balance remains favourable to Moscow.` },
+      { text: 'Strategic Patience — maintain cordiality but sign only modest agreements', effects: { hardlinersApproval: +1 }, outcomeText: `The visit proceeds with flags, phrases, and limited trade protocols. Moscow has avoided overcommitment, but New Delhi begins to wonder whether Soviet caution is prudence or weakness.` },
     ],
   },
 
@@ -6780,6 +6834,13 @@ function normalisePolicy(p){
    prerequisites: Array.isArray(p.prerequisites) ? p.prerequisites : [],
    advisorRequired: p.advisorRequired ? String(p.advisorRequired) : null,
    advisorOpposition: Array.isArray(p.advisorOpposition) ? p.advisorOpposition : [],
+   // Enactment-repeat semantics: once:true means the policy can only be
+   // enacted once; recurring:true means it can be re-selected every turn.
+   // Both fields must survive normalisation so getPolicyAvailability can
+   // read them. A policy with once:true is treated as non-recurring even if
+   // recurring is also set (once wins).
+   once: Boolean(p.once),
+   recurring: p.once ? false : Boolean(p.recurring),
   },
  };
 }
@@ -7099,7 +7160,22 @@ function getPolicyAvailability(policy){
   const advisorLoyalty = requiredAdvisor
     ? Number(gameState.advisorLoyalty[requiredAdvisor] ?? advisorLoyaltyDefault)
     : 100;
-  const advisorLocked = Boolean(requiredAdvisor && (advisorLoyalty < 20 || isAdvisorResigned(requiredAdvisor)));
+
+  // Lock if the required advisor has aged out (availableFrom / availableUntil)
+  const advisorTimeLocked = Boolean(requiredAdvisor && (() => {
+    const a = advisors.find(x => x.id === requiredAdvisor);
+    if (!a) return false;
+    if (a.availableFrom  && gameState.year < a.availableFrom.year)  return true;
+    if (a.availableUntil && (
+      gameState.year > a.availableUntil.year ||
+      (gameState.year === a.availableUntil.year && a.availableUntil.month && gameState.month > a.availableUntil.month)
+    )) return true;
+    return false;
+  })());
+
+  const advisorLocked = Boolean(requiredAdvisor && (advisorLoyalty < 20 || isAdvisorResigned(requiredAdvisor) || advisorTimeLocked));
+  // policy.recurring and policy.once are normalised in normalisePolicy:
+  // once:true forces recurring:false, so !policy.recurring is the canonical check.
   const alreadyEnacted = enacted.has(policy.id) && !policy.recurring;
 
   // Opposing advisors with very high loyalty (≥80) can block policies
@@ -7375,6 +7451,7 @@ function playCoupAnthem(options = {}) {
     coupAudio.play().catch(() => {});
   } catch(e) {}
 }
+
 
 // ── CHERNOBYL: TELEPHONE LOOP ────────────────────────────────────────────────
 let chernobylPhoneAudio = null;
@@ -7955,13 +8032,14 @@ function resolveEventChoice(choiceIdx) {
     gameState.budget = clamp(gameState.budget + gain, 0, 9999);
     addLog(`Emergency mandate secured: +${gain} political capital`);
   }
-  // Directly enact a policy card if the event choice specifies one
+  // Directly enact a policy card if the event choice specifies one.
+  // Effects and budget cost come from choice.effects / choice.budgetCost above,
+  // so we skip them here to avoid double-application. Advisor loyalty reactions
+  // and duration tracking still run inside applyPolicyImmediate.
+  // The policy is added to enactedPolicies, so once:true policies correctly
+  // become unavailable in the policy panel after being enacted this way.
   if (choice.enactPolicy) {
-    if (!gameState.enactedPolicies) gameState.enactedPolicies = [];
-    if (!gameState.enactedPolicies.includes(choice.enactPolicy)) {
-      gameState.enactedPolicies.push(choice.enactPolicy);
-      addLog(`Policy enacted via event: ${policyName(choice.enactPolicy)}`, 'policy');
-    }
+    applyPolicyImmediate(choice.enactPolicy, { skipEffectsAndCost: true });
   }
   // Log
   addLog(`Event: ${event.name} — chose "${choice.text}"`);
@@ -8584,9 +8662,8 @@ function resetGame() {
 
 
 function applyMetricChange(metricKey, delta) {
-  // Alias map — both 'popularSupport' and 'popularAffection' are valid in effects objects.
-  // The canonical internal key is 'popularAffection'. Content authors may use either;
-  // the engine always resolves to the canonical key before writing to gameState.metrics.
+  // Alias map — canonical internal key is 'popularAffection'. The 'popularSupport' alias
+  // is retained as a safety net only; all content should use 'popularAffection' directly.
   const mapKey = {
     'economy': 'economy',
     'stability': 'stability',
@@ -8613,6 +8690,12 @@ function applyMetricChange(metricKey, delta) {
   if (metricKey === 'reformersApproval') { gameState.factionApproval.reformers = clamp(Number(gameState.factionApproval.reformers||0)+Number(delta||0),-100,100); return; }
   if (metricKey === 'moderatesApproval') { gameState.factionApproval.moderates = clamp(Number(gameState.factionApproval.moderates||0)+Number(delta||0),-100,100); return; }
   if (metricKey === 'hardlinersApproval') { gameState.factionApproval.hardliners = clamp(Number(gameState.factionApproval.hardliners||0)+Number(delta||0),-100,100); return; }
+  if (metricKey === 'reformMomentum') { gameState.partyFactions.reform = clamp(Number(gameState.partyFactions.reform||0)+Number(delta||0),0,100); return; }
+  if (['sovietAid','asiaInfluence'].includes(metricKey)) {
+    if (!gameState.specialMetrics) gameState.specialMetrics = {};
+    gameState.specialMetrics[metricKey] = clamp(Number(gameState.specialMetrics[metricKey]||50)+Number(delta||0),0,100);
+    return;
+  }
   if (metricKey === 'combatReadiness') { gameState.militarySub.combatReadiness = clamp(Number(gameState.militarySub.combatReadiness||0)+Number(delta||0),0,100); return; }
   if (metricKey === 'militaryLoyalty') { gameState.militarySub.loyalty = clamp(Number(gameState.militarySub.loyalty||0)+Number(delta||0),0,100); return; }
   if (metricKey === 'reformFaction') { gameState.partyFactions.reform = clamp(Number(gameState.partyFactions.reform||0)+Number(delta||0),0,100); return; }
@@ -9203,9 +9286,9 @@ function triggerGameOver(type, message) {
     ${enactedHtml}
   `;
   document.getElementById('event-choices').innerHTML = type === 'dissolution'
-    ? `<button class="event-btn" onclick="resetGame()" style="font-size:13px;padding:10px 20px;font-weight:700;letter-spacing:.1em;border-width:2px;">↺ New Game</button>
-       <button class="event-btn" id="btn-pizza-hut" onclick="openVideoModal('https://www.youtube-nocookie.com/embed/fgm14D1jHUw?start=8&autoplay=1&rel=0','Gorbachev Pizza Hut Commercial (1997)','https://www.youtube.com/watch?v=fgm14D1jHUw&t=10')" style="font-size:13px;padding:10px 20px;font-weight:700;letter-spacing:.1em;border-width:2px;">🍕 Agree to be in a Pizza Hut Commercial</button>
-       <button class="event-btn" id="btn-lv" onclick="openLVPhotoModal()" style="font-size:13px;padding:10px 20px;font-weight:700;letter-spacing:.1em;border-width:2px;">📸 Agree to a Louis Vuitton Photoshoot</button>`
+    ? `<button class="event-btn" onclick="stopPatrioticSong();resetGame()" style="font-size:13px;padding:10px 20px;font-weight:700;letter-spacing:.1em;border-width:2px;">↺ New Game</button>
+       <button class="event-btn" id="btn-pizza-hut" onclick="pausePatrioticSong();openVideoModal('https://www.youtube-nocookie.com/embed/fgm14D1jHUw?start=8&autoplay=1&rel=0','Gorbachev Pizza Hut Commercial (1997)','https://www.youtube.com/watch?v=fgm14D1jHUw&t=10')" style="font-size:13px;padding:10px 20px;font-weight:700;letter-spacing:.1em;border-width:2px;">🍕 Agree to be in a Pizza Hut Commercial</button>
+       <button class="event-btn" id="btn-lv" onclick="pausePatrioticSong();openLVPhotoModal()" style="font-size:13px;padding:10px 20px;font-weight:700;letter-spacing:.1em;border-width:2px;">📸 Agree to a Louis Vuitton Photoshoot</button>`
     : '<button class="event-btn" onclick="resetGame()" style="font-size:13px;padding:10px 20px;font-weight:700;letter-spacing:.1em;border-width:2px;">↺ New Game</button>';
   // ── ENDING IMAGES ─────────────────────────────────────────────────
   const endingImages = {
@@ -9231,6 +9314,8 @@ function triggerGameOver(type, message) {
       }
     } catch(e) {}
     playCoupAnthem({ resumeAfter: type !== 'success', reason: type === 'success' ? 'success-anthem' : 'coup-anthem' });
+  } else if (type === 'dissolution') {
+    playPatrioticSong();
   }
 
   addLog('GAME OVER: ' + (titles[type] || type), 'crisis');
@@ -9283,23 +9368,25 @@ function clearPolicySelection() {
   renderPolicies();
 }
 
-function applyPolicyImmediate(policyId) {
+function applyPolicyImmediate(policyId, { skipEffectsAndCost = false } = {}) {
   const policy = policies.find(p => p.id === policyId);
   if (!policy) return;
   const availability = getPolicyAvailability(policy);
-  if (!availability.available) {
+  if (!availability.available && !skipEffectsAndCost) {
     addLog('⚠ Policy unavailable: ' + availability.reasons.join('; '));
     return;
   }
-  if (gameState.budget < policy.cost) {
-    addLog('⚠ Not enough political capital.');
-    return;
+  if (!skipEffectsAndCost) {
+    if (gameState.budget < policy.cost) {
+      addLog('⚠ Not enough political capital.');
+      return;
+    }
+    gameState.budget -= policy.cost;
+    gameState.turnSpend += policy.cost;
+    Object.entries(policy.effects || {}).forEach(([key, val]) => {
+      applyMetricChange(key, val);
+    });
   }
-  gameState.budget -= policy.cost;
-  gameState.turnSpend += policy.cost;
-  Object.entries(policy.effects || {}).forEach(([key, val]) => {
-    applyMetricChange(key, val);
-  });
   // Advisor loyalty hook (only if content provides these fields)
   if (policy.advisorOpposition && Array.isArray(policy.advisorOpposition)) {
     policy.advisorOpposition.forEach(aid => {
@@ -9320,9 +9407,9 @@ function applyPolicyImmediate(policyId) {
   }
   // ── FIX 1: reactionLiberal / reactionConservative ─────────────────
   // Determine whether this policy leans liberal or conservative.
-  // A policy is "liberal" if it boosts popularSupport or foreignRelations,
+  // A policy is "liberal" if it boosts popularAffection or foreignRelations,
   // or belongs to a set of known reformist ids. It's "conservative" if it
-  // boosts partyUnity or militaryReadiness without popularSupport gains,
+  // boosts partyUnity or militaryReadiness without popularAffection gains,
   // or belongs to a known conservative id set. Policies can also carry an
   // explicit `alignment` field ('liberal'|'conservative'|'neutral') set by
   // content authors, which always takes precedence.
@@ -9330,7 +9417,7 @@ function applyPolicyImmediate(policyId) {
     const eff = policy.effects || {};
     let alignment = policy.alignment || null; // explicit tag wins
     if (!alignment) {
-      const liberalSignals  = ['popularSupport', 'popularAffection', 'foreignRelations', 'glasnost', 'openness'];
+      const liberalSignals  = ['popularAffection', 'foreignRelations', 'glasnost', 'openness'];
       const conservativeSignals = ['partyUnity', 'militaryReadiness', 'stability'];
       // Score by effect keys
       let libScore  = 0;
@@ -9417,7 +9504,7 @@ function applyPolicyImmediate(policyId) {
     gameState.activePolicies = gameState.activePolicies.filter(x => x.id !== policy.id);
     gameState.activePolicies.push({ id: policy.id, remainingTurns: durationTurns, startedTurn: gameState.turn });
   }
-  addLog(`Policy: ${policy.name} (-${policy.cost} capital)`, 'policy');
+  addLog(skipEffectsAndCost ? `Policy enacted via event: ${policy.name}` : `Policy: ${policy.name} (-${policy.cost} capital)`, 'policy');
 }
 
 // NOTE: commitPolicies is defined above — this duplicate was removed.
@@ -9444,8 +9531,8 @@ function getOverallStatus() {
 }
 
 // Reform trajectory: weighted 0-100 score toward the success end condition.
-// Success requires avg(economy, stability, popularSupport, partyUnity, foreignRelations) >= 50
-// AND stability >= 40 AND popularSupport >= 40.
+// Success requires avg(economy, stability, popularAffection, partyUnity, foreignRelations) >= 50
+// AND stability >= 40 AND popularAffection >= 40.
 // We weight those two gating metrics more heavily so the bar reflects what
 // actually matters for the ending, not just the average.
 //
@@ -9459,12 +9546,12 @@ function getReformTrajectory() {
   // Core success metrics (equal weight)
   const economy        = Number(m.economy        || 0);
   const stability      = Number(m.stability      || 0);
-  const popularSupport = Number(m.popularAffection || 0);
+  const popularAffection = Number(m.popularAffection || 0);
   const partyUnity     = Number(m.partyUnity     || 0);
   const foreignRel     = Number(m.foreignRelations || 0);
 
-  // Weighted average: stability and popularSupport count 1.5x (they are gating)
-  const weighted = (economy + stability * 1.5 + popularSupport * 1.5 + partyUnity + foreignRel) / 6.0;
+  // Weighted average: stability and popularAffection count 1.5x (they are gating)
+  const weighted = (economy + stability * 1.5 + popularAffection * 1.5 + partyUnity + foreignRel) / 6.0;
 
   // Penalty for high separatism (accelerates dissolution)
   const sepPenalty = Math.max(0, (sep - 30) * 0.4);
@@ -9652,10 +9739,14 @@ function renderIntl() {
 function renderPolicies() {
   // Deal a hand if needed (new turn or first render)
   dealPolicyHand(false);
-  // Build list from hand IDs (preserving hand order, filtering out since-enacted)
+  // Build list from hand IDs, removing:
+  //   - cards since enacted (alreadyEnacted)
+  //   - cards whose required advisor has since departed (checkPolicyVisible)
+  // Both checks must be live here rather than deferred to dealPolicyHand, because
+  // the hand is cached for the whole turn and advisor windows can close mid-hand.
   const list = uiState.policyHandIds
     .map(id => policies.find(p => p.id === id))
-    .filter(p => p && !getPolicyAvailability(p).alreadyEnacted);
+    .filter(p => p && !getPolicyAvailability(p).alreadyEnacted && checkPolicyVisible(p));
   const picks = gameState.selectedPolicies || [];
   const gridEl = document.getElementById('policy-grid');
   if (gridEl) {
@@ -9952,6 +10043,7 @@ function renderUtility(){
   const musicSlider = document.getElementById('music-volume');
   if (musicSlider) musicSlider.value = Math.round(uiState.musicVolume * 100);
 }
+
 
 function renderLibrary() {
   const grid = document.getElementById('ency-grid');
@@ -10366,6 +10458,7 @@ function applyAudioSettings(){
   try { if (typeof pripyatAudio         !== 'undefined' && pripyatAudio)         { pripyatAudio.muted         = muted; pripyatAudio.volume         = sfxVol; } } catch(e){}
   try { if (typeof eldoradoFlyoverAudio !== 'undefined' && eldoradoFlyoverAudio) { eldoradoFlyoverAudio.muted = muted; eldoradoFlyoverAudio.volume = sfxVol; } } catch(e){}
   try { if (typeof swanLakeAudio !== 'undefined' && swanLakeAudio) { swanLakeAudio.muted = muted; swanLakeAudio.volume = musicVol; } } catch(e){}
+  try { if (typeof patrioticSongAudio !== 'undefined' && patrioticSongAudio) { patrioticSongAudio.muted = muted; patrioticSongAudio.volume = musicVol; } } catch(e){}
 }
 
 function debugSetValue(group, key, value){
@@ -10543,24 +10636,25 @@ function previousBackgroundMusic(){
   if (typeof musicAudio === 'undefined' || !musicAudio) return;
   musicManuallyPaused = false;
   setBackgroundMusicTrack(musicTrackIndex - 1, true);
-  renderUtility();
 }
+
 function toggleBackgroundMusicPlayback(){
   if (typeof musicAudio === 'undefined' || !musicAudio) return;
   musicManuallyPaused = !musicManuallyPaused;
   if (musicManuallyPaused) {
-    try { if (musicAudio) musicAudio.pause(); } catch(e) {}
+    musicAudio.pause();
   } else {
-    playBackgroundMusic();
+    startBackgroundMusic();
   }
   renderUtility();
 }
+
 function skipBackgroundMusic(){
   if (typeof musicAudio === 'undefined' || !musicAudio) return;
   musicManuallyPaused = false;
   setBackgroundMusicTrack(musicTrackIndex + 1, true);
-  renderUtility();
 }
+
 musicAudio.addEventListener('ended', () => {
   setBackgroundMusicTrack(musicTrackIndex + 1, true);
 });
@@ -10598,6 +10692,35 @@ swanLakeAudio.preload = 'auto';
 swanLakeAudio.load();
 swanLakeAudio.loop = true;
 
+// ── DISSOLUTION ENDING: THE PATRIOTIC SONG ───────────────────────────────────
+let patrioticSongAudio = null;
+function playPatrioticSong() {
+  if (patrioticSongAudio) { patrioticSongAudio.pause(); patrioticSongAudio.currentTime = 0; }
+  pauseBackgroundMusic('dissolution');
+  patrioticSongAudio = makeAudio('sounds/The_Patriotic_Song,_First_Performance_on_November_27,_1990_01.mp3');
+  patrioticSongAudio.volume = uiState.audioMuted ? 0 : clamp(uiState.musicVolume ?? 0.7, 0, 1);
+  patrioticSongAudio.loop = false;
+  patrioticSongAudio.play().catch(() => {});
+}
+function stopPatrioticSong() {
+  if (patrioticSongAudio) {
+    patrioticSongAudio.pause();
+    patrioticSongAudio.currentTime = 0;
+    patrioticSongAudio = null;
+  }
+  resumeBackgroundMusic('dissolution');
+}
+function pausePatrioticSong() {
+  if (patrioticSongAudio && !patrioticSongAudio.paused) {
+    patrioticSongAudio.pause();
+  }
+}
+function resumePatrioticSong() {
+  if (patrioticSongAudio && patrioticSongAudio.paused && !uiState.audioMuted) {
+    patrioticSongAudio.play().catch(() => {});
+  }
+}
+
 // ── SLIDE PROJECTOR SOUND ────────────────────────────────────────────────────
 const projectorAudio = makeAudio('sounds/slideprojector_sounds.wav');
 projectorAudio.volume = uiState.sfxVolume;
@@ -10617,43 +10740,43 @@ projectorAudio.addEventListener('timeupdate', () => {
 
 // ── LAUNCHER ────────────────────────────────────────────────────────────────
 function launcherStartGame() {
-  // This runs inside a user gesture — audio unlock is guaranteed
-  unlockAllAudio();
+  // This runs inside a user gesture — audio unlock is attempted, but the UI must advance even if audio fails.
+  try { unlockAllAudio(); } catch(e) {}
+  try { projectorAudio.currentTime = 0; } catch(e) {}
 
-  // Preload audio position so it starts from the beginning
-  projectorAudio.currentTime = 0;
-
-  // Dismiss launcher
   const launcher = document.getElementById('launcher-modal');
-  launcher.classList.add('divorced');
-  setTimeout(() => { launcher.style.display = 'none'; }, 650);
+  if (launcher) {
+    launcher.classList.add('divorced');
+    setTimeout(() => { launcher.style.display = 'none'; }, 650);
+  }
 
-  // Show newsreel — starts blank (content hidden), then slide-in fires
   setTimeout(() => {
     const modal = document.getElementById('intro-modal');
+    if (!modal) {
+      try { startGame(); } catch(e) { console.error('startGame fallback failed', e); }
+      return;
+    }
     modal.style.display = 'flex';
     modal.style.opacity = '1';
 
     const frame = modal.querySelector('.newsreel-frame');
     if (frame) {
-      // Start blank
       frame.classList.add('slide-blank');
-
-      // After a beat, trigger the slide-in animation
       setTimeout(() => {
         frame.classList.remove('slide-blank');
         frame.classList.add('slide-in', 'slide-flash');
         frame.addEventListener('animationend', () => {
           frame.classList.remove('slide-in', 'slide-flash');
         }, { once: true });
-
-        // Audio fires at the moment the slide punches in — like the projector clunking forward
-        projectorAudio.currentTime = 0;
-        projectorAudio.play().catch(() => {});
+        try {
+          projectorAudio.currentTime = 0;
+          projectorAudio.play().catch(() => {});
+        } catch(e) {}
       }, 380);
     }
   }, 480);
 }
+
 
 function launcherToggleCredits(btn) {
   const panel = document.getElementById('launcher-credits-panel');
@@ -10863,38 +10986,51 @@ document.addEventListener('keydown', function(e) {
         <label style="font-family:'Playfair Display',serif;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--red-dark);white-space:nowrap;">Fire Event:</label>
         <select id="dev-event-select" style="flex:1;min-width:0;font-family:'Playfair Display',serif;font-size:11px;background:var(--parchment);border:1px solid rgba(139,26,26,0.4);border-radius:3px;padding:4px 6px;color:var(--ink);cursor:pointer;">
           <option value="">— choose event —</option>
-          <option value="april_1985_plenum">The Central Committee Plenum — April 1985</option>
           <option value="chernenko_funeral">State Funeral: Comrade Chernenko</option>
           <option value="geneva_summit_event">The Geneva Summit</option>
           <option value="chernobyl">Reactor No. 4: Chernobyl</option>
           <option value="rust_landing">Violation of Sovereign Airspace: West German Aircraft</option>
-          <option value="october_revolution_70">70th Anniversary of the October Revolution</option>
+          <option value="october_revolution_70">70th Anniversary of the Great October Revolution</option>
           <option value="yeltsin_incident">The Yeltsin Affair</option>
-          <option value="oil_crash">Collapse of Oil Revenue</option>
+          <option value="oil_crash">The Oil Shock — Emergency Memorandum of Gosplan</option>
           <option value="economics-collapse">Deepening Economic Crisis</option>
-          <option value="free_talk_show">Vzglyad — TV Authorisation</option>
-          <option value="law_on_cooperatives">Law on Cooperatives</option>
-          <option value="tbilisi_protests_1989">Restore Order in Tbilisi</option>
-          <option value="august_coup_1991">The August Coup 1991</option>
-          <option value="freedom_of_conscience_event">Law on Freedom of Conscience</option>
+          <option value="free_talk_show">Vzglyad — Soviet Central Television Requests Authorisation</option>
+          <option value="law_on_cooperatives">Law on Cooperatives — The General Secretary Must Decide</option>
+          <option value="tbilisi_protests_1989">Restore Order in Tbilisi — Georgian Nationalist Demonstrations</option>
+          <option value="august_coup_1991">State Committee on the State of Emergency — The Coup</option>
+          <option value="freedom_of_conscience_event">Law on Freedom of Conscience and Religious Organisations</option>
           <option value="libya_bombing_1986">Operation El Dorado Canyon: America Bombs Libya</option>
-          <option value="daniloff_affair_1986">The Daniloff Affair</option>
-          <option value="shultz_visit_1986">The Shultz Visit</option>
+          <option value="daniloff_affair_1986">The Daniloff Affair: A Hostage Crisis</option>
+          <option value="shultz_visit_1986">The Shultz Visit: Setting the Summit Agenda</option>
           <option value="reykjavik_summit_1986">The Reykjavik Summit</option>
-          <option value="vladivostok_speech_1986">The Vladivostok Speech</option>
+          <option value="vladivostok_speech_1986">The Vladivostok Speech: Sino-Soviet Rapprochement</option>
           <option value="inf_ratification_1987">Early Ratification of the INF Treaty</option>
           <option value="hockey_brawl_1987">World Junior Hockey Brawl</option>
-          <option value="washington_summit_1987">The Washington Summit</option>
-          <option value="tanker_war_1987">The Tanker War: Kuwaiti Reflagging</option>
-          <option value="thatcher_visit_1987">Thatcher Visit 1987</option>
-          <option value="assad_visit_1987">Assad Visit 1987</option>
-          <option value="sino_soviet_summit_1989">The Sino-Soviet Summit</option>
-          <option value="hungary_iron_curtain_1989">The Fall of the Iron Curtain</option>
-          <option value="malta_summit_1989">The Malta Summit</option>
-          <option value="nina_andreeva_letter">Nina Andreyeva Letter</option>
+          <option value="washington_summit_1987">The Washington Summit: Signing the INF Treaty</option>
+          <option value="thatcher_visit_1987">The Iron Lady Comes to Moscow: Thatcher's Visit</option>
+          <option value="assad_visit_1987">Assad's Visit: Arming Syria or Seeking Peace?</option>
+          <option value="tanker_war_1987">The Tanker War: Kuwaiti Reflagging Crisis</option>
+          <option value="sino_soviet_summit_1989">The Sino-Soviet Summit: Normalization in Beijing</option>
+          <option value="hungary_iron_curtain_1989">The Fall of the Iron Curtain: Hungary Opens Its Border</option>
+          <option value="malta_summit_1989">The Malta Summit: The End of the Cold War</option>
+          <option value="april_1985_plenum">The Central Committee Plenum — April 1985</option>
+          <option value="nina_andreeva_letter">Nina Andreyeva\</option>
           <option value="october_1987_plenum">Central Committee Plenum — October 1987</option>
+          <option value="october_1987_plenum_stage2">The Plenum — Comrade Yeltsin Addresses the Central Committee</option>
+          <option value="october_1987_plenum_stage2b">The Plenum — Comrade Yeltsin Addresses the Central Committee</option>
           <option value="bush_inauguration">A New Administration in Washington</option>
-          <option value="tiananmen_1989">Tiananmen Square</option>
+          <option value="tiananmen_1989">Beijing — Incident at Tiananmen Square</option>
+          <option value="iraq_invades_kuwait">Iraq Invades Kuwait</option>
+          <option value="gorbachev_visits_beijing_1990">Gorbachev Visits Beijing</option>
+          <option value="romania_after_ceausescu">Romania After Ceausescu</option>
+          <option value="future_soviet_german_relations">The Future of Soviet-German Relations</option>
+          <option value="lithuania_declares_independence">Lithuania Declares Independence</option>
+          <option value="baker_shevardnadze_meeting">Baker-Shevardnadze Meeting</option>
+          <option value="desert_storm_ultimatum">Desert Storm Ultimatum</option>
+          <option value="dissolution_of_warsaw_pact">The Dissolution of the Warsaw Pact</option>
+          <option value="bloody_sunday_vilnius">Bloody Sunday in Vilnius</option>
+          <option value="sandinista_crisis_1985">The Sandinista Question — Report from Managua</option>
+          <option value="rajiv_gandhi_visit_1985">Visit of Rajiv Gandhi — Asian Friendship Under Review</option>
         </select>
         <button class="btn" onclick="devFireSelectedEvent()" style="white-space:nowrap;">▶ Fire</button>
       </div>
@@ -10996,6 +11132,8 @@ function openLVPhotoModal() {
 function closeLVPhotoModal() {
   var overlay = document.getElementById('lv-photo-modal-overlay');
   if (overlay) overlay.style.display = 'none';
+  // Resume patriotic song if dissolution ending is showing
+  if (typeof resumePatrioticSong === 'function') resumePatrioticSong();
 }
 document.addEventListener('keydown', function(e) {
   if (e.key === 'Escape') {
@@ -11031,6 +11169,8 @@ function closeVideoModal() {
   var iframe  = document.getElementById('video-modal-iframe');
   if (overlay) overlay.style.display = 'none';
   if (iframe)  iframe.src = ''; // stop playback
+  // Resume patriotic song if dissolution ending is showing
+  if (typeof resumePatrioticSong === 'function') resumePatrioticSong();
   // Resume soundtrack
   try {
     if (typeof musicAudio !== 'undefined' && musicAudio &&
