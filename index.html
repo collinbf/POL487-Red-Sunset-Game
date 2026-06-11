@@ -13826,6 +13826,50 @@ if (_importInput) {
 .game-layout, .masthead { visibility:hidden; }
 .newsreel-projector-top, .newsreel-projector-bottom { display:none !important; }
 .newsreel-flicker, .newsreel-scratches { display:none !important; }
+
+
+  /* HEADER STATUS CONTRAST — make date, capital, and state read as clearly as trajectory */
+  .global-status-bar{
+    color:#f2ead8;
+  }
+  .gsb-date{
+    color:#d8b64a;
+    font-weight:900;
+    text-shadow:0 1px 0 #000,0 0 7px rgba(216,182,74,.18);
+  }
+  .gsb-capital{
+    color:#f2ead8;
+    font-weight:700;
+  }
+  .gsb-capital strong{
+    color:#d8b64a;
+    font-weight:900;
+    text-shadow:0 1px 0 #000,0 0 7px rgba(216,182,74,.18);
+  }
+  .gsb-status{
+    color:#e0bf54;
+    border-color:#a87910;
+    background:rgba(160,125,24,.12);
+    font-weight:700;
+    text-shadow:0 1px 0 #000;
+  }
+  .gsb-traj.uncertain{
+    color:#e0bf54;
+    font-weight:700;
+    text-shadow:0 1px 0 #000,0 0 7px rgba(224,191,84,.16);
+  }
+  .gsb-sep{opacity:.62;color:#c8a44a;}
+  @media(max-width:780px){
+    .mobile-status-date{
+      color:#d8b64a;
+      font-weight:900;
+      text-shadow:0 1px 0 #000,0 0 7px rgba(216,182,74,.18);
+    }
+    .mobile-status-capital{color:#f2ead8;font-weight:700;}
+    .mobile-status-capital strong{color:#d8b64a;font-weight:900;text-shadow:0 1px 0 #000,0 0 7px rgba(216,182,74,.18);}
+    .mobile-status-sep{opacity:.62;color:#c8a44a;}
+  }
+
 </style>
 
 
