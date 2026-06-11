@@ -460,122 +460,25 @@
 
 
 
-  /* COMPACT RADIO CONTROL OVERRIDES */
-  .utility-panel.soviet-radio{padding:10px 12px 12px;min-height:0;}
-  .soviet-radio .section-title{padding-bottom:3px;margin-bottom:0;}
-  .radio-speaker-grille{height:42px;margin:7px 28px 7px;}
-  .radio-tuning-scale{margin:0 16px 7px;padding:4px 8px 3px;}
-  .radio-scale-lines{height:18px;}
-  .radio-scale-lines::before{font-size:7px;bottom:-2px;}
-  .radio-scale-lines::after{height:16px;top:1px;}
-  .soviet-radio .volume-wrap{grid-template-columns:48px minmax(0,1fr);gap:7px;margin:6px 14px 0;padding:4px 6px;font-size:11px;}
-  .soviet-radio .volume-wrap input{width:150px;max-width:100%;justify-self:end;}
-  .radio-controls{gap:7px;margin-top:8px;flex-wrap:nowrap;}
-  .radio-icon-btn{width:32px;height:27px;font-size:15px!important;color:#1d1209!important;opacity:1!important;text-shadow:none!important;}
-  .radio-icon-btn .icon{opacity:1!important;color:inherit!important;filter:none!important;font-family:Arial,Helvetica,sans-serif;font-weight:900;}
-
-
   /* FINAL RADIO CONTROL TUNING - consolidated */
-  .utility-panel.soviet-radio{padding:10px 12px 12px !important;min-height:0 !important;}
-  .soviet-radio .section-title{padding-bottom:3px !important;margin-bottom:0 !important;}
-  .soviet-radio .volume-wrap{grid-template-columns:58px 116px !important;justify-content:center !important;column-gap:10px !important;margin:6px auto 0 !important;width:220px !important;max-width:calc(100% - 34px) !important;padding:4px 6px !important;font-size:11px !important;}
-  .soviet-radio .volume-wrap input{width:116px !important;max-width:116px !important;justify-self:end !important;}
-  .radio-controls{gap:7px !important;margin-top:8px !important;flex-wrap:nowrap !important;}
-  .radio-icon-btn,.radio-icon-btn:hover,.radio-icon-btn:focus,.radio-icon-btn:active,.radio-icon-btn.muted{width:32px !important;height:27px !important;padding:0 !important;background:#d7cdb2 !important;background-image:linear-gradient(180deg,#eee7d4 0%,#d7cdb2 54%,#bdb193 100%) !important;border-color:#efe6cd !important;color:#1b1108 !important;opacity:1 !important;text-shadow:none !important;filter:none !important;font-size:15px !important;}
-  .radio-icon-btn .icon{color:#1b1108 !important;opacity:1 !important;filter:none !important;text-shadow:none !important;font-family:Arial,Helvetica,sans-serif !important;font-weight:900 !important;}
-  .radio-speaker-grille{position:relative !important;overflow:hidden !important;height:52px !important;margin:7px 26px 8px !important;border:2px solid rgba(70,32,12,.86) !important;border-radius:7px !important;background-color:#c7ad8d !important;background-image:linear-gradient(180deg,rgba(255,246,224,.30),rgba(97,61,33,.24)),repeating-linear-gradient(90deg,rgba(246,232,206,.58) 0 6px,rgba(142,105,72,.28) 6px 9px,rgba(199,173,141,.16) 9px 18px),repeating-linear-gradient(60deg,transparent 0 10px,rgba(82,55,38,.36) 10px 12px,transparent 12px 22px),repeating-linear-gradient(120deg,transparent 0 10px,rgba(82,55,38,.34) 10px 12px,transparent 12px 22px) !important;}
-  .policy-tree {
-    display:flex;
-    flex-direction:column;
-    gap:20px;
-    overflow-x:auto;
-    padding-bottom:6px;
-    --tree-card-width: clamp(140px, 14vw, 168px);
+  .utility-panel.soviet-radio{padding:10px 12px 12px;min-height:0;}
+  .utility-panel.soviet-radio .section-title{padding-bottom:3px;margin-bottom:0;}
+  .utility-panel.soviet-radio .volume-wrap{grid-template-columns:58px 116px;justify-content:center;column-gap:10px;margin:6px auto 0;width:220px;max-width:calc(100% - 34px);padding:4px 6px;font-size:11px;}
+  .utility-panel.soviet-radio .volume-wrap input{width:116px;max-width:116px;justify-self:end;}
+  .utility-panel.soviet-radio .radio-controls{gap:7px;margin-top:8px;flex-wrap:nowrap;}
+  .utility-panel.soviet-radio .radio-icon-btn,
+  .utility-panel.soviet-radio .radio-icon-btn:hover,
+  .utility-panel.soviet-radio .radio-icon-btn:focus,
+  .utility-panel.soviet-radio .radio-icon-btn:active,
+  .utility-panel.soviet-radio .radio-icon-btn.muted{
+    width:32px;height:27px;padding:0;
+    background:#d7cdb2;
+    background-image:linear-gradient(180deg,#eee7d4 0%,#d7cdb2 54%,#bdb193 100%);
+    border-color:#efe6cd;color:#1b1108;opacity:1;text-shadow:none;filter:none;font-size:15px;
   }
-  .tree-category-group {
-    display:flex;
-    flex-direction:column;
-    gap:8px;
-    min-width:max-content;
-  }
-  .tree-category-label { font-family:'Playfair Display',serif; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.1em; color:var(--red); border-bottom:1px solid rgba(139,26,26,0.25); padding-bottom:4px; margin-bottom:4px; }
-  .tree-chain {
-    display:flex;
-    flex-direction:row;
-    align-items:stretch;
-    gap:10px;
-  }
-  .tree-node-shell{
-    position:relative;
-    flex:0 0 auto;
-    align-self:flex-start;
-    width:var(--tree-card-width);
-    min-width:var(--tree-card-width);
-  }
-  .tree-node-shell .policy-card{
-    width:var(--tree-card-width);
-    max-width:none;
-  }
-  .tree-children {
-    display:flex;
-    flex-direction:row;
-    flex-wrap:wrap;
-    gap:10px;
-    margin-top:0;
-    padding-left:18px;
-    border-left:2px solid rgba(139,26,26,0.20);
-    margin-left:4px;
-    align-items:flex-start;
-    align-self:flex-start;
-  }
-  .tree-branch{
-    flex:0 0 24px;
-    width:24px;
-    min-height:100%;
-    position:relative;
-  }
-  .tree-branch::before{
-    content:'';
-    position:absolute;
-    left:4px;
-    top:50%;
-    width:20px;
-    height:2px;
-    background:rgba(139,26,26,0.46);
-    transform:translateY(-50%);
-  }
-  .tree-branch::after{
-    content:'';
-    position:absolute;
-    left:4px;
-    top:0;
-    width:2px;
-    height:100%;
-    background:linear-gradient(to bottom, rgba(139,26,26,0.32), rgba(139,26,26,0.12));
-  }
-  .tree-chain.ready .tree-branch::before,
-  .tree-chain.ready .tree-branch::after{
-    background:rgba(45,110,68,0.42);
-  }
-  .tree-chain.locked .tree-branch::before,
-  .tree-chain.locked .tree-branch::after{
-    background:rgba(139,26,26,0.24);
-  }
-  .tree-chain.done .tree-branch::before,
-  .tree-chain.done .tree-branch::after{
-    background:rgba(154,122,46,0.38);
-  }
-  .tree-node { border:1px solid rgba(139,26,26,.28); background:rgba(242,234,216,.72); border-radius:3px; padding:9px 11px; position:relative; }
-  .tree-node.enacted { border-color:rgba(45,110,68,.6); background:rgba(45,110,68,.07); }
-  .tree-node.locked { opacity:.75; }
-  .tree-node.ready { border-color:rgba(139,26,26,.55); }
-  .tree-effects { font-size:10px; color:var(--ink); opacity:.75; font-family:'IM Fell English',serif; margin-top:2px; }
-  .tree-advisor-row { display:flex; gap:8px; margin-top:3px; flex-wrap:wrap; }
-  .tree-advisor-req { font-size:9px; color:var(--green); font-family:'IM Fell English',serif; font-style:italic; }
-  .tree-advisor-opp { font-size:9px; color:var(--red); font-family:'IM Fell English',serif; font-style:italic; }
-  .tree-lock-reason { font-size:9px; color:var(--red); margin-top:3px; font-style:italic; opacity:.85; }
-  .ending-narrative p { margin-bottom:.8rem; font-family:'IM Fell English',serif; font-size:13.5px; line-height:1.65; }
-  .ending-narrative em { font-style:italic; opacity:.85; }
+  .utility-panel.soviet-radio .radio-icon-btn .icon{color:#1b1108;opacity:1;filter:none;text-shadow:none;font-family:Arial,Helvetica,sans-serif;font-weight:900;}
+  .utility-panel.soviet-radio .radio-speaker-grille{position:relative;overflow:hidden;height:52px;margin:7px 26px 8px;border:2px solid rgba(70,32,12,.86);border-radius:7px;background-color:#c7ad8d;background-image:linear-gradient(180deg,rgba(255,246,224,.30),rgba(97,61,33,.24)),repeating-linear-gradient(90deg,rgba(246,232,206,.58) 0 6px,rgba(142,105,72,.28) 6px 9px,rgba(199,173,141,.16) 9px 12px);box-shadow:inset 0 1px 2px rgba(255,255,255,.35),inset 0 -4px 8px rgba(48,22,8,.36),0 2px 4px rgba(0,0,0,.25);}
+
 
   /* Game-over screen: kill the 2-col newspaper layout, let card scroll freely */
   .event-panel.pravda.is-ending .pravda-body { column-count:1 !important; }
@@ -2802,7 +2705,7 @@
 </style>
 
 <script id="launcher-start-failsafe-head">
-window.launcherStartGame = function(){
+if (!window.launcherStartGame) window.launcherStartGame = function(){
   try { if (typeof unlockAllAudio === 'function') unlockAllAudio(); } catch(e) {}
   try { if (typeof projectorAudio !== 'undefined' && projectorAudio) { projectorAudio.currentTime = 0; if (projectorAudio.play) projectorAudio.play().catch(function(){}); } } catch(e) {}
   var launcher = document.getElementById('launcher-modal');
@@ -3277,13 +3180,13 @@ window.dismissIntro = window.dismissIntro || function(){
     <div style="margin-top:1.5rem;" class="advisor-panel">
       <div class="section-title panel-header">Active Advisors</div>
       <div class="filter-row" id="advisor-filters">
-        <button class="filter-btn active" onclick="setAdvisorFilter('All', this)">All</button>
-        <button class="filter-btn" onclick="setAdvisorFilter('Active', this)">Active</button>
+        <button class="filter-btn active" onclick="setAdvisorFilter('Active', this)">Active</button>
         <button class="filter-btn" onclick="setAdvisorFilter('Available', this)">Available</button>
         <button class="filter-btn" onclick="setAdvisorFilter('Reformist', this)">Reformist</button>
         <button class="filter-btn" onclick="setAdvisorFilter('Conservative', this)">Conservative</button>
         <button class="filter-btn" onclick="setAdvisorFilter('Centrist', this)">Centrist</button>
         <button class="filter-btn" onclick="setAdvisorFilter('Hardliner', this)">Hardliner</button>
+        <button class="filter-btn" onclick="setAdvisorFilter('All', this)">All</button>
       </div>
       <div class="advisor-grid" id="advisor-grid"></div>
     </div><!-- /advisor-panel -->
@@ -3487,7 +3390,7 @@ const gameState = {
 // UI State (filters)
 const uiState = {
   policyCategory: 'All',
-  advisorFaction: 'All',
+  advisorFaction: 'Active',
   advisorDetailId: null,
   audioMuted: false,
   audioVolume: 0.7,
@@ -7080,6 +6983,55 @@ The Ministry of Foreign Affairs and the General Staff await guidance on the disp
     ],
   },
 
+
+  // ── WIZARDS ON SCREEN — SUMMER 1989 ──────────────────────────────
+  {
+    id: 'wizards_on_screen_1989',
+    name: 'Wizards on Screen — Psychic Warfare and Televised Healers',
+    image: 'images/Paranormal-Activity.jpeg',
+    caption: 'Москва, лето 1989 — военные доклады и телевизионные сеансы',
+    trigger: { month: 7, year: 1989 },
+    description: `Comrade General Secretary — an unusual report has reached the Ministry of Defence. American military research into paranormal phenomena has been cited as evidence that the Soviet Union may be neglecting a new theatre of competition. Marshal Yazov does not present the matter as faith. He presents it as prudence: if the Americans are studying it, the General Staff wants to know whether Moscow can afford not to.
+
+General Mikhail Moiseyev has proposed a small classified programme to examine so-called psychic warfare, extrasensory perception, remote influence, and other phenomena now circulating under a new military vocabulary: not psychological warfare, but psychic war. The request is modest by defence standards, but symbolically awkward. The Soviet state has spent seven decades preaching scientific materialism; it is now being asked to fund official research into the supernatural.
+
+At the same time, state television is confronting a different problem. The Congress of People's Deputies has electrified the country, but also agitated it. Producers argue that the public needs reassurance, ritual, and a sense that someone is still in control. Healers and psychotherapists have begun to attract mass audiences. Some officials believe televised "healing" sessions could calm the population. Others warn that putting mystics on state television would be an admission that Marxist certainty has given way to national hypnosis.
+
+The question before the centre is therefore not whether magic is real. It is whether a disoriented empire should use spectacle, secrecy, and suggestion to steady itself — and what such a decision says about the condition of Soviet power.`,
+    choices: [
+      {
+        text: 'Authorize a classified military research unit and permit limited televised healing broadcasts as a social stabilizer',
+        effects: { stability: +4, popularAffection: +3, partyUnity: +2, militaryReadiness: -2, economy: -2, foreignRelations: -2 },
+        budgetCost: 4,
+        advisorLoyaltyEffects: { yazov: +6, chernyaev: -3, yakovlev: -4 },
+        factionEffects: { hardliners: +1, reformers: -1 },
+        outcomeText: `The Ministry of Defence receives authorization to proceed quietly. The programme is kept small, deniable, and wrapped in the language of countermeasure research. Yazov and the General Staff are satisfied: no Soviet marshal wishes to discover too late that the adversary has opened a front Moscow refused to study.
+
+Television executives also receive permission to experiment. The broadcasts are framed as health programming rather than ideology. Millions watch in silence, placing faith in gestures, commands, and the glow of the screen. The immediate effect is calming. The deeper effect is stranger: a state built on material certainty now borrows authority from suggestion. The public feels attended to, but the boundary between science, propaganda, and ritual becomes harder to defend.`,
+      },
+      {
+        text: 'Keep the military review classified, but prohibit state television from turning psychics into national authorities',
+        effects: { stability: -1, popularAffection: -1, partyUnity: -1, militaryReadiness: +1, foreignRelations: +1 },
+        budgetCost: 2,
+        advisorLoyaltyEffects: { yazov: +2, chernyaev: +2, yakovlev: +1 },
+        factionEffects: { moderates: +1 },
+        outcomeText: `A narrow compromise is issued. The General Staff may examine foreign paranormal research as a counter-intelligence question, but the work is confined to classified channels and denied the prestige of a grand state programme. Yazov accepts the decision without enthusiasm; the military has received enough to avoid humiliation, but not enough to build a new empire of specialists.
+
+State television is instructed to avoid presenting healers as official saviours. Producers complain that the public wants reassurance and that politics has made the country sleepless. The centre answers that spectacle is not the same as confidence. The result is less dramatic than either faction wanted: the state studies the rumour, but refuses to govern through it.`,
+      },
+      {
+        text: 'Reject the programme publicly as superstition and redirect attention toward medical care, housing, and ordinary social needs',
+        effects: { stability: -3, popularAffection: +2, partyUnity: -5, economy: +2, foreignRelations: +3, militaryReadiness: -1 },
+        budgetGain: 3,
+        advisorLoyaltyEffects: { yazov: -7, chernyaev: +3, yakovlev: +4 },
+        factionEffects: { reformers: +2, hardliners: -2 },
+        outcomeText: `The proposal is rejected in language that leaves little room for ambiguity. The Soviet Union, you declare, cannot answer its crisis of confidence by importing the anxieties of its rival or by placing miracle-workers where doctors, economists, and administrators should stand.
+
+The decision is welcomed by reformers and by officials who fear the spread of official irrationalism. It is received coldly in parts of the military establishment. If Washington studies strange weapons, they argue, Moscow should at least know what is being studied. Television loses an easy sedative for an agitated society. The state preserves its scientific dignity, but gives up a tool that might have quieted the room for a while.`,
+      },
+    ],
+  },
+
   // ── TIANANMEN SQUARE — JUNE 1989 ─────────────────────────────────
   {
     id: 'tiananmen_1989',
@@ -8873,34 +8825,40 @@ function checkEvents() {
   //   • Event with BOTH trigger AND condition: fires only when month+year match
   //     AND condition() is true. Prevents conditional events firing on the right
   //     date but wrong game state (bug #3 fix — was using || instead of &&).
-  const triggered = events.filter(e => {
-    if (gameState.firedTriggers['event_' + e.id]) return false;
+  //
+  // Important: events are evaluated sequentially and marked as fired immediately.
+  // This allows same-month dependent events to see earlier events from the same
+  // pass. Example: Sumgait checks for event_nagorno_karabakh_protests_1988;
+  // both are February 1988 events, so a filter-then-mark pass would never let
+  // Sumgait observe Nagorno-Karabakh in time.
+  const triggered = [];
+
+  events.forEach(e => {
+    if (gameState.firedTriggers['event_' + e.id]) return;
 
     const hasDateTrigger = e.trigger && e.trigger.month && e.trigger.year;
     const hasCondition   = typeof e.condition === 'function';
+    let shouldFire = false;
 
     if (hasDateTrigger && hasCondition) {
       // Both must be satisfied
-      return (
+      shouldFire = (
         e.trigger.month === gameState.month &&
         e.trigger.year  === gameState.year  &&
         Boolean(e.condition(gameState))
       );
+    } else if (hasDateTrigger) {
+      shouldFire = e.trigger.month === gameState.month && e.trigger.year === gameState.year;
+    } else if (hasCondition) {
+      shouldFire = Boolean(e.condition(gameState));
     }
-    if (hasDateTrigger) {
-      return e.trigger.month === gameState.month && e.trigger.year === gameState.year;
-    }
-    if (hasCondition) {
-      return Boolean(e.condition(gameState));
-    }
-    return false;
+
+    if (!shouldFire) return;
+    gameState.firedTriggers['event_' + e.id] = true;
+    triggered.push(e);
   });
 
   if (triggered.length > 0) {
-    triggered.forEach(e => {
-      gameState.firedTriggers['event_' + e.id] = true;
-    });
-
     if (activeEvent) {
       triggerEventQueue.push(...triggered);
       renderEventQueueStatus();
@@ -8917,6 +8875,7 @@ function checkEvents() {
 
   return false;
 }
+
 
 function escapeHtml(str){
   return smartQuotes(String(str || '')).replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
@@ -9956,8 +9915,26 @@ function refreshAdvisorDetailIfOpen(){
   body.innerHTML = buildAdvisorDetailContent(a);
 }
 
-document.addEventListener('keydown', e => {
-  if (e.key === 'Escape') closeAdvisorDetail();
+document.addEventListener('keydown', function(e) {
+  if (e.key !== 'Escape') return;
+
+  const outcome = document.getElementById('pravda-outcome-modal');
+  if (outcome && outcome.classList.contains('active')) { closePravdaOutcome(); return; }
+
+  const library = document.getElementById('library-modal');
+  if (library && library.classList.contains('active')) { closeLibraryModal(); return; }
+
+  const advisor = document.getElementById('advisor-detail-modal');
+  if (advisor && advisor.classList.contains('active')) { closeAdvisorDetail(); return; }
+
+  const dev = document.getElementById('dev-modal-overlay');
+  if (dev && dev.style.display !== 'none' && dev.style.display !== '') { closeDevModal(); return; }
+
+  const lv = document.getElementById('lv-photo-modal-overlay');
+  if (lv && lv.style.display !== 'none' && lv.style.display !== '') { closeLVPhotoModal(); return; }
+
+  const video = document.getElementById('video-modal-overlay');
+  if (video && video.style.display !== 'none' && video.style.display !== '') { closeVideoModal(); return; }
 });
 
 
@@ -11083,18 +11060,27 @@ function endTurn() {
   // passivity as weakness; factions hardened. A mild cumulative penalty
   // on Party Unity (and Stability after a prolonged streak) reflects this.
   (function applyIdlePenalty() {
-    const didEnact = gameState.policiesCommittedTurn === gameState.turn;
-    if (!didEnact) {
-      gameState.idleTurns = (gameState.idleTurns || 0) + 1;
+    const committedThisTurn = gameState.policiesCommittedTurn === gameState.turn;
+    const meaningfulSpend = Number(gameState.turnSpend || 0) > 0;
+
+    // Free advisor/admin policies can be useful, but they should not completely
+    // satisfy the Politburo's demand for visible direction. Treat a free-only
+    // turn as partial activity: it avoids the harsher stability hit, but still
+    // lets the inaction streak creep upward.
+    if (!committedThisTurn || !meaningfulSpend) {
+      gameState.idleTurns = (gameState.idleTurns || 0) + (committedThisTurn ? 0.5 : 1);
       const streak = gameState.idleTurns;
-      if (streak === 1) {
+      if (committedThisTurn && !meaningfulSpend) {
+        addLog('The apparatus notes procedural activity, but no capital-backed directive — momentum only partly recovers.', 'system');
+        if (streak >= 2) applyMetricChange('partyUnity', -1);
+      } else if (streak === 1) {
         addLog('The Politburo grows restless — no directives issued this month.', 'system');
         applyMetricChange('partyUnity', -1);
       } else if (streak === 2) {
         addLog('A second month of inaction — conservative factions read the silence as an opportunity.', 'crisis');
         applyMetricChange('partyUnity', -2);
       } else if (streak >= 3) {
-        addLog(`Month ${streak} of paralysis — Party Unity and Stability erode as the apparatus loses direction.`, 'crisis');
+        addLog(`Month ${Math.floor(streak)} of paralysis — Party Unity and Stability erode as the apparatus loses direction.`, 'crisis');
         applyMetricChange('partyUnity', -2);
         applyMetricChange('stability', -1);
       }
@@ -11129,13 +11115,13 @@ function endTurn() {
       upkeep += Math.floor((sep - 25) / 25); // +1 per 25pts above 25 (max +3)
     }
 
-    // Net income cap: even a popular, unified regime shouldn't earn more than
-    // 12 capital/month — keeps the resource meaningful in the mid-game when
-    // Glasnost + Perestroika can otherwise make the budget essentially unconstrained.
-    // The floor remains 0 (clamp); only the ceiling is capped, not the gross income
-    // used in the log message so the numbers still read truthfully to the player.
+    // Net income cap: keep capital meaningful without making the early game
+    // feel starved by fixed upkeep (Politburo + Afghanistan + separatism).
+    // A modest year-scaled cap gives 1985-88 enough room for 5-cost policies,
+    // then tightens late-game abundance once reforms can otherwise snowball.
     const rawNet = income - upkeep;
-    const net = Math.min(rawNet, 12);
+    const netCap = gameState.year <= 1988 ? 15 : (gameState.year === 1989 ? 14 : 13);
+    const net = Math.min(rawNet, netCap);
     gameState.budget = clamp(gameState.budget + net, 0, 9999);
 
     // Log when income rate shifts meaningfully (≥5 pts) — at most every 6 turns
@@ -11144,7 +11130,7 @@ function endTurn() {
     const rateShift = Math.abs(net - lastIncome) >= 5;
     const cooldownExpired = (gameState.turn - lastLoggedTurn) >= 6;
     if (rateShift && cooldownExpired) {
-      const capNote = rawNet > 12 ? ' (capped)' : '';
+      const capNote = rawNet > netCap ? ' (capped)' : '';
       addLog(`Political capital: +${income} income, −${upkeep} upkeep = ${net > 0 ? '+' : ''}${net}/month${capNote}`, 'system');
       gameState._lastCapitalIncome = net;
       gameState._lastCapitalLogTurn = gameState.turn;
@@ -11216,11 +11202,11 @@ function endTurn() {
   //   • Baseline creep: +0.5/turn (very slow, just enough to register)
   //   • Low stability:  +1 per turn for every 15pts stability is below 65
   //   • Year pressure:  grows faster after 1988 (historical acceleration)
-  //   • Glasnost effect: +1/turn if glasnost is enacted (information openness
-  //                      fuels national consciousness — historically accurate)
-  //   • Perestroika:    +0.5/turn (decentralisation encourages republic agency)
+  //   • Glasnost/Perestroika still increase national consciousness, but less
+  //     brutally than before; high stability can partially channel demands
+  //     through legal reform instead of immediate centrifugal pressure.
   //   • High separatism self-reinforcement: once >50, grows faster
-  // Capped so it can't grow more than +5 in a single turn (no instant spiral).
+  // Capped so it can't grow more than +4 in a single turn (no instant spiral).
   (function growSeparatism() {
     const stability = Number(gameState.metrics.stability || 0);
     const enacted   = new Set(gameState.enactedPolicies || []);
@@ -11234,14 +11220,18 @@ function endTurn() {
     if (gameState.year >= 1990) delta += 0.8;
     if (gameState.year >= 1991) delta += 1.0;
 
-    // Glasnost and Perestroika fuel national consciousness
-    if (enacted.has('glasnost'))     delta += 1.0;
-    if (enacted.has('perestroika'))  delta += 0.5;
+    // Glasnost and Perestroika fuel national consciousness, but should not
+    // make the central reform path a near-automatic separatism death spiral.
+    const hasGlasnost = enacted.has('glasnost');
+    const hasPerestroika = enacted.has('perestroika');
+    if (hasGlasnost)     delta += 0.6;
+    if (hasPerestroika)  delta += 0.3;
+    if (hasGlasnost && hasPerestroika && stability >= 70) delta -= 0.5;
 
     // Self-reinforcing acceleration above 50
     if (gameState.separatism >= 50) delta += 1.0;
 
-    delta = clamp(delta, 0, 5); // cap per-turn growth
+    delta = clamp(delta, 0, 4); // cap per-turn growth
     const rounded = Math.round(delta * 10) / 10; // one decimal
     if (rounded > 0) applyMetricChange('separatism', rounded);
   })();
@@ -11330,7 +11320,7 @@ updateAdvisorLoyaltyForTurn();
   render();
   renderPolicies();
 
-  if (checkEndConditions()) {
+  if (!gameState.gameOver && checkEndConditions()) {
     addTassDateline();
     
     return;
@@ -11423,11 +11413,18 @@ function applyMetricChange(metricKey, delta) {
   if (key === 'foreignRelations') {
     const ir       = gameState.intlRelations;
     const headline = Number(gameState.metrics.foreignRelations || 0);
-    const PULL     = 0.30; // fraction to nudge each region toward headline
+    const PULL     = 0.20; // gentle sync; avoids double-counting broad effects
+    const BAND     = 8;    // ignore small gaps so regions retain character
     ['us', 'china', 'eastEu', 'westEu', 'nonAlign'].forEach(region => {
       const current = Number(ir[region] || 0);
-      const nudge   = Math.round((headline - current) * PULL);
-      ir[region]    = clamp(current + nudge, 0, 100);
+      const gap = headline - current;
+      // Only pull regions down when they sit well above the lowered headline,
+      // and only pull regions up when they sit well below a raised headline.
+      // This prevents foreignRelations:-15 from also punishing regions that
+      // were already below the new headline.
+      if (Math.abs(gap) <= BAND) return;
+      const nudge = Math.round(gap * PULL);
+      ir[region] = clamp(current + nudge, 0, 100);
     });
   }
 
@@ -12521,12 +12518,20 @@ function renderIntl() {
     const cls = val >= 60 ? 'pos' : val >= 30 ? 'neu' : 'neg';
     const colors = { pos: '#2d6e44', neu: '#9a7a2e', neg: '#8b1a1a' };
     const fill = document.getElementById(`if-${k}`);
+    const valEl = document.getElementById(`iv-${k}`);
+
+    // Keep the render loop resilient if an individual international-relations
+    // row is missing or renamed in the HTML. One bad/missing bar should not
+    // abort the rest of render() and leave later dashboards stale.
+    if (!fill || !valEl) return;
+
     fill.style.setProperty('--fill-width', val + '%');
     fill.style.setProperty('--fill-color', colors[cls]);
-    document.getElementById(`iv-${k}`).textContent = val;
-    document.getElementById(`iv-${k}`).className = 'intl-val ' + cls;
+    valEl.textContent = val;
+    valEl.className = 'intl-val ' + cls;
   });
 }
+
 
 function renderPolicies() {
   // Deal a hand if needed (new turn or first render)
@@ -12781,10 +12786,11 @@ function renderDebugPanel(){
   el.innerHTML = debugMetricRows().map(row => `
     <div class="debug-card">
       <label><span>${escapeHtml(row.label)}</span><strong id="debug-val-${row.group}-${row.key}">${Math.round(Number(row.value || 0))}</strong></label>
-      <input type="range" min="${row.min}" max="${row.max}" value="${row.value}" oninput="debugSetValue('${row.group}','${row.key}',this.value)" />
+      <input class="debug-metric-input" type="range" min="${row.min}" max="${row.max}" value="${row.value}" data-debug-group="${row.group}" data-debug-key="${row.key}" data-debug-value-id="debug-val-${row.group}-${row.key}" />
     </div>
   `).join('');
 }
+
 
 function renderUtility(){
   const toggle = document.getElementById('audio-toggle');
@@ -12844,12 +12850,6 @@ function closeLibraryModal() {
   const modal = document.getElementById('library-modal');
   if (modal) modal.classList.remove('active');
 }
-
-// Close library modal on Escape
-document.addEventListener('keydown', e => {
-  if (e.key === 'Escape') closeLibraryModal();
-});
-
 
 
 function renderPolitburoVisual(){
@@ -13312,6 +13312,21 @@ function debugSetValue(group, key, value){
   render();
 }
 
+function handleDebugMetricInput(e) {
+  const input = e.target && e.target.closest ? e.target.closest('.debug-metric-input') : null;
+  if (!input) return;
+  const group = input.dataset.debugGroup;
+  const key = input.dataset.debugKey;
+  if (!group || !key) return;
+  debugSetValue(group, key, input.value);
+  const valueId = input.dataset.debugValueId;
+  const valueEl = valueId ? document.getElementById(valueId) : null;
+  if (valueEl) valueEl.textContent = Math.round(Number(input.value || 0));
+}
+
+document.addEventListener('input', handleDebugMetricInput);
+
+
 function renderUpcomingEvents() {
   const el = document.getElementById('upcoming-events');
   if (!el) return;
@@ -13359,20 +13374,31 @@ function clearLogFilter() {
 }
 
 function debugAdvanceMonths(count) {
-  for (let i = 0; i < count; i++) advanceDate();
-  gameState.turn += count;
-  // Reset per-turn state that would normally be cleared by endTurn()
-  // so the jumped-to turn starts clean rather than inheriting stale flags.
-  gameState.turnPoliciesCommittedCount = 0;
-  gameState.policiesCommittedTurn = null;
-  gameState.idleTurns = 0;
-  gameState.turnSpend = 0;
+  const requested = Math.max(0, Math.floor(Number(count) || 0));
+  if (requested <= 0 || gameState.gameOver) return;
+
+  let advanced = 0;
+  for (let i = 0; i < requested; i++) {
+    if (gameState.gameOver) break;
+    if (activeEvent) {
+      addLog('Debug advance paused — resolve the open event before advancing further.', 'system');
+      break;
+    }
+
+    const beforeTurn = gameState.turn;
+    endTurn();
+
+    // endTurn() may stop before advancing if an end condition or event blocks progress.
+    if (gameState.turn !== beforeTurn) advanced++;
+    if (gameState.gameOver || activeEvent) break;
+  }
+
   uiState.redrawsThisTurn = 0;
-  addLog(`Debug: advanced ${count} months.`);
+  addLog(`Debug: advanced ${advanced}/${requested} month${requested === 1 ? '' : 's'} with full monthly game logic.`);
   render();
-  dealPolicyHand(true);
   renderPolicies();
 }
+
 
 function debugFireNextEvent(){
   const next = events.find(e => e.trigger && !gameState.firedTriggers['event_' + e.id]);
@@ -13833,14 +13859,15 @@ function closePravdaOutcome() {
   const cb = _pendingOutcomeCallback;
   _pendingOutcomeCallback = null;
   if (cb) cb();
-}
 
-document.addEventListener('keydown', function(e) {
-  if (e.key === 'Escape') {
-    const outcome = document.getElementById('pravda-outcome-modal');
-    if (outcome && outcome.classList.contains('active')) closePravdaOutcome();
+  // Outcome callbacks usually perform this check, but keep the modal close path
+  // safe even when a report is opened without a callback or a choice effect
+  // trips an ending before the normal turn flow resumes.
+  if (!gameState.gameOver && checkEndConditions()) {
+    render();
+    renderPolicies();
   }
-});
+}
 
 
 </script>
@@ -13945,7 +13972,7 @@ document.addEventListener('keydown', function(e) {
 </div>
 
 <script id="launcher-start-failsafe-body">
-window.launcherStartGame = function(){
+if (!window.launcherStartGame) window.launcherStartGame = function(){
   try { if (typeof unlockAllAudio === 'function') unlockAllAudio(); } catch(e) {}
   try { if (typeof projectorAudio !== 'undefined' && projectorAudio) { projectorAudio.currentTime = 0; if (projectorAudio.play) projectorAudio.play().catch(function(){}); } } catch(e) {}
   var launcher = document.getElementById('launcher-modal');
@@ -14390,10 +14417,12 @@ function openDevModal() {
   var grid = document.getElementById('debug-grid-modal');
   if (grid && typeof debugMetricRows === 'function') {
     grid.innerHTML = debugMetricRows().map(function(row) {
-      return '<div class="debug-card"><label><span>' + escapeHtml(row.label) + '</span><strong id="dbm-' + row.group + '-' + row.key + '">' + Math.round(Number(row.value||0)) + '</strong></label><input type="range" min="' + row.min + '" max="' + row.max + '" value="' + row.value + '" oninput="debugSetValue(\'' + row.group + '\',\'' + row.key + '\',this.value);var v=document.getElementById(\'dbm-' + row.group + '-' + row.key + '\');if(v)v.textContent=Math.round(this.value);" /></div>';
+      var valueId = 'dbm-' + row.group + '-' + row.key;
+      return '<div class="debug-card"><label><span>' + escapeHtml(row.label) + '</span><strong id="' + valueId + '">' + Math.round(Number(row.value||0)) + '</strong></label><input class="debug-metric-input" type="range" min="' + row.min + '" max="' + row.max + '" value="' + row.value + '" data-debug-group="' + row.group + '" data-debug-key="' + row.key + '" data-debug-value-id="' + valueId + '" /></div>';
     }).join('');
   }
 }
+
 function closeDevModal() {
   var overlay = document.getElementById('dev-modal-overlay');
   if (overlay) overlay.style.display = 'none';
@@ -14431,12 +14460,6 @@ function devFireSelectedEvent() {
     console.warn('devFireSelectedEvent: no displayEvent or showEvent function found');
   }
 }
-document.addEventListener('keydown', function(e) {
-  if (e.key === 'Escape') {
-    var dev = document.getElementById('dev-modal-overlay');
-    if (dev && dev.style.display !== 'none') { closeDevModal(); }
-  }
-});
 </script>
 
 <script>
@@ -14457,12 +14480,6 @@ function closeLVPhotoModal() {
   // Resume patriotic song if dissolution ending is showing
   if (typeof resumePatrioticSong === 'function') resumePatrioticSong();
 }
-document.addEventListener('keydown', function(e) {
-  if (e.key === 'Escape') {
-    var lv = document.getElementById('lv-photo-modal-overlay');
-    if (lv && lv.style.display !== 'none') { closeLVPhotoModal(); }
-  }
-});
 </script>
 
 <script>
@@ -14505,10 +14522,4 @@ function closeVideoModal() {
     }
   } catch(e) {}
 }
-document.addEventListener('keydown', function(e) {
-  if (e.key === 'Escape') {
-    var vm = document.getElementById('video-modal-overlay');
-    if (vm && vm.style.display !== 'none') { closeVideoModal(); }
-  }
-});
 </script>
