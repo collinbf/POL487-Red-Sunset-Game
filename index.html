@@ -3277,13 +3277,13 @@ window.dismissIntro = window.dismissIntro || function(){
     <div style="margin-top:1.5rem;" class="advisor-panel">
       <div class="section-title panel-header">Active Advisors</div>
       <div class="filter-row" id="advisor-filters">
-        <button class="filter-btn active" onclick="setAdvisorFilter('All', this)">All</button>
-        <button class="filter-btn" onclick="setAdvisorFilter('Active', this)">Active</button>
+        <button class="filter-btn active" onclick="setAdvisorFilter('Active', this)">Active</button>
         <button class="filter-btn" onclick="setAdvisorFilter('Available', this)">Available</button>
         <button class="filter-btn" onclick="setAdvisorFilter('Reformist', this)">Reformist</button>
         <button class="filter-btn" onclick="setAdvisorFilter('Conservative', this)">Conservative</button>
         <button class="filter-btn" onclick="setAdvisorFilter('Centrist', this)">Centrist</button>
         <button class="filter-btn" onclick="setAdvisorFilter('Hardliner', this)">Hardliner</button>
+        <button class="filter-btn" onclick="setAdvisorFilter('All', this)">All</button>
       </div>
       <div class="advisor-grid" id="advisor-grid"></div>
     </div><!-- /advisor-panel -->
@@ -3487,7 +3487,7 @@ const gameState = {
 // UI State (filters)
 const uiState = {
   policyCategory: 'All',
-  advisorFaction: 'All',
+  advisorFaction: 'Active',
   advisorDetailId: null,
   audioMuted: false,
   audioVolume: 0.7,
@@ -13953,6 +13953,90 @@ window.launcherStartGame = function(){
   setTimeout(function(){ var modal = document.getElementById('intro-modal'); if (modal) { modal.style.display = 'flex'; modal.style.opacity = '1'; } else if (typeof startGame === 'function') { try { startGame(); } catch(e) { console.error(e); } } }, 250);
 };
 </script>
+
+
+<script id="advisor-tabs-and-raisa-fix">
+// Advisor UI polish + Raisa protection.
+// - Active is the default advisor tab.
+// - All is moved to the end of the advisor filter row.
+// - Raisa is not a replaceable office-holder; no successor can be appointed to her personal slot.
+(function advisorTabsAndRaisaFix(){
+  function reorderAdvisorTabs(){
+    const row = document.getElementById('advisor-filters');
+    if (!row) return;
+    const desired = ['Active', 'Available', 'Reformist', 'Conservative', 'Centrist', 'Hardliner', 'All'];
+    const buttons = Array.from(row.querySelectorAll('button'));
+    desired.forEach(label => {
+      const btn = buttons.find(b => String(b.textContent || '').trim() === label);
+      if (btn) row.appendChild(btn);
+    });
+    row.querySelectorAll('button').forEach(btn => btn.classList.remove('active'));
+    const activeBtn = Array.from(row.querySelectorAll('button')).find(b => String(b.textContent || '').trim() === 'Active');
+    if (activeBtn) activeBtn.classList.add('active');
+  }
+
+  function setDefaultAdvisorFilter(){
+    try {
+      if (typeof uiState !== 'undefined') uiState.advisorFaction = 'Active';
+      reorderAdvisorTabs();
+      if (typeof renderPersonnelQuestions === 'function') renderPersonnelQuestions();
+      if (typeof renderAdvisors === 'function') renderAdvisors();
+    } catch(e) {}
+  }
+
+  function installRaisaGuards(){
+    try {
+      if (typeof isAdvisorCandidateForVacantSlot === 'function' && !isAdvisorCandidateForVacantSlot.__raisaGuard) {
+        const originalIsAdvisorCandidateForVacantSlot = isAdvisorCandidateForVacantSlot;
+        isAdvisorCandidateForVacantSlot = function(advisorId){
+          const a = typeof getAdvisorById === 'function' ? getAdvisorById(advisorId) : null;
+          const slot = typeof getAdvisorSlot === 'function' ? getAdvisorSlot(a) : null;
+          if (slot === 'personal' && advisorId !== 'raisa') return false;
+          return originalIsAdvisorCandidateForVacantSlot(advisorId);
+        };
+        isAdvisorCandidateForVacantSlot.__raisaGuard = true;
+      }
+
+      if (typeof getReplacementCandidatesForAdvisor === 'function' && !getReplacementCandidatesForAdvisor.__raisaGuard) {
+        const originalGetReplacementCandidatesForAdvisor = getReplacementCandidatesForAdvisor;
+        getReplacementCandidatesForAdvisor = function(advisorId){
+          const outgoing = typeof getAdvisorById === 'function' ? getAdvisorById(advisorId) : null;
+          const slot = typeof getAdvisorSlot === 'function' ? getAdvisorSlot(outgoing) : null;
+          if (advisorId === 'raisa' || slot === 'personal') return [];
+          return originalGetReplacementCandidatesForAdvisor(advisorId).filter(c => c && c.id !== 'raisa' && getAdvisorSlot(c) !== 'personal');
+        };
+        getReplacementCandidatesForAdvisor.__raisaGuard = true;
+      }
+
+      if (typeof replaceAdvisor === 'function' && !replaceAdvisor.__raisaGuard) {
+        const originalReplaceAdvisor = replaceAdvisor;
+        replaceAdvisor = function(outgoingId, incomingId){
+          const outgoing = typeof getAdvisorById === 'function' ? getAdvisorById(outgoingId) : null;
+          const slot = typeof getAdvisorSlot === 'function' ? getAdvisorSlot(outgoing) : null;
+          if (outgoingId === 'raisa' || slot === 'personal') {
+            if (typeof addLog === 'function') addLog('Raisa is not an office-holder subject to appointment or replacement. The personal circle cannot be filled by a bureaucratic personnel order.', 'advisor');
+            return;
+          }
+          return originalReplaceAdvisor(outgoingId, incomingId);
+        };
+        replaceAdvisor.__raisaGuard = true;
+      }
+    } catch(e) {}
+  }
+
+  function applyFixes(){
+    installRaisaGuards();
+    setDefaultAdvisorFilter();
+  }
+
+  // Apply now if possible, then again after DOM/startup rendering.
+  applyFixes();
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', applyFixes, { once:true });
+  window.addEventListener('load', applyFixes, { once:true });
+  setTimeout(applyFixes, 250);
+})();
+</script>
+
 </body>
 </html>
  
