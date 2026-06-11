@@ -229,7 +229,6 @@
   .event-panel.pravda.advisor-file .pravda-modal-card{
     width:min(820px,100%);
     background:
-      linear-gradient(90deg, rgba(32,65,130,0.22) 0 1px, transparent 1px) 0 0/100% 28px,
       repeating-linear-gradient(0deg, rgba(24,74,151,0.18) 0 1px, transparent 1px 28px),
       linear-gradient(180deg, rgba(248,242,224,0.98), rgba(226,217,193,0.99));
     border:1px solid rgba(24,74,151,0.42);
@@ -244,8 +243,7 @@
     pointer-events:none;
     background:
       radial-gradient(circle at 18% 12%, rgba(255,255,255,0.45), transparent 18%),
-      radial-gradient(circle at 78% 20%, rgba(110,83,45,0.10), transparent 24%),
-      repeating-linear-gradient(105deg, rgba(85,68,42,0.035) 0 2px, transparent 2px 8px);
+      radial-gradient(circle at 78% 20%, rgba(110,83,45,0.10), transparent 24%);
     mix-blend-mode:multiply;
     z-index:2;
   }
@@ -2833,6 +2831,66 @@ window.dismissIntro = window.dismissIntro || function(){
   try { if (typeof render === 'function') render(); if (typeof renderPolicies === 'function') renderPolicies(); } catch(e) { console.error(e); }
 };
 </script>
+
+
+
+<style id="advisor-photo-mount-fixes">
+  /* Advisor personal-file photo: start angled immediately and mount it to the folder. */
+  .event-panel.pravda.advisor-file .pravda-photo,
+  .event-panel.pravda.advisor-file.paper-unfurl .pravda-photo{
+    position:relative !important;
+    display:flex !important;
+    flex-direction:column !important;
+    justify-content:flex-start !important;
+    transform:rotate(-1.8deg) !important;
+    transform-origin:center center !important;
+    animation:none !important;
+    opacity:1 !important;
+    background:#d7c49c !important;
+    border:1px solid rgba(72,57,35,0.34) !important;
+    padding:10px !important;
+    box-shadow:4px 5px 0 rgba(72,57,35,0.20), 0 8px 12px rgba(0,0,0,0.18) !important;
+    min-height:0 !important;
+    z-index:1 !important;
+  }
+
+  .event-panel.pravda.advisor-file .pravda-photo-frame{
+    position:relative !important;
+    overflow:hidden !important;
+    background:#f1ead8 !important;
+    border:1px solid rgba(42,36,24,0.48) !important;
+    padding:7px !important;
+    box-shadow:inset 0 0 0 1px rgba(255,255,255,0.34) !important;
+    box-sizing:border-box !important;
+    filter:grayscale(1) contrast(1.06) sepia(.18) !important;
+  }
+
+  .event-panel.pravda.advisor-file .pravda-img{
+    position:relative !important;
+    z-index:1 !important;
+    border:1px solid rgba(42,36,24,0.32) !important;
+    background:#e8e1cf !important;
+  }
+
+  /* Four paper photo-corners, like the reference image, holding the portrait in place. */
+  .event-panel.pravda.advisor-file .pravda-photo-frame::before{
+    content:'' !important;
+    position:absolute !important;
+    inset:0 !important;
+    z-index:4 !important;
+    pointer-events:none !important;
+    background:
+      linear-gradient(135deg, #d8bf91 0 49%, transparent 50%) top left/38px 38px no-repeat,
+      linear-gradient(225deg, #d8bf91 0 49%, transparent 50%) top right/38px 38px no-repeat,
+      linear-gradient(45deg,  #d8bf91 0 49%, transparent 50%) bottom left/38px 38px no-repeat,
+      linear-gradient(315deg, #d8bf91 0 49%, transparent 50%) bottom right/38px 38px no-repeat !important;
+    filter:drop-shadow(0 1px 0 rgba(255,255,255,0.28)) drop-shadow(0 2px 1px rgba(70,55,34,0.25));
+  }
+
+  .event-panel.pravda.advisor-file .pravda-photo-frame::after{
+    z-index:3 !important;
+  }
+</style>
 
 </head>
 <body>
