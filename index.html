@@ -223,6 +223,147 @@
   .ending-stat strong { display:block; font-family:'Playfair Display',serif; font-size:13px; color:var(--red-dark); margin-top:1px; }
   .ending-list { margin:6px 0 0 16px; font-size:12px; line-height:1.4; }
 
+
+
+  /* POLITBURO PERSONAL FILE — advisor/personnel event presentation */
+  .event-panel.pravda.advisor-file .pravda-modal-card{
+    width:min(820px,100%);
+    background:
+      linear-gradient(90deg, rgba(32,65,130,0.22) 0 1px, transparent 1px) 0 0/100% 28px,
+      repeating-linear-gradient(0deg, rgba(24,74,151,0.18) 0 1px, transparent 1px 28px),
+      linear-gradient(180deg, rgba(248,242,224,0.98), rgba(226,217,193,0.99));
+    border:1px solid rgba(24,74,151,0.42);
+    box-shadow:0 22px 40px rgba(0,0,0,0.46), 8px 8px 0 rgba(54,44,28,0.18);
+    transform:rotate(-0.35deg);
+    overflow:hidden;
+  }
+  .event-panel.pravda.advisor-file .pravda-modal-card::after{
+    content:'';
+    position:absolute;
+    inset:0;
+    pointer-events:none;
+    background:
+      radial-gradient(circle at 18% 12%, rgba(255,255,255,0.45), transparent 18%),
+      radial-gradient(circle at 78% 20%, rgba(110,83,45,0.10), transparent 24%),
+      repeating-linear-gradient(105deg, rgba(85,68,42,0.035) 0 2px, transparent 2px 8px);
+    mix-blend-mode:multiply;
+    z-index:2;
+  }
+  .event-panel.pravda.advisor-file .pravda-masthead{
+    border:0;
+    border-bottom:2px solid rgba(24,74,151,0.62);
+    padding:9px 0 8px;
+    margin-bottom:14px;
+    position:relative;
+    color:#244a8f;
+  }
+  .event-panel.pravda.advisor-file .pravda-masthead::before{
+    content:'КОМИТЕТ ГОСУДАРСТВЕННОЙ БЕЗОПАСНОСТИ СССР';
+    display:block;
+    font-family:'Courier New', monospace;
+    color:#244a8f;
+    font-size:13px;
+    letter-spacing:.08em;
+    border-bottom:1px solid rgba(24,74,151,0.45);
+    padding-bottom:5px;
+    margin-bottom:7px;
+    text-align:left;
+  }
+  .event-panel.pravda.advisor-file .pravda-masthead::after{
+    content:'РАССЕКРЕЧЕНО';
+    position:absolute;
+    right:2px;
+    top:4px;
+    transform:rotate(4deg);
+    border:2px solid rgba(30,77,182,0.82);
+    color:#1f4fc1;
+    padding:5px 12px 4px;
+    font-family:'Courier New', monospace;
+    font-weight:800;
+    font-size:24px;
+    letter-spacing:.05em;
+    background:rgba(246,239,224,0.34);
+  }
+  .event-panel.pravda.advisor-file .pravda-mast-top,
+  .event-panel.pravda.advisor-file .pravda-issue-strip{
+    font-family:'Courier New', monospace;
+    color:#244a8f;
+    letter-spacing:.05em;
+  }
+  .event-panel.pravda.advisor-file .pravda-mast-name{
+    min-height:42px;
+    display:flex;
+    align-items:flex-end;
+    border-bottom:1px solid rgba(24,74,151,0.38);
+  }
+  .event-panel.pravda.advisor-file .pravda-logo,
+  .event-panel.pravda.advisor-file #izvestiya-sub{ display:none !important; }
+  .event-panel.pravda.advisor-file .pravda-mast-name::before{
+    content:'ЛИЧНОЕ ДЕЛО / POLITBURO PERSONNEL FILE';
+    font-family:'Playfair Display', serif;
+    font-size:28px;
+    font-weight:900;
+    color:#a22a1f;
+    letter-spacing:.04em;
+    text-transform:uppercase;
+  }
+  .event-panel.pravda.advisor-file .pravda-grid{
+    grid-template-columns:210px 1fr;
+    gap:18px;
+    align-items:start;
+  }
+  .event-panel.pravda.advisor-file .pravda-photo{
+    transform:rotate(-1.5deg);
+    background:#dfd3b3;
+    padding:9px;
+    border:1px solid rgba(72,57,35,0.28);
+    box-shadow:3px 4px 0 rgba(72,57,35,0.20);
+  }
+  .event-panel.pravda.advisor-file .pravda-photo-frame{
+    filter:grayscale(1) contrast(1.06) sepia(.18);
+    border:1px solid rgba(42,36,24,0.55);
+  }
+  .event-panel.pravda.advisor-file .pravda-caption{
+    font-family:'Courier New', monospace;
+    color:rgba(43,31,16,0.72);
+    text-transform:uppercase;
+  }
+  .event-panel.pravda.advisor-file .pravda-headline{
+    font-family:'Courier New', monospace;
+    color:#a22a1f;
+    border-bottom:2px solid rgba(162,42,31,0.45);
+    padding-bottom:6px;
+    margin-bottom:10px;
+    text-transform:uppercase;
+  }
+  .event-panel.pravda.advisor-file .pravda-body{
+    column-count:1 !important;
+    font-family:'Courier New', monospace;
+    font-size:13px;
+    line-height:1.72;
+    color:#30281b;
+  }
+  .event-panel.pravda.advisor-file .pravda-body p::before{
+    content:'— ';
+    color:#244a8f;
+    font-weight:bold;
+  }
+  .event-panel.pravda.advisor-file .event-btn{
+    font-family:'Courier New', monospace;
+    border-color:rgba(24,74,151,0.58);
+    color:#244a8f;
+    background:rgba(246,239,224,0.42);
+  }
+  .event-panel.pravda.advisor-file .event-btn:hover{
+    background:#244a8f;
+    color:#f6efe0;
+  }
+  @media(max-width:700px){
+    .event-panel.pravda.advisor-file .pravda-grid{ grid-template-columns:1fr; }
+    .event-panel.pravda.advisor-file .pravda-masthead::after{ position:static; display:inline-block; margin-top:6px; font-size:18px; }
+    .event-panel.pravda.advisor-file .pravda-modal-card{ transform:none; }
+  }
+
   /* POLICY MENU */
   .policy-panel { background:rgba(139,26,26,.04); border:1px solid var(--rule); border-radius:3px; padding:12px; margin-bottom:1rem; }
   .policy-title { font-family:'Playfair Display',serif; font-size:13px; font-weight:700; color:var(--red-dark); margin-bottom:.6rem; }
@@ -4698,6 +4839,22 @@ let policies = [
     once: true,
   },
 
+  // Anti-Nuclear — Full Steam Ahead (Olivia Card 7 — third option)
+  {
+    id: 'nuclear_full_steam',
+    name: 'Anti-Nuclear Movement — Continue Nuclear Development Unimpeded',
+    category: 'Domestic',
+    cost: 0,
+    description: 'The energy output provided by nuclear power plants is too strategically significant to sacrifice to public sentiment, however understandable that sentiment may be after Chernobyl. The construction programme continues without interruption. State media are instructed to reaffirm the safety and necessity of Soviet nuclear energy. The grassroots anti-nuclear movement finds no response from the Kremlin.',
+    image: 'images/anti_nuclear.jpg',
+    effects: { popularAffection: -6, budget: -2, militaryReadiness: +5, partyUnity: +4, separatism: +4 },
+    duration: 'permanent',
+    advisorRequired: 'akhromeyev',
+    advisorOpposition: ['yakovlev'],
+    visibleIf: { minYear: 1986, maxYear: 1989 },
+    once: true,
+  },
+
   // Acknowledge the Holodomor (Card 8 — original team)
   {
     id: 'holodomor_acknowledgement_full',
@@ -5125,6 +5282,172 @@ let policies = [
   },
 
   // LEILI'S CARDS
+
+  // Historical Truths — Acknowledging the USSR's Past Under Glasnost (Leili — Card 13)
+  {
+    id: 'historical_truths_gradual',
+    name: 'Historical Truths — Gradual Acknowledgement Under Glasnost',
+    category: 'Domestic',
+    cost: 1,
+    description: 'Under glasnost, the USSR\'s suppressed historical traumas — the Gulag, the Holodomor, Chernobyl, Afghanistan, and more — can no longer be entirely concealed. A decision is taken to acknowledge the less incendiary events first, building toward fuller transparency over time. The state begins to allow limited public discussion of these events, supporting education and remembrance without committing to full accountability.',
+    image: 'images/historical_truths.jpg',
+    effects: { popularAffection: +6, partyUnity: -6, stability: -2, foreignRelations: +3 },
+    duration: 'permanent',
+    prerequisites: ['glasnost'],
+    advisorRequired: 'yakovlev',
+    advisorOpposition: ['ligachev'],
+    visibleIf: { minYear: 1986, maxYear: 1991 },
+    once: true,
+  },
+  {
+    id: 'historical_truths_suppress',
+    name: 'Historical Truths — Suppress Historical Memory',
+    category: 'Domestic',
+    cost: 0,
+    description: 'The Party decides these historical truths are not worth revisiting. State organs are instructed to prevent public discussion of the Gulag, the Holodomor, Afghanistan, and other sensitive episodes. Citizens who raise these matters in public can expect appropriate attention from the relevant authorities. The past shall remain where it belongs.',
+    image: 'images/historical_truths.jpg',
+    effects: { popularAffection: -5, partyUnity: +6, stability: +3 },
+    duration: 'permanent',
+    advisorRequired: 'ligachev',
+    advisorOpposition: ['yakovlev'],
+    visibleIf: { minYear: 1986, maxYear: 1991 },
+    once: true,
+  },
+  {
+    id: 'historical_truths_propaganda',
+    name: 'Historical Truths — Spread Domestic Propaganda',
+    category: 'Domestic',
+    cost: 2,
+    description: 'Rather than acknowledge or suppress, the decision is taken to actively reframe. State media are instructed to produce material denying or minimising contested historical events — the Gulag as socialist discipline, the Holodomor as natural famine, Afghanistan as a noble internationalist mission. Citizens who have lived through these events will not easily be persuaded, but the apparatus will be satisfied.',
+    image: 'images/historical_truths.jpg',
+    effects: { popularAffection: -8, partyUnity: +8, stability: +2, foreignRelations: -4 },
+    duration: 'permanent',
+    advisorRequired: 'ligachev',
+    advisorOpposition: ['yakovlev', 'shevardnadze'],
+    visibleIf: { minYear: 1986, maxYear: 1991 },
+    once: true,
+  },
+
+  // Rumours of a Coup — Olivia Card 10
+  {
+    id: 'coup_rumours_purge',
+    name: 'Rumours of a Coup — Purge Suspicious Hardliners',
+    category: 'Domestic',
+    cost: 3,
+    description: 'Aide Chernyaev and US Ambassador Matlock both warn that a coup may be imminent. Raisa and Gorbachev\'s mother believe it may be time to step down. Gorbachev himself is tired — but the new union treaty is so close. Better safe than sorry: a pre-emptive purge of suspicious hardliners removes the most likely conspirators before they can act.',
+    image: 'images/coup_rumours.png',
+    effects: { popularAffection: +6, partyUnity: -12, stability: +3, foreignRelations: +3, militaryReadiness: -4 },
+    duration: 'permanent',
+    advisorRequired: 'yakovlev',
+    advisorOpposition: ['ligachev', 'kryuchkov'],
+    visibleIf: { minYear: 1990, maxYear: 1991 },
+    once: true,
+  },
+  {
+    id: 'coup_rumours_watch',
+    name: 'Rumours of a Coup — Keep Enemies Closer',
+    category: 'Domestic',
+    cost: 0,
+    description: 'Do not purge potential conspirators — but keep a much closer eye on them. Chernyaev is instructed to monitor communications. The KGB loyalists are watched by counter-loyalists. The summer dacha plans are quietly revised. Keep your enemies close and your intelligence closer.',
+    image: 'images/coup_rumours.png',
+    effects: { partyUnity: +3, stability: +2, popularAffection: -3, foreignRelations: -2 },
+    duration: 'permanent',
+    advisorRequired: 'kryuchkov',
+    visibleIf: { minYear: 1990, maxYear: 1991 },
+    once: true,
+  },
+  {
+    id: 'coup_rumours_ignore',
+    name: 'Rumours of a Coup — Disregard the Warning Signs',
+    category: 'Domestic',
+    cost: 0,
+    description: 'The warnings are dismissed. Gorbachev begins planning a vacation to the Crimean dacha at Foros for August. The union treaty negotiations will resume in September. The hardliners have grumbled before and nothing has come of it. This time will be no different. Everything is fine.',
+    image: 'images/coup_rumours.png',
+    effects: { partyUnity: +6, popularAffection: -6, stability: -4, foreignRelations: -3 },
+    duration: 'permanent',
+    advisorOpposition: ['yakovlev', 'shevardnadze'],
+    visibleIf: { minYear: 1990, maxYear: 1991 },
+    once: true,
+  },
+
+  // Aral Sea — Environmental Mismanagement (Leili — Card 14)
+  {
+    id: 'aral_sea_full_response',
+    name: 'Aral Sea — Declare Disaster Zone and Launch Scientific Rescue',
+    category: 'Domestic',
+    cost: 3,
+    description: 'The Aral Sea, once the world\'s fourth-largest lake, has by 1991 lost 40% of its surface area and 60% of its volume due to decades of Soviet irrigation mismanagement. Infant mortality, respiratory disease, and birth defects afflict the surrounding population. A disaster zone is formally declared, and the state commissions a scientific programme in partnership with Soviet environmental researchers to attempt partial ecological restoration.',
+    image: 'images/aral_sea.jpg',
+    effects: { popularAffection: +7, budget: -3, economy: -1, foreignRelations: +4 },
+    duration: 'permanent',
+    prerequisites: ['glasnost'],
+    advisorOpposition: ['ligachev'],
+    visibleIf: { minYear: 1991, minMonth: 3 },
+    once: true,
+  },
+  {
+    id: 'aral_sea_declare_only',
+    name: 'Aral Sea — Declare Disaster Zone, Take No Further Action',
+    category: 'Domestic',
+    cost: 0,
+    description: 'The Aral Sea ecological disaster is formally acknowledged and the region declared a disaster zone — a symbolic gesture that costs nothing and commits to nothing. The declaration is entered into the record. The sea continues to shrink.',
+    image: 'images/aral_sea.jpg',
+    effects: { popularAffection: -4, partyUnity: -3 },
+    duration: 'permanent',
+    visibleIf: { minYear: 1991, minMonth: 3 },
+    once: true,
+  },
+  {
+    id: 'aral_sea_ignore',
+    name: 'Aral Sea — Ignore the Environmental Disaster',
+    category: 'Domestic',
+    cost: 0,
+    description: 'The Aral Sea is not worth the time, money, or political attention. There are more pressing crises. State organs are instructed to continue current operations. The matter is not raised in Politburo sessions. The sea continues to shrink.',
+    image: 'images/aral_sea.jpg',
+    effects: { popularAffection: -6, partyUnity: +3, budget: +1 },
+    duration: 'permanent',
+    advisorRequired: 'ligachev',
+    visibleIf: { minYear: 1991, minMonth: 3 },
+    once: true,
+  },
+
+  // Yeltsin Rivalry — Leili Card 12
+  {
+    id: 'yeltsin_rivalry_pact',
+    name: 'Yeltsin Rivalry — Seek an Alliance',
+    category: 'Domestic',
+    cost: 2,
+    description: 'Despite everything — the October 1987 confrontation, the public humiliations, the deepening estrangement — Yeltsin was once an ally. There is no reason he cannot become one again. A back-channel approach is made: Gorbachev proposes a working understanding that keeps Yeltsin inside the reform coalition rather than leading a rival one.',
+    image: 'images/Boris_Yeltsin_deputies.jpg',
+    effects: { popularAffection: +7, partyUnity: -5, stability: +3, foreignRelations: +3 },
+    duration: 'permanent',
+    advisorRequired: 'yakovlev',
+    visibleIf: { minYear: 1986, maxYear: 1991 },
+  },
+  {
+    id: 'yeltsin_rivalry_suppress',
+    name: 'Yeltsin Rivalry — Suppress His Political Ambitions',
+    category: 'Domestic',
+    cost: 2,
+    description: 'Yeltsin is becoming a genuine threat. A strategic programme is set in motion to limit his political reach — removing allies from key posts, managing his media access, and ensuring that his populist appeals do not coalesce into a viable political alternative. Suppress the rivalry before it becomes a succession crisis.',
+    image: 'images/Boris_Yeltsin_deputies.jpg',
+    effects: { popularAffection: -5, partyUnity: +5, stability: +2 },
+    duration: 'permanent',
+    advisorRequired: 'kryuchkov',
+    advisorOpposition: ['yakovlev', 'shevardnadze'],
+    visibleIf: { minYear: 1986, maxYear: 1991 },
+  },
+  {
+    id: 'yeltsin_rivalry_ignore',
+    name: 'Yeltsin Rivalry — Ignore Him',
+    category: 'Domestic',
+    cost: 0,
+    description: 'Yeltsin cannot take away what Gorbachev has built. He is ignored at all costs. His appearances on state television are limited where possible. His speeches are noted but not amplified. Ignoring rivals has worked before.',
+    image: 'images/Boris_Yeltsin_deputies.jpg',
+    effects: { popularAffection: -4, partyUnity: +2 },
+    duration: 'permanent',
+    visibleIf: { minYear: 1986, maxYear: 1991 },
+  },
 
   // Individual Labour Activity (Leili)
   {
@@ -6580,6 +6903,83 @@ Your direction is required.`,
             },
           ],
         },
+      },
+    ],
+  },
+
+  // ── NAGORNO-KARABAKH PROTESTS — FEBRUARY 1988 ────────────────────
+  {
+    id: 'nagorno_karabakh_protests_1988',
+    name: 'The Karabakh Question — Demands from the Autonomous Oblast',
+    image: 'images/Artsakh_Movement,_February_13,_1988.jpg',
+    caption: 'Степанакерт, Нагорно-Карабахская автономная область, февраль 1988',
+    trigger: { month: 2, year: 1988 },
+    description: `Comrade General Secretary — a report of extraordinary character has been received from the Nagorno-Karabakh Autonomous Oblast, situated within the jurisdiction of the Azerbaijan Soviet Socialist Republic.
+
+Tens of thousands of ethnic Armenians resident in the oblast have taken to the streets in sustained demonstration, advancing the demand that the region be transferred to the jurisdiction of the Armenian Soviet Socialist Republic. The movement has acquired organised form with considerable speed. Demonstrations have spread beyond the oblast itself — into the Armenian SSR, and into Azerbaijan — and on the 20th of February, a gathering estimated at thirty thousand persons assembled in Yerevan. On that same date, the regional Soviet of People's Deputies of the Nagorno-Karabakh Autonomous Oblast adopted, by a vote of seventy-eight in favour and two opposed, a formal resolution petitioning the Supreme Soviets of the Azerbaijani SSR, the Armenian SSR, and the USSR for the transfer of the oblast to Armenian jurisdiction.
+
+The question before you is not primarily historical. It is constitutional, inter-republican, and — given the present conjuncture of glasnost and the visibility afforded to organised public expression — it is political in a manner that will not remain confined within the borders of the Caucasus.
+
+The Azerbaijani Party leadership protests the proceedings as a violation of Soviet territorial law. The Armenian Party leadership is under significant pressure from its own population to endorse the transfer. Both republics are watching Moscow for a signal as to which demands the centre is prepared to accommodate and which it is not.`,
+    choices: [
+      {
+        text: 'Address the nation — urge Armenians in the oblast to resolve tensions peacefully within the framework of Soviet law. Reject the appeal of the regional Soviet as constitutionally impermissible',
+        effects: { stability: -8, popularAffection: -6, separatism: +5, partyUnity: +4, foreignRelations: -2 },
+        outcomeText: `A televised address is broadcast on Vremya. You appeal, in measured but firm language, for calm — for adherence to established Soviet legal procedure, for the resolution of all legitimate grievances through the proper organs of the Soviet constitutional order, and for an end to unsanctioned demonstrations. The transfer petition is formally rejected on the grounds that any alteration to the internal boundaries of union republics falls outside the competence of regional soviets and must proceed, if at all, through the appropriate constitutional authorities.
+
+The demonstrations do not cease. The appeal of the General Secretary is received by the Armenian community of the oblast as a definitive ruling in favour of Azerbaijani jurisdiction. In Yerevan, protest meetings condemn the response as an abandonment of Armenian interests. In Baku, the leadership regards the rejection as a belated but correct reassertion of territorial order. The underlying question remains open, and the machinery of constitutional procedure offers no near-term mechanism for its resolution.`,
+      },
+      {
+        text: 'Travel to the oblast — make a personal visit to express sympathy with the Armenian population and hold direct consultations with the regional assembly. Reject the transfer petition, but offer a significant economic aid package for the region',
+        effects: { stability: -5, popularAffection: -4, separatism: +3, partyUnity: -5, economy: -4, foreignRelations: +3 },
+        outcomeText: `You travel to Stepanakert. The visit is without precedent: a General Secretary of the CPSU meeting directly with a regional assembly that has voted to remove itself from its parent republic. The symbolism is not lost on either side. You offer, in concrete terms, an augmented programme of economic investment in the oblast's infrastructure, industrial capacity, and cultural institutions — while making plain that the question of jurisdictional transfer is not negotiable under existing Soviet constitutional arrangements.
+
+The Armenian population of the oblast interprets the visit as a gesture of acknowledgement. The Azerbaijani Party leadership interprets it as an implied concession. In Moscow, hardliners observe that the journey has conferred a degree of political legitimacy upon a regional assembly that has voted in open defiance of its republic's constitutional authority. The economic commitment represents a recurring charge against the union budget. The demonstrations subside marginally — but the underlying territorial question has not been resolved, only deferred with financial accompaniment.`,
+      },
+      {
+        text: 'Convene urgent consultations with the Nagorno-Karabakh regional assembly on the creation of an upgraded autonomous status for the oblast within the existing Soviet federal structure. Submit a formal proposal to the Presidium of the Supreme Soviet',
+        effects: { stability: +3, popularAffection: -3, separatism: -5, partyUnity: -10, foreignRelations: +5 },
+        outcomeText: `Consultations are convened. The proposal — that the Nagorno-Karabakh Autonomous Oblast be granted an enhanced constitutional status, with expanded self-governing competences and a formal right of cultural and administrative self-determination within the Azerbaijani SSR — is submitted to the Presidium of the Supreme Soviet for consideration.
+
+The Azerbaijani leadership reacts with barely contained fury. The Armenian SSR Party leadership, sensing a possible partial outcome, counsels the demonstrations to pause. In the oblast, the reception is cautious — what is being offered is not what was demanded, and the assembly that voted for transfer is being asked to accept an augmented autonomy instead. The reformist tendency within the Central Committee regards the initiative as a creative application of Soviet federalism. The conservative tendency regards it as a dangerous precedent: if jurisdictional grievances can be rewarded with constitutional reconfiguration, the structural implications for every multi-ethnic region of the Union are considerable.`,
+      },
+    ],
+  },
+
+  // ── SUMGAIT POGROM — LATE FEBRUARY 1988 ──────────────────────────
+  {
+    id: 'sumgait_pogrom_1988',
+    name: 'Disorder in Sumgait — Interethnic Violence in Azerbaijan',
+    image: 'images/Sumgaitrioting.jpg',
+    caption: 'Сумгаит, Азербайджанская ССР, 26–29 февраля 1988',
+    trigger: { month: 2, year: 1988 },
+    condition: (state) => state.firedTriggers && state.firedTriggers['event_nagorno_karabakh_protests_1988'],
+    description: `Comrade General Secretary — a second and graver situation has developed in Sumgait, an industrial city in the Azerbaijani SSR located thirty kilometres north of Baku.
+
+In the days following the Nagorno-Karabakh demonstrations, inflammatory reports circulated through Sumgait alleging that Azerbaijanis had been subjected to violence by Armenian demonstrators in the oblast. These accounts — whose provenance has not been established with certainty — served as the occasion for the assembly of crowds that rapidly assumed the character of organised mob violence. What began as demonstrations has devolved, over three days, into systematic attacks on Armenian residential districts: homes and property looted and burned, individuals subjected to severe beatings, and a number of deaths reported, with the toll not yet fully accounted for. The internal organs report that the civil authority in the city has lost effective control of public order.
+
+The Soviet public does not yet possess a full account of events. The foreign press has begun to obtain and transmit details. This is, in the plainest terms, a pogrom — the first to occur on Soviet soil in living memory. Whatever response you authorise will constitute the operating definition, for every restive nationality in the Union, of what Moscow permits.`,
+    choices: [
+      {
+        text: 'Deploy troops immediately to Sumgait with full authority to restore order. Order the secure evacuation of Armenian residents to Armenia. Arrest all identified perpetrators of violence and refer them for prosecution under the criminal code',
+        effects: { stability: +8, popularAffection: +4, partyUnity: -6, foreignRelations: +6, militaryReadiness: -5, separatism: -4 },
+        outcomeText: `Military units enter Sumgait within hours. The operation proceeds under strict orders: protect Armenian residents, restore civil authority, and effect arrests. Thousands of Armenians are evacuated under military escort to the Armenian SSR. The principal perpetrators are taken into custody; prosecutions are initiated in short order, resulting in convictions and, in several cases, capital sentences.
+
+The action is costly in military terms and deeply uncomfortable for the Azerbaijani Party apparatus, which regards the operation as a public judgement on its failure to maintain order. Internationally, the decisiveness of the response is noted with a degree of relief. Within the Union, the message is received: Moscow will deploy force against ethnic violence regardless of which community is its object. Separatist agitation in the affected republics subsides temporarily, though the underlying conditions that produced it remain entirely unaddressed.`,
+      },
+      {
+        text: 'Deploy troops to Sumgait in a monitoring capacity only. Effect the evacuation of a limited number of Armenian residents. Instruct commanders to observe and report, but not to intervene in ongoing disorder',
+        effects: { stability: -8, popularAffection: -10, partyUnity: +3, foreignRelations: -8, militaryReadiness: -3, separatism: +8 },
+        outcomeText: `Troops enter Sumgait but operate under restrictions that render their presence largely ceremonial. Looting continues in full view of military units standing at position. A portion of the Armenian population is evacuated; others are not reached before further violence occurs. The final death toll, when it becomes known, is considerably higher than the initial reports suggested.
+
+The foreign press obtains footage and testimony. Western governments issue formal statements of condemnation — the first such statements directed at the Soviet Union in connection with internal ethnic violence since the immediate post-war period. Within the Armenian SSR, the response to Moscow's passivity is one of profound outrage. Protests in Yerevan reach their largest scale yet. The signal sent by the deployment-without-authority — that Moscow will provide the appearance of order while tolerating its absence — has been received throughout the Union's national minority communities with conclusions that are not favourable to the centre's authority.`,
+      },
+      {
+        text: 'Broadcast a televised appeal urging all parties to cease violence immediately — but take no immediate security action on the ground',
+        effects: { stability: -14, popularAffection: -8, partyUnity: -5, foreignRelations: -10, separatism: +12 },
+        outcomeText: `The address is broadcast. It is notable for its restraint — which is to say, for the absence of any announced security measure to accompany it. The appeal has no discernible effect on events in Sumgait, where violence continues for a further two days.
+
+By the time civil order is restored through the eventual deployment of internal troops, the pogrom has run its course. The death toll, the scale of property destruction, and the period during which Soviet citizens were permitted to assault and kill other Soviet citizens without consequence constitute a documentary record that is immediately available to the international press. The response of the central government — a televised speech — is described in foreign capitals as an abdication. Within Armenia, it is experienced as confirmation that Moscow regards Armenian lives as a matter of secondary concern. The credibility of Soviet constitutional order as a guarantor of minority protection has sustained a blow from which recovery, in this context, is not readily available.`,
       },
     ],
   },
@@ -10042,11 +10442,45 @@ function restoreNormalEventPanel() {
   if (card) card.style.display = '';
 }
 
+
+function isAdvisorRelatedEvent(event) {
+  if (!event || !event.id) return false;
+  const id = String(event.id);
+  const advisorEventIds = new Set([
+    'ryzhkov_frustration_crisis',
+    'gromyko_old_guard_prestige',
+    'chebrikov_security_succession',
+    'akhromeyev_despair_event',
+    'chernyaev_summit_opportunity',
+    'raisa_personal_pressure',
+    'ligachev_decline_warning',
+    'yeltsin_1987_break',
+    'shevardnadze_1990_resignation',
+    'economic_reform_advisor_question'
+  ]);
+  return advisorEventIds.has(id) || id.startsWith('advisor_pressure_');
+}
+
+function applyAdvisorPersonalFileMasthead(event) {
+  const setText = (id, txt) => { const el = document.getElementById(id); if (el) el.textContent = txt; };
+  const turnNo = (typeof gameState !== 'undefined' && gameState.turn) ? String(gameState.turn).padStart(3, '0') : '000';
+  const yearNo = (typeof gameState !== 'undefined' && gameState.year) ? String(gameState.year) : '1985';
+  setText('pravda-mast-top', 'Гриф срочности: ОСОБАЯ ПАПКА');
+  setText('pravda-issue', `ДЕЛО № ${yearNo}-${turnNo}`);
+  setText('pravda-price-label', 'ЛИЧНО');
+  setText('pravda-caption', event.caption || 'ФОТОГРАФИЯ ИЗ ЛИЧНОГО ДЕЛА');
+}
+
 function displayEvent(event) {
   activeEvent = event;
 
+  const panel = document.getElementById('event-panel');
+  const advisorFileMode = isAdvisorRelatedEvent(event);
+  if (panel) panel.classList.toggle('advisor-file', advisorFileMode);
+
   // ── AUGUST COUP 1991: SPECIAL TV + TELEGRAM LAYOUT ───────────────
   if (event.id === 'august_coup_1991') {
+    if (panel) panel.classList.remove('advisor-file');
     displayCoupEvent(event);
     return;
   }
@@ -10057,8 +10491,8 @@ function displayEvent(event) {
   }
 
   setupPravdaMasthead(event.image || null, event.caption || null);
+  if (advisorFileMode) applyAdvisorPersonalFileMasthead(event);
   renderEventQueueStatus();
-  const panel = document.getElementById('event-panel');
   document.getElementById('event-title').textContent = event.name;
   const descEl = document.getElementById('event-desc');
   if (descEl) {
