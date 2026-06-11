@@ -3304,6 +3304,8 @@ const uiState = {
 };
 
 const POLICY_HAND_SIZE = 8; // Number of policy cards shown at once (up to eligible pool size)
+const REDRAW_MAX  = 3;  // Maximum redraws allowed per turn (first is free; subsequent cost capital)
+const REDRAW_COST = 5;  // Political capital cost for each redraw after the first
 
 // Current event being displayed (null when no event is active).
 // Must be declared at module level so all functions can read/write it safely.
@@ -8695,7 +8697,17 @@ function getPersonnelQuestions(){
     const monthsOverdue=Math.max(0, now-due);
     const activeProblem = now > due && isSuccessionPressureActive(rule);
     const pending = now <= due && (due-now) <= 3 && isSuccessionPressureActive(rule);
-    return { rule, active, rec, monthsOverdue, activeProblem, pending, dueText:formatAdvisorDate(rule.due) };
+    // Only surface a personnel card if the recommended advisor (or at least one eligible
+    // candidate for the slot) is actually appointable right now — otherwise the player
+    // has no meaningful action to take and the warning is noise.
+    const recEligible = rec && isAdvisorDateEligible(rec) && !(gameState.advisorStatus[rec.id] || {}).fired && !(gameState.advisorStatus[rec.id] || {}).resigned;
+    const anyEligible = recEligible || (typeof advisors !== 'undefined' ? advisors : []).some(a => {
+      if (getAdvisorSlot(a) !== rule.slot) return false;
+      const st = gameState.advisorStatus[a.id] || {};
+      if (st.fired || st.resigned) return false;
+      return isAdvisorDateEligible(a);
+    });
+    return { rule, active, rec, monthsOverdue, activeProblem, pending, dueText:formatAdvisorDate(rule.due), anyEligible };
   });
 }
 function applyAdvisorReplacementPressure(){
@@ -9075,7 +9087,23 @@ function getAdvisorWarnings(){
   }
   if ((gameState.coupProbability || 0) >= 50) warnings.push({ severity:'high', title:'Coup probability critical', body:`Coup probability is ${Math.round(gameState.coupProbability)}. Hardliner action is becoming likely.` });
   Object.entries(gameState.activeAdvisorSlots || {}).forEach(([slot, id]) => {
-    if (!id && slot !== 'personal') warnings.push({ severity:'medium', title:`Vacant office: ${advisorSlotLabel(slot)}`, body:'Vacancies now carry monthly penalties after a short grace period. Appoint a successor or accept drift.' });
+    if (!id && slot !== 'personal') {
+      // Only warn if this slot started with an occupant (mandatory office) and has since
+      // become vacant — not for optional offices that were null from the beginning.
+      // INITIAL_ADVISOR_SLOTS encodes the design intent: null there = optional.
+      const startedFilled = !!INITIAL_ADVISOR_SLOTS[slot];
+      if (!startedFilled) return;
+      // Also require at least one eligible candidate so the warning is actionable.
+      const hasEligibleCandidate = (typeof advisors !== 'undefined' ? advisors : []).some(a => {
+        if (getAdvisorSlot(a) !== slot) return false;
+        const st = gameState.advisorStatus[a.id] || {};
+        if (st.fired || st.resigned) return false;
+        return isAdvisorDateEligible(a);
+      });
+      if (hasEligibleCandidate) {
+        warnings.push({ severity:'medium', title:`Vacant office: ${advisorSlotLabel(slot)}`, body:'Vacancies now carry monthly penalties after a short grace period. Appoint a successor or accept drift.' });
+      }
+    }
   });
   return warnings;
 }
@@ -12186,7 +12214,7 @@ function renderPersonnelQuestions(){
     ? `<div class="advisor-warning-list">${warnings.map(w => `<div class="advisor-warning-card ${escapeHtml(w.severity || 'medium')}"><div class="advisor-warning-title"><span>${escapeHtml(w.title)}</span><span class="risk-chip">${escapeHtml(w.severity || 'risk')}</span></div><div>${escapeHtml(w.body)}</div></div>`).join('')}</div>`
     : '';
   const questions = getPersonnelQuestions();
-  const visible = questions.filter(q => q.activeProblem || q.pending).slice(0, 8);
+  const visible = questions.filter(q => (q.activeProblem || q.pending) && q.anyEligible).slice(0, 8);
   if (!visible.length) {
     el.innerHTML = warningHtml + '<div class="personnel-question-card clear"><div class="personnel-question-title"><span>No urgent personnel questions</span><small>clear</small></div><div class="personnel-question-body">The current appointments are not generating immediate succession pressure.</div></div>';
     return;
