@@ -4437,6 +4437,20 @@ let policies = [
     visibleIf: { maxYear: 1987 },
   },
 
+  // Anti-Alcohol Campaign — No Campaign (Olivia — third option)
+  {
+    id: 'anti_alcohol_none',
+    name: 'Anti-Alcohol Campaign — No Intervention',
+    category: 'Domestic',
+    cost: 0,
+    description: 'Heeding the advice of more fiscally-minded advisors, no anti-alcohol campaign is carried out. Alcohol sales remain a significant source of state revenue, and the social costs, while real, are not judged to outweigh the fiscal consequences of disrupting that revenue stream. The vodka flows.',
+    image: 'images/anti-alcohol.jpg',
+    effects: { budget: -1, popularAffection: +2, economy: +1 },
+    duration: 'permanent',
+    once: true,
+    visibleIf: { maxYear: 1987 },
+  },
+
   // Review Military Spending (Card 3 — original team)
   {
     id: 'military_spending_cut',
@@ -4524,6 +4538,111 @@ let policies = [
     advisorRequired: 'yakovlev',
     visibleIf: { minYear: 1986, maxYear: 1991 },
     once: true,
+  },
+
+  // Glasnost After Chernobyl — Suppress (Olivia — third option "Loose lips sink ships")
+  {
+    id: 'glasnost_post_chernobyl_suppress',
+    name: 'Glasnost After Chernobyl — Maintain Restrictions',
+    category: 'Domestic',
+    cost: 0,
+    description: 'Criticism leads to infighting, and infighting leads to collapse — and we have a Cold War to win. Despite the pressure from reformists to accelerate openness in the wake of Chernobyl, the decision is taken to maintain the existing restrictions on public expression. Glasnost shall proceed at a measured pace determined by the Party, not by catastrophe.',
+    image: 'images/following_chernobyl.jpg',
+    effects: { popularAffection: -8, partyUnity: +5, stability: +3, separatism: +6 },
+    duration: 'permanent',
+    prerequisites: ['glasnost'],
+    advisorRequired: 'ligachev',
+    advisorOpposition: ['yakovlev'],
+    visibleIf: { minYear: 1986, maxYear: 1991 },
+    once: true,
+  },
+
+  // Face the Music of Glasnost and Perestroika (Olivia — Card 12)
+  {
+    id: 'face_the_music_support_artists',
+    name: 'Soviet Rock and Pop — Support Independent Artists',
+    category: 'Domestic',
+    cost: 2,
+    description: 'Artists like Alla Pugacheva and Viktor Tsoi of the band Kino have become phenomena. Their lyrics — oblique, melancholy, charged with dissatisfaction — resonate deeply with a population that recognises the adversity being described. Most harbour an adversarial relationship with the state. The decision is taken to offer designated visas and grants to up-and-coming musicians, making partial peace with the USSR\'s rockstars and pop stars. Perhaps the winds of change can be directed rather than suppressed.',
+    image: 'images/face_the_music.jpg',
+    effects: { popularAffection: +6, partyUnity: -3, stability: +2 },
+    duration: 'permanent',
+    prerequisites: ['glasnost'],
+    visibleIf: { minYear: 1988, maxYear: 1991 },
+    once: true,
+  },
+  {
+    id: 'face_the_music_classical',
+    name: 'Soviet Rock and Pop — Embrace Tradition, Support Classical Arts Only',
+    category: 'Domestic',
+    cost: 1,
+    description: 'These "pop" and "rock" genres are too Americanised, too saturated with foreign cultural influence, to be worthy of state support. The state shall continue to sponsor those who express themselves through classical music and approved forms of Soviet cultural production. The new popular artists will find no resources here.',
+    image: 'images/face_the_music.jpg',
+    effects: { popularAffection: -4, partyUnity: +4, stability: +1 },
+    duration: 'permanent',
+    advisorRequired: 'ligachev',
+    advisorOpposition: ['yakovlev'],
+    visibleIf: { minYear: 1988, maxYear: 1991 },
+    once: true,
+  },
+
+  // Citizen Rights — Law on Appeals (Leili — Card 11)
+  {
+    id: 'citizen_rights_appeals_full',
+    name: 'Citizen Rights — Full Right of Appeal Against Government',
+    category: 'Domestic',
+    cost: 2,
+    description: 'For decades, Soviet citizens had no legal basis through which to challenge the actions of their government. This changes now. A new law grants any citizen the right to appeal governmental decisions before an independent judicial body. Reformers see it as a cornerstone of socialist legality. Hardliners see it as an open door to chaos.',
+    image: 'images/judicial_reform.jpg',
+    effects: { popularAffection: +8, budget: -2, partyUnity: -5, stability: -3 },
+    duration: 'permanent',
+    prerequisites: ['glasnost'],
+    advisorRequired: 'yakovlev',
+    advisorOpposition: ['ligachev', 'kryuchkov'],
+    visibleIf: { minYear: 1987, maxYear: 1991 },
+    once: true,
+  },
+  {
+    id: 'citizen_rights_appeals_limited',
+    name: 'Citizen Rights — Limited Right of Appeal (Minor Issues Only)',
+    category: 'Domestic',
+    cost: 1,
+    description: 'A cautious step forward. Citizens may appeal government decisions, but the scope is strictly limited — routine administrative matters only. Appeals on major policy questions, national security, or Party decisions remain outside the system. A partial concession that satisfies no one entirely.',
+    image: 'images/judicial_reform.jpg',
+    effects: { popularAffection: +3, budget: -1, partyUnity: -2 },
+    duration: 'permanent',
+    prerequisites: ['glasnost'],
+    visibleIf: { minYear: 1987, maxYear: 1991 },
+    once: true,
+  },
+
+  // Post-Coup Response (Olivia — Card 47)
+  {
+    id: 'post_coup_rally',
+    name: 'Post-Coup Response — Rally the Masses',
+    category: 'Domestic',
+    cost: 0,
+    description: 'Gorbachev has returned to Moscow from his dacha in Crimea after the failed hardliner coup. The conspirators\' total disorganisation and the Soviet public\'s refusal to support them means Gorbachev still holds power. He delivers an awe-inspiring public address, pledges to prosecute all conspirators, and attempts to reassert his legitimacy as the leader of a reformed Soviet Union.',
+    image: 'images/coup_attempt.jpg',
+    effects: { popularAffection: +10, foreignRelations: +5, partyUnity: -8, stability: +3 },
+    duration: 'permanent',
+    visibleIf: { minYear: 1991, minMonth: 8 },
+    prerequisites: ['august_coup_1991'],
+    once: true,
+  },
+  {
+    id: 'post_coup_resign',
+    name: 'Post-Coup Response — Resign, Sooner Rather Than Later',
+    category: 'Domestic',
+    cost: 0,
+    description: 'The coup attempt is proof that Gorbachev has lost his political legitimacy. Rather than cling to a position that can no longer be held, he chooses to step down on his own terms, passing power in an orderly fashion. A dignified exit that preserves historical legacy, even if it ends the reform project.',
+    image: 'images/coup_attempt.jpg',
+    effects: { popularAffection: -5, foreignRelations: -3, partyUnity: +5, stability: +5 },
+    duration: 'permanent',
+    visibleIf: { minYear: 1991, minMonth: 8 },
+    prerequisites: ['august_coup_1991'],
+    once: true,
+    endGameCondition: 'resignation',
   },
 
   // Institute Austerity Measures (Card 6 — original team)
@@ -5392,6 +5511,21 @@ let policies = [
     image: 'images/Anti-Crisis_Plan.jpg',
     effects: { economy: -2, budget: +3, popularAffection: -4, partyUnity: +2, stability: -2 },
     duration: 'permanent',
+    visibleIf: { minYear: 1991 },
+    once: true,
+  },
+
+  // Pavlov Monetary Reform — Stay the Course (Rasoul — third option)
+  {
+    id: 'pavlov_stay_course',
+    name: 'Pavlov Monetary Reform — Stay the Course',
+    category: 'Domestic',
+    cost: 0,
+    description: 'Rather than the disruptive currency withdrawal proposed by Pavlov, the decision is taken to continue the path of privatisation and market reform, even as the economic situation worsens. Reformists welcome the signal of commitment; hardliners view it as wilful blindness to financial reality. The black market and foreign currency problems remain unaddressed, but citizens\' savings are preserved.',
+    image: 'images/Anti-Crisis_Plan.jpg',
+    effects: { economy: +2, budget: +3, popularAffection: +3, foreignRelations: +2, stability: -1 },
+    duration: 'permanent',
+    advisorRequired: 'yakovlev',
     visibleIf: { minYear: 1991 },
     once: true,
   },
@@ -6772,6 +6906,93 @@ The Indian delegation seeks advanced machinery, military technology, and economi
       { text: 'The Tough Negotiator — demand clear loyalty before extending further aid', effects: { us: -1, asiaInfluence: -2, budget: +1, hardlinersApproval: +2 }, outcomeText: `The Indian side is reminded that Soviet assistance is not an all-union charity. The conversation becomes correct, then cold. Money has been saved; influence has been spent.` },
       { text: 'The Bold Offer — provide advanced technology, nuclear assistance, and favourable trade terms', effects: { us: +1, asiaInfluence: +5, budget: -4, hardlinersApproval: -3 }, outcomeText: `The offer exceeds expectations: computers, nuclear cooperation, technical access, and trade terms generous enough to be noticed in every embassy. The Asian balance remains favourable to Moscow.` },
       { text: 'Strategic Patience — maintain cordiality but sign only modest agreements', effects: { hardlinersApproval: +1 }, outcomeText: `The visit proceeds with flags, phrases, and limited trade protocols. Moscow has avoided overcommitment, but New Delhi begins to wonder whether Soviet caution is prudence or weakness.` },
+    ],
+  },
+
+  // ── CHECHEN UPRISING — October 1991 (Rasoul — Card 8) ────────────────────────
+  {
+    id: 'chechen_uprising_1991',
+    name: 'Respond to the Chechen Uprising',
+    image: 'images/chechen_uprising.jpg',
+    caption: 'Грозный, Чечня, октябрь 1991 г.',
+    trigger: { month: 10, year: 1991 },
+    description: `Comrade General Secretary — Chechnya is an autonomous republic within the Russian SSR, but its population is predominantly Chechen: Muslim, with their own language, customs, and a centuries-long tradition of fierce resistance to Russian and later Soviet authority. Last month, armed men stormed the Supreme Council, beat legislators, and threw the former First Secretary from a window. Elections have now been held. Major General Dzhokhar Dudayev, a Soviet air force officer turned nationalist leader, has won decisively. His first act in office: a declaration of Chechen independence from Russia.
+
+Some hardliners view military deployment as the only answer. Chechnya is a part of the Russian SSR — to ignore secession here is to invite every other minority nationality to do the same. On the other hand, commanders fear another Afghanistan, and the political cost of yet another Caucasian military adventure is enormous. A third option exists: defer resolution entirely, negotiate the territory's status later. It solves nothing, but it postpones bloodshed and preserves scarce resources.`,
+    choices: [
+      {
+        text: 'Recognise the Chechen Declaration of Independence — accept the will of the Chechen people',
+        effects: { separatism: +8, foreignRelations: +4, popularAffection: +5, budget: -1 },
+        outcomeText: `Moscow formally recognises Chechen independence. The international response is cautiously positive. At home, hardliners are furious — they warn that every republic from the Volga to the Pacific will now feel emboldened. Within Russia, Yeltsin's government condemns the recognition. The Chechen question is settled for now, but its ripples will be felt for years.`,
+      },
+      {
+        text: 'Defer action — do not recognise, do not intervene, negotiate Chechnya\'s status at a later stage',
+        effects: { stability: +2, partyUnity: +2 },
+        outcomeText: `Moscow issues no formal statement. The Chechen government begins operating as if independent; the Soviet government pretends otherwise. The problem is not solved — it is postponed. Both sides know it.`,
+      },
+      {
+        text: 'Send in the military — restore Russian control over Chechnya by force',
+        effects: { separatism: +4, foreignRelations: -8, popularAffection: -8, budget: -3, militaryReadiness: -3 },
+        outcomeText: `Soviet forces enter Chechnya. The operation quickly becomes a fiasco. Chechen fighters — better motivated, better organised than anticipated — resist effectively. The international press is scathing. Reformers condemn the action publicly. The toll in blood and treasure is immediate.`,
+      },
+    ],
+  },
+
+  // ── GEORGIAN DECLARATION OF INDEPENDENCE — April 1991 (Rasoul — Card 9) ─────
+  {
+    id: 'georgian_declaration_independence',
+    name: 'The Georgian Declaration of Independence',
+    image: 'images/georgian_independence.jpg',
+    caption: 'Тбилиси, Грузия, апрель 1991 г.',
+    trigger: { month: 4, year: 1991 },
+    description: `Comrade General Secretary — pro-independence sentiment in Georgia has grown to levels that now exceed any other republic. The crackdown of 1989 did not extinguish that sentiment; it transformed it into something harder and more determined. The nationalist government, led by Zviad Gamsakhurdia, has declared independence from the Soviet Union. Moscow can no longer promise gradual decentralisation as a substitute for self-determination — it is now a binary choice.
+
+Reformists urge acceptance of the Georgian people's democratic will. Hardliners warn that yielding on Georgia will trigger a domino effect across the entire Caucasus. Moderates advocate for backing more moderate figures — like Shevardnadze — to displace the ultra-nationalist Gamsakhurdia government.`,
+    choices: [
+      {
+        text: 'Allow Georgia to declare independence unimpeded — accept the democratic verdict',
+        effects: { separatism: +12, foreignRelations: +8, popularAffection: +5, budget: +2 },
+        outcomeText: `Moscow accepts the declaration without military intervention. The international community welcomes the decision. The other Caucasian republics watch carefully. Georgia begins operating as an independent state. Reformers are satisfied; hardliners predict catastrophe.`,
+      },
+      {
+        text: 'Recognise the declaration but back moderate Georgian factions to displace the nationalist government',
+        effects: { separatism: +6, foreignRelations: +3, budget: +2, partyUnity: -4 },
+        outcomeText: `Moscow recognises Georgian independence while quietly channelling support to opposition figures around Shevardnadze. The operation is deniable but not invisible. Gamsakhurdia's government is eventually destabilised; what replaces it is more amenable to Moscow.`,
+      },
+      {
+        text: 'Send the military in — Georgia must remain part of the Union',
+        effects: { separatism: +18, foreignRelations: -12, popularAffection: -12, budget: -3, militaryReadiness: -4, partyUnity: +5 },
+        outcomeText: `Soviet forces move into Georgia. The international response is immediate and harsh. Within Georgia, the intervention hardens every remaining moderate into a separatist. The military operation achieves tactical control of Tbilisi and little else. The war for Georgian hearts and minds is irretrievably lost.`,
+      },
+    ],
+  },
+
+  // ── POST-COUP AFTERMATH — September 1991 (Olivia — Card 47) ──────────────────
+  {
+    id: 'post_coup_aftermath_1991',
+    name: 'After the Coup — Gorbachev Returns to Moscow',
+    image: 'images/coup_attempt.jpg',
+    caption: 'Москва, сентябрь 1991 — Горбачёв возвращается',
+    trigger: { month: 9, year: 1991 },
+    description: `Comrade General Secretary — you have returned to Moscow. The coup has failed. The men you appointed — Yanayev, Kryuchkov, Yazov, Pavlov — attempted to take power and were repudiated by their own country. The Soviet public did not support them. Boris Yeltsin stood on a tank. Three young men died near the White House barricades.
+
+You survived. The question now is what comes next. Raisa is exhausted and deeply shaken. You are yourself tired in a way that goes beyond the physical. And yet the union treaty negotiations remain unresolved, the economy continues to deteriorate, and the political ground has shifted in ways that are only beginning to become clear.`,
+    choices: [
+      {
+        text: 'Deliver an address to the nation — pledge to prosecute the conspirators and renew the reform programme',
+        effects: { popularAffection: +12, foreignRelations: +6, partyUnity: -10, stability: +5 },
+        outcomeText: `The address is broadcast on state television. You pledge accountability, press freedom, and the continuation of perestroika. The international response is warm. At home, the reformist faction is energised. Hardliners, now discredited, are silenced for the moment.`,
+      },
+      {
+        text: 'Step back — Raisa and your family need you, and the nation needs time before any decisions are made',
+        effects: { popularAffection: -4, foreignRelations: -3, stability: -3, partyUnity: -3 },
+        outcomeText: `You withdraw from public life. The gap is filled by others — by Yeltsin, by the republic leaders. When you re-emerge, the political landscape has reorganised itself around your absence. Recovery is possible, but the initiative has been lost.`,
+      },
+      {
+        text: 'Resign now — the coup has ended your legitimacy; step down with dignity before being pushed',
+        effects: { popularAffection: -5, foreignRelations: -4, stability: +8, partyUnity: +4 },
+        outcomeText: `You announce your resignation. The act is dignified, if painful. History will note that when the moment came, you chose the country over the position. The reform project is handed to others. What they do with it is not yours to control.`,
+      },
     ],
   },
 
