@@ -3277,13 +3277,13 @@ window.dismissIntro = window.dismissIntro || function(){
     <div style="margin-top:1.5rem;" class="advisor-panel">
       <div class="section-title panel-header">Active Advisors</div>
       <div class="filter-row" id="advisor-filters">
-        <button class="filter-btn active" onclick="setAdvisorFilter('Active', this)">Active</button>
+        <button class="filter-btn active" onclick="setAdvisorFilter('All', this)">All</button>
+        <button class="filter-btn" onclick="setAdvisorFilter('Active', this)">Active</button>
         <button class="filter-btn" onclick="setAdvisorFilter('Available', this)">Available</button>
         <button class="filter-btn" onclick="setAdvisorFilter('Reformist', this)">Reformist</button>
         <button class="filter-btn" onclick="setAdvisorFilter('Conservative', this)">Conservative</button>
         <button class="filter-btn" onclick="setAdvisorFilter('Centrist', this)">Centrist</button>
         <button class="filter-btn" onclick="setAdvisorFilter('Hardliner', this)">Hardliner</button>
-        <button class="filter-btn" onclick="setAdvisorFilter('All', this)">All</button>
       </div>
       <div class="advisor-grid" id="advisor-grid"></div>
     </div><!-- /advisor-panel -->
@@ -3487,7 +3487,7 @@ const gameState = {
 // UI State (filters)
 const uiState = {
   policyCategory: 'All',
-  advisorFaction: 'Active',
+  advisorFaction: 'All',
   advisorDetailId: null,
   audioMuted: false,
   audioVolume: 0.7,
@@ -13955,85 +13955,139 @@ window.launcherStartGame = function(){
 </script>
 
 
-<script id="advisor-tabs-and-raisa-fix">
-// Advisor UI polish + Raisa protection.
-// - Active is the default advisor tab.
-// - All is moved to the end of the advisor filter row.
-// - Raisa is not a replaceable office-holder; no successor can be appointed to her personal slot.
-(function advisorTabsAndRaisaFix(){
-  function reorderAdvisorTabs(){
-    const row = document.getElementById('advisor-filters');
-    if (!row) return;
-    const desired = ['Active', 'Available', 'Reformist', 'Conservative', 'Centrist', 'Hardliner', 'All'];
-    const buttons = Array.from(row.querySelectorAll('button'));
-    desired.forEach(label => {
-      const btn = buttons.find(b => String(b.textContent || '').trim() === label);
-      if (btn) row.appendChild(btn);
-    });
-    row.querySelectorAll('button').forEach(btn => btn.classList.remove('active'));
-    const activeBtn = Array.from(row.querySelectorAll('button')).find(b => String(b.textContent || '').trim() === 'Active');
-    if (activeBtn) activeBtn.classList.add('active');
+<script id="personnel-pressure-repeat-fix">
+// Personnel pressure repeat fix.
+// Once the player answers a personnel-pressure event, suppress that same personnel
+// question for a defined interval so it does not re-open every month while the
+// broader succession problem remains unresolved.
+(function personnelPressureRepeatFix(){
+  function getRuleIdFromPersonnelEventId(eventId){
+    const m = String(eventId || '').match(/^advisor_pressure_(.+)_(warning|crisis)$/);
+    return m ? m[1] : null;
+  }
+  function decisionKey(ruleOrId){
+    const id = typeof ruleOrId === 'string' ? ruleOrId : (ruleOrId && ruleOrId.id);
+    return 'advisor_pressure_' + id + '_decision_until';
+  }
+  function currentIdx(){
+    try { return typeof currentMonthIndex === 'function' ? currentMonthIndex() : ((gameState.year || 1985) * 12 + (gameState.month || 1)); }
+    catch(e){ return 0; }
+  }
+  function isPersonnelSuppressed(rule){
+    if (!rule || !gameState || !gameState.advisorPressure) return false;
+    return Number(gameState.advisorPressure[decisionKey(rule)] || 0) >= currentIdx();
+  }
+  function markPersonnelDecision(event, choice){
+    const ruleId = getRuleIdFromPersonnelEventId(event && event.id);
+    if (!ruleId) return;
+    if (!gameState.advisorPressure) gameState.advisorPressure = {};
+
+    const txt = String(choice && choice.text || '').toLowerCase();
+    let months = 6;
+    if (txt.includes('postpone') || txt.includes('unresolved contradiction') || txt.includes('let the unresolved')) months = 3;
+    if (txt.includes('prepare') || txt.includes('force the personnel') || txt.includes('politburo agenda')) months = 12;
+    if (txt.includes('defend continuity') || txt.includes('trade concessions')) months = 6;
+
+    gameState.advisorPressure[decisionKey(ruleId)] = currentIdx() + months;
+    // Also mark both modal stages as fired defensively, in case older saves missed one.
+    if (!gameState.firedTriggers) gameState.firedTriggers = {};
+    gameState.firedTriggers['advisor_pressure_' + ruleId + '_warning'] = true;
+    gameState.firedTriggers['advisor_pressure_' + ruleId + '_crisis'] = true;
+
+    if (typeof addLog === 'function') {
+      addLog('Personnel question recorded: the same succession file will not be re-submitted for ' + months + ' months unless the office changes.', 'advisor');
+    }
   }
 
-  function setDefaultAdvisorFilter(){
-    try {
-      if (typeof uiState !== 'undefined') uiState.advisorFaction = 'Active';
-      reorderAdvisorTabs();
-      if (typeof renderPersonnelQuestions === 'function') renderPersonnelQuestions();
-      if (typeof renderAdvisors === 'function') renderAdvisors();
-    } catch(e) {}
+  if (typeof resolveEventChoice === 'function' && !resolveEventChoice.__personnelRepeatFix) {
+    const originalResolveEventChoice = resolveEventChoice;
+    resolveEventChoice = function(choiceIdx){
+      try {
+        const event = activeEvent;
+        const choice = event && event.choices ? event.choices[choiceIdx] : null;
+        markPersonnelDecision(event, choice);
+      } catch(e) {}
+      return originalResolveEventChoice(choiceIdx);
+    };
+    resolveEventChoice.__personnelRepeatFix = true;
   }
 
-  function installRaisaGuards(){
-    try {
-      if (typeof isAdvisorCandidateForVacantSlot === 'function' && !isAdvisorCandidateForVacantSlot.__raisaGuard) {
-        const originalIsAdvisorCandidateForVacantSlot = isAdvisorCandidateForVacantSlot;
-        isAdvisorCandidateForVacantSlot = function(advisorId){
-          const a = typeof getAdvisorById === 'function' ? getAdvisorById(advisorId) : null;
-          const slot = typeof getAdvisorSlot === 'function' ? getAdvisorSlot(a) : null;
-          if (slot === 'personal' && advisorId !== 'raisa') return false;
-          return originalIsAdvisorCandidateForVacantSlot(advisorId);
-        };
-        isAdvisorCandidateForVacantSlot.__raisaGuard = true;
-      }
-
-      if (typeof getReplacementCandidatesForAdvisor === 'function' && !getReplacementCandidatesForAdvisor.__raisaGuard) {
-        const originalGetReplacementCandidatesForAdvisor = getReplacementCandidatesForAdvisor;
-        getReplacementCandidatesForAdvisor = function(advisorId){
-          const outgoing = typeof getAdvisorById === 'function' ? getAdvisorById(advisorId) : null;
-          const slot = typeof getAdvisorSlot === 'function' ? getAdvisorSlot(outgoing) : null;
-          if (advisorId === 'raisa' || slot === 'personal') return [];
-          return originalGetReplacementCandidatesForAdvisor(advisorId).filter(c => c && c.id !== 'raisa' && getAdvisorSlot(c) !== 'personal');
-        };
-        getReplacementCandidatesForAdvisor.__raisaGuard = true;
-      }
-
-      if (typeof replaceAdvisor === 'function' && !replaceAdvisor.__raisaGuard) {
-        const originalReplaceAdvisor = replaceAdvisor;
-        replaceAdvisor = function(outgoingId, incomingId){
-          const outgoing = typeof getAdvisorById === 'function' ? getAdvisorById(outgoingId) : null;
-          const slot = typeof getAdvisorSlot === 'function' ? getAdvisorSlot(outgoing) : null;
-          if (outgoingId === 'raisa' || slot === 'personal') {
-            if (typeof addLog === 'function') addLog('Raisa is not an office-holder subject to appointment or replacement. The personal circle cannot be filled by a bureaucratic personnel order.', 'advisor');
-            return;
-          }
-          return originalReplaceAdvisor(outgoingId, incomingId);
-        };
-        replaceAdvisor.__raisaGuard = true;
-      }
-    } catch(e) {}
+  if (typeof getPersonnelQuestions === 'function' && !getPersonnelQuestions.__personnelRepeatFix) {
+    const originalGetPersonnelQuestions = getPersonnelQuestions;
+    getPersonnelQuestions = function(){
+      const rows = originalGetPersonnelQuestions() || [];
+      return rows.map(q => {
+        if (q && q.rule && isPersonnelSuppressed(q.rule)) {
+          return { ...q, activeProblem:false, pending:false, suppressed:true };
+        }
+        return q;
+      });
+    };
+    getPersonnelQuestions.__personnelRepeatFix = true;
   }
 
-  function applyFixes(){
-    installRaisaGuards();
-    setDefaultAdvisorFilter();
-  }
+  if (typeof applyAdvisorReplacementPressure === 'function' && !applyAdvisorReplacementPressure.__personnelRepeatFix) {
+    applyAdvisorReplacementPressure = function(){
+      ensureAdvisorSlotDefaults();
+      if (!gameState.advisorPressure) gameState.advisorPressure = {};
+      const now = currentIdx();
+      ADVISOR_SUCCESSION_PRESSURES.forEach(rule => {
+        const due = monthIndex(rule.due);
+        if (now <= due) return;
+        if (isPersonnelSuppressed(rule)) return;
+        if (!isSuccessionPressureActive(rule)) return;
 
-  // Apply now if possible, then again after DOM/startup rendering.
-  applyFixes();
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', applyFixes, { once:true });
-  window.addEventListener('load', applyFixes, { once:true });
-  setTimeout(applyFixes, 250);
+        const monthsOverdue = now - due;
+        const recommended = getAdvisorById(rule.recommendedAdvisor);
+        const activeId = getActiveAdvisorIdForSlot(rule.slot);
+        const active = activeId ? getAdvisorById(activeId) : null;
+        const office = advisorSlotLabel(rule.slot);
+
+        applyAdvisorPressureEffects(rule.monthlyEffects);
+
+        const lastLogKey = advisorPressureKey(rule, 'last_log');
+        if (!gameState.advisorPressure[lastLogKey] || monthsOverdue - gameState.advisorPressure[lastLogKey] >= 3) {
+          gameState.advisorPressure[lastLogKey] = monthsOverdue;
+          const subject = active ? active.name : 'the vacant ' + office + ' office';
+          addLog('Personnel pressure: ' + subject + ' is ' + monthsOverdue + ' month' + (monthsOverdue === 1 ? '' : 's') + ' overdue for a succession decision. ' + (recommended ? 'Historically plausible option: ' + recommended.name + '.' : ''), 'advisor');
+        }
+
+        const warningKey = advisorPressureKey(rule, 'warning');
+        if (monthsOverdue >= rule.warningAfter && !gameState.firedTriggers[warningKey]) {
+          gameState.firedTriggers[warningKey] = true;
+          displayTriggerEvent({
+            id: warningKey,
+            name: rule.title,
+            image: advisorPressureEventImage(active, recommended),
+            description: rule.description + '\n\nThe office concerned is ' + office + '. The recommended historical solution is ' + (recommended ? recommended.name : 'a new appointment') + ', but the decision remains political: move now, defend continuity, or postpone and absorb the damage.',
+            choices: [
+              { text: 'Prepare the transition toward ' + (recommended ? recommended.name : 'a new appointment'), effects:{ partyUnity:-1, popularAffection:+1 }, budgetGain:4 },
+              { text: 'Defend continuity for now', effects:{ partyUnity:+2, popularAffection:-2 } },
+              { text: 'Postpone the matter', effects:{ stability:-1, partyUnity:-1 } }
+            ]
+          });
+        }
+
+        const crisisKey = advisorPressureKey(rule, 'crisis');
+        if (monthsOverdue >= rule.crisisAfter && !gameState.firedTriggers[crisisKey]) {
+          gameState.firedTriggers[crisisKey] = true;
+          applyAdvisorPressureEffects(rule.crisisEffects);
+          displayTriggerEvent({
+            id: crisisKey,
+            name: rule.title + ': Apparatus Friction',
+            image: advisorPressureEventImage(active, recommended),
+            description: rule.description + '\n\nDelay has now become visible inside the apparatus. Rival factions are interpreting the unresolved personnel question as weakness, and ministries are adjusting their behaviour accordingly.',
+            choices: [
+              { text:'Force the personnel question onto the Politburo agenda', effects:{ partyUnity:-3, popularAffection:+2 }, budgetGain:6 },
+              { text:'Trade concessions for continued support', effects:{ partyUnity:+4, popularAffection:-4, economy:-1 } },
+              { text:'Let the unresolved contradiction stand', effects:{ stability:-3, partyUnity:-2 } }
+            ]
+          });
+        }
+      });
+    };
+    applyAdvisorReplacementPressure.__personnelRepeatFix = true;
+  }
 })();
 </script>
 
