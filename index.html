@@ -480,6 +480,50 @@
   .utility-panel.soviet-radio .radio-speaker-grille{position:relative;overflow:hidden;height:52px;margin:7px 26px 8px;border:2px solid rgba(70,32,12,.86);border-radius:7px;background-color:#c7ad8d;background-image:linear-gradient(180deg,rgba(255,246,224,.30),rgba(97,61,33,.24)),repeating-linear-gradient(90deg,rgba(246,232,206,.58) 0 6px,rgba(142,105,72,.28) 6px 9px,rgba(199,173,141,.16) 9px 12px);box-shadow:inset 0 1px 2px rgba(255,255,255,.35),inset 0 -4px 8px rgba(48,22,8,.36),0 2px 4px rgba(0,0,0,.25);}
 
 
+  /* RADIO CONTROL ICONS — CSS-drawn, non-emoji, consistent on desktop and mobile */
+  .utility-panel.soviet-radio .radio-icon-btn,
+  .utility-panel.soviet-radio .radio-icon-btn:hover,
+  .utility-panel.soviet-radio .radio-icon-btn:focus,
+  .utility-panel.soviet-radio .radio-icon-btn:active,
+  .utility-panel.soviet-radio .radio-icon-btn.muted{
+    -webkit-appearance:none;appearance:none;
+    width:34px;height:29px;min-width:34px;
+    padding:0!important;
+    border:1px solid #efe6cd;
+    border-radius:4px;
+    background:#d7cdb2;
+    background-image:linear-gradient(180deg,#f5efd8 0%,#d7cdb2 54%,#b9aa8a 100%);
+    color:#1b1108;
+    opacity:1;
+    text-shadow:none;
+    filter:none;
+    font-family:Arial,Helvetica,sans-serif;
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.76),inset 0 -3px 0 rgba(75,43,18,.22),0 2px 0 #231005,0 4px 8px rgba(0,0,0,.28);
+  }
+  .utility-panel.soviet-radio .radio-icon-btn.muted{
+    background-image:linear-gradient(180deg,#f2ead2 0%,#d0c4a9 54%,#b09d7d 100%);
+    color:#1b1108;
+  }
+  .utility-panel.soviet-radio .radio-icon-btn:active{transform:translateY(2px);box-shadow:inset 0 2px 5px rgba(0,0,0,.32),0 1px 0 #231005;}
+  .utility-panel.soviet-radio .radio-symbol{position:relative;display:block;width:19px;height:18px;color:#1b1108;line-height:1;}
+  .utility-panel.soviet-radio .radio-symbol::before,
+  .utility-panel.soviet-radio .radio-symbol::after{content:'';position:absolute;display:block;box-sizing:border-box;}
+  .utility-panel.soviet-radio .radio-symbol-prev::before{left:4px;top:4px;width:0;height:0;border-top:5px solid transparent;border-bottom:5px solid transparent;border-right:7px solid currentColor;filter:drop-shadow(6px 0 0 currentColor);}
+  .utility-panel.soviet-radio .radio-symbol-prev::after{left:1px;top:3px;width:2px;height:12px;background:currentColor;border-radius:1px;}
+  .utility-panel.soviet-radio .radio-symbol-next::before{right:4px;top:4px;width:0;height:0;border-top:5px solid transparent;border-bottom:5px solid transparent;border-left:7px solid currentColor;filter:drop-shadow(-6px 0 0 currentColor);}
+  .utility-panel.soviet-radio .radio-symbol-next::after{right:1px;top:3px;width:2px;height:12px;background:currentColor;border-radius:1px;}
+  .utility-panel.soviet-radio .radio-symbol-pause::before{left:5px;top:3px;width:4px;height:12px;background:currentColor;border-radius:1px;box-shadow:7px 0 0 currentColor;}
+  .utility-panel.soviet-radio .radio-symbol-play::before{left:6px;top:3px;width:0;height:0;border-top:6px solid transparent;border-bottom:6px solid transparent;border-left:10px solid currentColor;}
+  .utility-panel.soviet-radio .radio-symbol-speaker::before,
+  .utility-panel.soviet-radio .radio-symbol-speaker-muted::before{left:2px;top:6px;width:6px;height:7px;background:currentColor;border-radius:1px;clip-path:polygon(0 22%,45% 22%,100% 0,100% 100%,45% 78%,0 78%);}
+  .utility-panel.soviet-radio .radio-symbol-speaker::after{left:10px;top:4px;width:7px;height:10px;border:2px solid currentColor;border-left:0;border-top-color:transparent;border-bottom-color:transparent;border-radius:0 9px 9px 0;}
+  .utility-panel.soviet-radio .radio-symbol-speaker-muted::after{left:10px;top:3px;width:2px;height:14px;background:#6d140f;border-radius:2px;transform:rotate(-38deg);box-shadow:0 0 0 1px rgba(246,239,220,.34);}
+  @media (max-width: 700px){
+    .utility-panel.soviet-radio .radio-controls{gap:7px;margin-top:8px;flex-wrap:nowrap;}
+    .utility-panel.soviet-radio .radio-icon-btn{width:34px;height:29px;min-width:34px;}
+  }
+
+
   /* Game-over screen: kill the 2-col newspaper layout, let card scroll freely */
   .event-panel.pravda.is-ending .pravda-body { column-count:1 !important; }
   .event-panel.pravda.is-ending .pravda-modal-card { max-height:none !important; overflow-y:visible !important; }
@@ -2897,18 +2941,12 @@ window.dismissIntro = window.dismissIntro || function(){
       <div class="launcher-credits-panel" id="launcher-credits-panel">
         <div class="launcher-credits-title">Credits &amp; Acknowledgments</div>
         <div class="launcher-credits-body">
-          <strong>Engine &amp; Interface</strong> — Team 5<br/>
-          <strong>Domestic Policies</strong> — Team 1<br/>
-          <strong>Foreign Policies</strong> — Team 2<br/>
-          <strong>Events</strong> — Team 3<br/>
-          <strong>Advisors</strong> — Team 4<br/>
-          <strong>Library &amp; Narrative</strong> — Team 6<br/><br/>
           <strong>Groups</strong><br/>
-          <strong>Olivia</strong> — Domestic Pol: Eamon; Foreign Pol: Charlie; Advisors: Yiqing; Events: George<br/>
-          <strong>Rasoul</strong> — Domestic Pol: Celine; Foreign Pol: Aadan; Advisors: Pauline; Events: Ben Collins<br/>
-          <strong>Leili</strong> — Domestic Pol: Rayan; Foreign Pol: Wenbo; Advisors: Cypress<br/>
-          <strong>Cholan ?</strong> — Domestic Pol: Mariam; Foreign Pol: Vivian; Advisors: Eric<br/>
-          <strong>Viet</strong> — Domestic Pol: Khin; Foreign Pol: Peter; Advisors: Lev<br/><br/>
+          <strong>Domestic Policies</strong> — Olivia, Rasoul, Leili, Cholan, Viet<br/>
+          <strong>Foreign Policies</strong> — Eamon, Celine, Rayan, Mariam, Khin<br/>
+          <strong>Advisors</strong> — Charlie, Aadan, Wenbo, Vivian, Peter<br/>
+          <strong>Events</strong> — Yiqing, Pauline, Cypress, Eric, Lev<br/>
+          <strong>Game Engine/Interface</strong> — Ben Freeman Collins, George<br/><br/>
           Built as part of an experimental project in digital history pedagogy. Original game design by POL487, Summer 2026.
         </div>
       </div>
@@ -3147,10 +3185,10 @@ window.dismissIntro = window.dismissIntro || function(){
     <input id="music-volume" type="range" min="0" max="100" value="30" oninput="setMusicVolume(this.value)" />
   </div>
   <div class="utility-row radio-controls">
-    <button class="btn radio-icon-btn" id="prev-background-music" onclick="previousBackgroundMusic()" aria-label="Previous background music track" title="Previous track"><span class="icon" aria-hidden="true">⏮</span></button>
-    <button class="btn radio-icon-btn" id="play-pause-music" onclick="toggleBackgroundMusicPlayback()" aria-label="Pause background music" title="Pause music"><span class="icon" aria-hidden="true">⏸</span></button>
-    <button class="btn radio-icon-btn" id="audio-toggle" onclick="toggleAudioMute()" aria-label="Mute audio" title="Mute audio"><span class="icon" aria-hidden="true">🔊</span></button>
-    <button class="btn radio-icon-btn" id="skip-background-music" onclick="skipBackgroundMusic()" aria-label="Next background music track" title="Next track"><span class="icon" aria-hidden="true">⏭</span></button>
+    <button class="btn radio-icon-btn" id="prev-background-music" onclick="previousBackgroundMusic()" aria-label="Previous background music track" title="Previous track"><span class="radio-symbol radio-symbol-prev" aria-hidden="true"></span></button>
+    <button class="btn radio-icon-btn" id="play-pause-music" onclick="toggleBackgroundMusicPlayback()" aria-label="Pause background music" title="Pause music"><span class="radio-symbol radio-symbol-pause" aria-hidden="true"></span></button>
+    <button class="btn radio-icon-btn" id="audio-toggle" onclick="toggleAudioMute()" aria-label="Mute audio" title="Mute audio"><span class="radio-symbol radio-symbol-speaker" aria-hidden="true"></span></button>
+    <button class="btn radio-icon-btn" id="skip-background-music" onclick="skipBackgroundMusic()" aria-label="Next background music track" title="Next track"><span class="radio-symbol radio-symbol-next" aria-hidden="true"></span></button>
   </div>
   <div class="save-status" id="save-status"></div>
 </div>
@@ -12850,7 +12888,7 @@ function renderUtility(){
   const toggle = document.getElementById('audio-toggle');
   if (toggle) {
     const muted = !!uiState.audioMuted;
-    toggle.innerHTML = `<span class="icon" aria-hidden="true">${muted ? '🔇' : '🔊'}</span>`;
+    toggle.innerHTML = `<span class="radio-symbol ${muted ? 'radio-symbol-speaker-muted' : 'radio-symbol-speaker'}" aria-hidden="true"></span>`;
     toggle.setAttribute('aria-label', muted ? 'Unmute audio' : 'Mute audio');
     toggle.title = muted ? 'Unmute audio' : 'Mute audio';
     toggle.classList.toggle('muted', muted);
@@ -12861,7 +12899,7 @@ function renderUtility(){
     const manualPause = (typeof musicManuallyPaused !== 'undefined' && !!musicManuallyPaused);
     const suppressed = (typeof isBackgroundMusicSuppressed === 'function') ? isBackgroundMusicSuppressed() : false;
     const paused = manualPause || (musicReady && musicAudio.paused && gameStarted && !suppressed);
-    playPause.innerHTML = `<span class="icon" aria-hidden="true">${paused ? '▶' : '⏸'}</span>`;
+    playPause.innerHTML = `<span class="radio-symbol ${paused ? 'radio-symbol-play' : 'radio-symbol-pause'}" aria-hidden="true"></span>`;
     playPause.setAttribute('aria-label', paused ? 'Play background music' : 'Pause background music');
     playPause.title = paused ? 'Play music' : 'Pause music';
   }
