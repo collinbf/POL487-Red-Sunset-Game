@@ -368,6 +368,116 @@
   .policy-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(140px,1fr)); gap:8px; }
   .policy-card { background:transparent; border:none; border-radius:2px; padding:8px; cursor:pointer; transition:background .15s,transform .15s; font-size:11px; }
   .policy-card:hover { background:transparent; transform:translateY(-2px); }
+
+  /* ── POLICY ZOOM MODAL ─────────────────────────────────────────────────── */
+  #policy-zoom-overlay {
+    display:none; position:fixed; inset:0; background:rgba(20,10,5,0.82);
+    z-index:9200; align-items:center; justify-content:center;
+    padding:1.5rem; backdrop-filter:blur(3px);
+  }
+  #policy-zoom-overlay.open { display:flex; }
+  .policy-zoom-card {
+    position:relative;
+    background:linear-gradient(180deg, rgba(255,255,255,0.12) 0%, rgba(242,234,216,0.97) 40%, rgba(232,220,192,0.99) 100%);
+    border:4px solid rgba(92,17,17,0.90);
+    border-radius:5px;
+    box-shadow:12px 12px 0 rgba(92,17,17,0.55), 0 28px 48px rgba(0,0,0,0.40);
+    padding:28px 28px 24px;
+    width:min(400px,90vw);
+    max-height:85vh;
+    overflow-y:auto;
+    animation:pzoom-in .18s cubic-bezier(.22,1,.36,1) both;
+  }
+  @keyframes pzoom-in {
+    from { opacity:0; transform:scale(.78) translateY(18px); }
+    to   { opacity:1; transform:scale(1) translateY(0); }
+  }
+  .policy-zoom-card::before {
+    content:''; position:absolute; inset:12px;
+    border:1px solid rgba(255,255,255,0.22); pointer-events:none;
+  }
+  .policy-zoom-card::after {
+    content:'\2606'; position:absolute; inset:0;
+    display:grid; place-items:center; font-size:130px;
+    color:rgba(92,17,17,0.07); pointer-events:none;
+  }
+  .pzoom-corner-tl {
+    position:absolute; top:8px; left:10px;
+    font-family:'IM Fell English',serif; font-size:11px; font-style:italic;
+    color:rgba(92,17,17,0.65); letter-spacing:.03em;
+  }
+  .pzoom-corner-br {
+    position:absolute; bottom:8px; right:10px;
+    font-family:'IM Fell English',serif; font-size:11px; font-style:italic;
+    color:rgba(92,17,17,0.65);
+  }
+  .pzoom-cost-unit { font-size:10px; opacity:.75; }
+  .pzoom-close {
+    position:absolute; top:10px; right:12px; background:none; border:none;
+    font-size:20px; cursor:pointer; color:rgba(92,17,17,0.65); line-height:1;
+    padding:2px 5px; border-radius:2px; transition:color .12s, background .12s;
+    z-index:2;
+  }
+  .pzoom-close:hover { color:var(--red-dark); background:rgba(139,26,26,.1); }
+  .pzoom-name {
+    font-family:'Playfair Display',serif; font-size:22px; font-weight:700;
+    color:var(--red-dark); margin:18px 0 8px; line-height:1.2;
+  }
+  .pzoom-category {
+    font-family:'IM Fell English',serif; font-size:13px; font-style:italic;
+    color:var(--amber); margin-bottom:10px; text-transform:uppercase; letter-spacing:.08em;
+  }
+  .pzoom-desc {
+    font-family:'IM Fell English',serif; font-size:15px; line-height:1.6;
+    color:var(--ink); margin-bottom:14px;
+  }
+  .pzoom-effects {
+    background:rgba(43,31,16,0.06); border:1px solid rgba(139,26,26,0.2);
+    border-radius:3px; padding:10px 12px; margin-bottom:14px;
+    font-family:'IM Fell English',serif; font-size:13px; line-height:1.7;
+  }
+  .pzoom-effects strong { font-size:11px; letter-spacing:.08em; text-transform:uppercase; opacity:.6; display:block; margin-bottom:4px; }
+  .pzoom-lock {
+    font-family:'IM Fell English',serif; font-size:13px; font-style:italic;
+    color:var(--red); background:rgba(139,26,26,0.07);
+    border:1px solid rgba(139,26,26,0.25); border-radius:3px;
+    padding:8px 12px; margin-bottom:14px; line-height:1.5;
+  }
+  .pzoom-status {
+    font-size:12px; letter-spacing:.05em; text-transform:uppercase;
+    padding:3px 9px; border-radius:2px; display:inline-block; margin-bottom:12px;
+  }
+  .pzoom-status.ready { background:rgba(45,110,68,.15); color:var(--green); border:1px solid rgba(45,110,68,.35); }
+  .pzoom-status.locked { background:rgba(139,26,26,.12); color:var(--red); border:1px solid rgba(139,26,26,.3); }
+  .pzoom-status.done   { background:rgba(139,106,24,.12); color:var(--amber); border:1px solid rgba(139,106,24,.3); }
+  .pzoom-actions { display:flex; gap:10px; align-items:center; margin-top:6px; flex-wrap:wrap; }
+  .pzoom-btn-select {
+    font-family:'Playfair Display',serif; font-size:13px; font-weight:700;
+    background:var(--red-dark); color:var(--cream); border:2px solid rgba(92,17,17,0.80);
+    padding:9px 22px; border-radius:3px; cursor:pointer; letter-spacing:.06em;
+    transition:background .14s, transform .12s;
+  }
+  .pzoom-btn-select:hover { background:var(--red); transform:translateY(-1px); }
+  .pzoom-btn-select:disabled { opacity:.45; cursor:not-allowed; transform:none; }
+  .pzoom-btn-deselect {
+    font-family:'Playfair Display',serif; font-size:13px; font-weight:700;
+    background:transparent; color:var(--red-dark); border:2px solid rgba(92,17,17,0.60);
+    padding:9px 22px; border-radius:3px; cursor:pointer; letter-spacing:.06em;
+    transition:background .14s;
+  }
+  .pzoom-btn-deselect:hover { background:rgba(139,26,26,.1); }
+  .pzoom-btn-cancel {
+    font-family:'IM Fell English',serif; font-style:italic; font-size:13px;
+    background:none; border:none; cursor:pointer; color:rgba(43,31,16,0.55);
+    padding:9px 8px; transition:color .12s;
+  }
+  .pzoom-btn-cancel:hover { color:var(--ink); }
+  .pzoom-add-hand {
+    font-family:'IM Fell English',serif; font-style:italic; font-size:12px;
+    color:var(--amber); background:rgba(139,106,24,.1); border:1px solid rgba(139,106,24,.3);
+    border-radius:3px; padding:7px 14px; cursor:pointer; transition:background .12s;
+  }
+  .pzoom-add-hand:hover { background:rgba(139,106,24,.2); }
   .policy-name { font-family:'Playfair Display',serif; font-weight:700; font-size:12px; margin-bottom:3px; color:var(--red-dark); }
   .policy-cost { font-size:9px; color:var(--gold); margin-bottom:2px; }
   .policy-effect { font-size:10px; line-height:1.4; color:var(--ink); opacity:.75; }
@@ -3644,7 +3754,7 @@ function buildPolicyCardHtml(p, { selectable = true, selected = false, showAddTo
   const availability = getPolicyAvailability(p);
   const isSel = selected;
   const lockHtml = availability.available ? '' : `<div class="policy-lock">${availability.reasons.map(escapeHtml).join('<br>')}</div>`;
-  const click = `onclick="togglePolicySelection('${p.id}')"`;
+  const click = `onclick="openPolicyZoom('${p.id}')"`;
   const statusHtml = treeStatusLabel ? `<div class="policy-status tree-status ${treeStatusTone}">${escapeHtml(treeStatusLabel)}</div>` : '';
   const addToHand = `<span class="not-in-hand-badge">Not in current hand</span>
     <button class="btn-add-to-hand" onclick="event.stopPropagation();addPolicyToHand('${p.id}')">+ Add to Hand</button>`;
@@ -14031,6 +14141,9 @@ function closePravdaOutcome() {
 
 <!-- PRAVDA OUTCOME MODAL — shown after a choice, with the long narrative text -->
 <!-- VIDEO LIGHTBOX MODAL -->
+<!-- ── POLICY ZOOM MODAL ──────────────────────────────────────────────────── -->
+<div id="policy-zoom-overlay" onclick="if(event.target===this)closePolicyZoom()"></div>
+
 <div id="video-modal-overlay" onclick="if(event.target===this)closeVideoModal()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.88);z-index:9500;align-items:center;justify-content:center;">
   <div style="position:relative;width:90%;max-width:800px;">
     <button onclick="closeVideoModal()" aria-label="Close video" style="position:absolute;top:-38px;right:0;background:transparent;border:none;font-size:28px;color:#fff;cursor:pointer;line-height:1;opacity:.8;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.8'">&times;</button>
@@ -14622,6 +14735,84 @@ function closeLVPhotoModal() {
   if (overlay) overlay.style.display = 'none';
   // Resume patriotic song if dissolution ending is showing
   if (typeof resumePatrioticSong === 'function') resumePatrioticSong();
+}
+</script>
+
+<script>
+// ── POLICY CARD ZOOM ─────────────────────────────────────────────────────────
+function openPolicyZoom(policyId) {
+  var overlay = document.getElementById('policy-zoom-overlay');
+  if (!overlay) return;
+  var p = (typeof policies !== 'undefined' ? policies : []).find(function(x){ return x.id === policyId; });
+  if (!p) return;
+
+  var availability = (typeof getPolicyAvailability === 'function') ? getPolicyAvailability(p) : { available: true, reasons: [] };
+  var isSelected = gameState && gameState.selectedPolicies && gameState.selectedPolicies.includes(policyId);
+  var isCommitted = gameState && gameState.policiesCommittedTurn === gameState.turn;
+  var effectsHtml = (typeof formatEffects === 'function' && p.effects) ? formatEffects(p.effects) : '';
+  var descHtml = p.description ? '<div class="pzoom-desc">' + (typeof escapeHtml === 'function' ? escapeHtml(p.description) : p.description) + '</div>' : '';
+
+  var statusHtml = '';
+  if (!availability.available) {
+    statusHtml = '<div class="pzoom-status locked">Locked</div>';
+  } else if (isSelected) {
+    statusHtml = '<div class="pzoom-status ready">Selected</div>';
+  } else {
+    statusHtml = '<div class="pzoom-status ready">Available</div>';
+  }
+
+  var lockHtml = '';
+  if (!availability.available && availability.reasons && availability.reasons.length) {
+    lockHtml = '<div class="pzoom-lock">' + availability.reasons.map(function(r){ return typeof escapeHtml === 'function' ? escapeHtml(r) : r; }).join('<br>') + '</div>';
+  }
+
+  var effectsBlock = effectsHtml ? '<div class="pzoom-effects"><strong>Effects</strong>' + effectsHtml + '</div>' : '';
+
+  // Action buttons
+  var actionHtml = '';
+  if (!isCommitted) {
+    if (isSelected) {
+      actionHtml = '<button class="pzoom-btn-deselect" onclick="togglePolicySelection(\'' + policyId + '\');closePolicyZoom();">Deselect</button>';
+    } else if (availability.available) {
+      actionHtml = '<button class="pzoom-btn-select" onclick="togglePolicySelection(\'' + policyId + '\');closePolicyZoom();">Select This Policy</button>';
+    }
+  }
+  // "Add to hand" button if in tree view and not in hand
+  var inHand = gameState && gameState.policyHandIds && gameState.policyHandIds.includes(policyId);
+  var addHandBtn = (!inHand && availability.available && typeof addPolicyToHand === 'function')
+    ? '<button class="pzoom-add-hand" onclick="addPolicyToHand(\'' + policyId + '\');closePolicyZoom();">+ Add to Hand</button>'
+    : '';
+
+  var costLabel = p.cost != null ? 'Cost ' + p.cost + ' <span class="pzoom-cost-unit">capital</span>' : '';
+
+  overlay.innerHTML =
+    '<div class="policy-zoom-card" role="dialog" aria-modal="true" aria-label="' + (typeof escapeHtml === 'function' ? escapeHtml(p.name) : p.name) + '">' +
+      '<button class="pzoom-close" onclick="closePolicyZoom()" aria-label="Close">&times;</button>' +
+      '<div class="pzoom-corner-tl">' + (p.category || 'Policy') + '</div>' +
+      '<div class="pzoom-corner-br">' + costLabel + '</div>' +
+      '<div class="pzoom-category">' + (p.category || 'Policy') + '</div>' +
+      '<div class="pzoom-name">' + (typeof escapeHtml === 'function' ? escapeHtml(p.name) : p.name) + '</div>' +
+      statusHtml +
+      descHtml +
+      lockHtml +
+      effectsBlock +
+      '<div class="pzoom-actions">' + actionHtml + addHandBtn + '<button class="pzoom-btn-cancel" onclick="closePolicyZoom()">Close</button></div>' +
+    '</div>';
+
+  overlay.classList.add('open');
+  // Close on Escape
+  overlay._escHandler = function(e){ if(e.key==='Escape') closePolicyZoom(); };
+  document.addEventListener('keydown', overlay._escHandler);
+}
+
+function closePolicyZoom() {
+  var overlay = document.getElementById('policy-zoom-overlay');
+  if (!overlay) return;
+  overlay.classList.remove('open');
+  if (overlay._escHandler) {
+    document.removeEventListener('keydown', overlay._escHandler);
+    delete overlay._escHandler;
+  }
 }
 </script>
 
