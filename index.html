@@ -11312,10 +11312,12 @@ function endTurn() {
     // Low stability pressure
     if (stability < 65) delta += Math.floor((65 - stability) / 15);
 
-    // Historical year acceleration (independence movements radicalize post-1988)
-    if (gameState.year >= 1989) delta += 0.7;
-    if (gameState.year >= 1990) delta += 0.8;
-    if (gameState.year >= 1991) delta += 1.0;
+    // Historical year acceleration (independence movements radicalize post-1988).
+    // Reduced slightly so a well-managed game isn't a foregone conclusion —
+    // the pressure is real but high stability and popular support can partially offset it.
+    if (gameState.year >= 1989) delta += 0.5;
+    if (gameState.year >= 1990) delta += 0.5;
+    if (gameState.year >= 1991) delta += 0.6;
 
     // Glasnost and Perestroika fuel national consciousness, but should not
     // make the central reform path a near-automatic separatism death spiral.
@@ -11325,10 +11327,15 @@ function endTurn() {
     if (hasPerestroika)  delta += 0.3;
     if (hasGlasnost && hasPerestroika && stability >= 70) delta -= 0.5;
 
-    // Self-reinforcing acceleration above 50
-    if (gameState.separatism >= 50) delta += 1.0;
+    // Self-reinforcing acceleration above 50 — but only when the centre is
+    // also weak (low stability or popularity). Good governance partially
+    // channels demands through legal reform rather than outright separatism.
+    const popularAffection = Number(gameState.metrics.popularAffection || 0);
+    const centreIsWeak = stability < 55 || popularAffection < 45;
+    if (gameState.separatism >= 50 && centreIsWeak) delta += 0.8;
+    else if (gameState.separatism >= 50) delta += 0.4;
 
-    delta = clamp(delta, 0, 4); // cap per-turn growth
+    delta = clamp(delta, 0, 3.5); // cap per-turn growth (reduced from 4)
     const rounded = Math.round(delta * 10) / 10; // one decimal
     if (rounded > 0) applyMetricChange('separatism', rounded);
   })();
